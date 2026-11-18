@@ -66,6 +66,36 @@ def offline_view(request):
     return render(request, 'offline.html')
 
 
+def csrf_failure_view(request, reason=""):
+    """
+    Manejo inteligente y resiliente de fallos de verificación CSRF.
+    En formularios de login o acceso (donde los tokens rotan entre pestañas o se restauran
+    de la caché del navegador bfcache), redirige automáticamente al mismo formulario con
+    un mensaje explicativo y renueva el token CSRF para que el usuario pueda ingresar
+    sin quedarse varado en una pantalla de error técnico 403.
+    """
+    path = (request.path or '').lower()
+    es_formulario_acceso = any(p in path for p in ['/login', '/superadmin/login', '/registro'])
+
+    if es_formulario_acceso:
+        from django.contrib import messages
+        from django.middleware.csrf import rotate_token
+        try:
+            rotate_token(request)
+        except Exception:
+            pass
+        messages.warning(
+            request,
+            'La sesión del formulario expiró por seguridad o fue abierto en otra pestaña. Por favor intenta ingresar nuevamente.'
+        )
+        return redirect(request.get_full_path())
+
+    return render(request, '403_csrf.html', {
+        'reason': reason,
+        'path': request.path,
+    }, status=403)
+
+
 def api_tasa_bcv(request):
     """
     Endpoint API de la Tasa Oficial del Banco Central de Venezuela (BCV):

@@ -494,5 +494,13 @@ body {
       if (icon) icon.className = 'bi bi-eye';
     }
   }
+
+  // Si la página se recupera de la caché de historial del navegador (bfcache),
+  // recarga automáticamente para sincronizar el token CSRF con las cookies activas
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      window.location.reload();
+    }
+  });
 </script>
 {% endblock %}

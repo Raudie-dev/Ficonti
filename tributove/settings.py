@@ -62,6 +62,9 @@ USE_X_FORWARDED_PORT = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 
+# Vista personalizada para manejo resiliente de errores CSRF
+CSRF_FAILURE_VIEW = 'apps.core.views.csrf_failure_view'
+
 
 # ---------------------------------------------------------------------------
 # Aplicaciones

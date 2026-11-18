@@ -3,6 +3,7 @@ __pycache__/
 *$py.class
 .venv/
 venv/
+staticfiles/
 .bcv_cache.json
 .DS_Store
 Thumbs.db

@@ -37,6 +37,7 @@
   --tv-glow-emerald: none;
 
   --tv-sidebar-width: 265px;
+  --tv-navbar-height: 64px;
   --tv-radius-card: 12px;
   --tv-radius-pill: 8px;
 }
@@ -72,6 +73,7 @@
   --tv-glow-emerald: none;
 
   --tv-sidebar-width: 265px;
+  --tv-navbar-height: 64px;
   --tv-radius-card: 12px;
   --tv-radius-pill: 8px;
 }
@@ -195,10 +197,15 @@ a:hover {
 
 /* Cabecera del Sidebar (Exacto al PDF: TributoVE / Gestión fiscal · Venezuela) */
 .sidebar-user-header {
-  padding: 1.1rem 1.15rem 0.9rem;
+  height: var(--tv-navbar-height, 64px);
+  min-height: var(--tv-navbar-height, 64px);
+  max-height: var(--tv-navbar-height, 64px);
+  padding: 0 1.15rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  border-bottom: 1px solid var(--tv-border);
+  box-sizing: border-box;
 }
 .sidebar-user-avatar {
   width: 36px;
@@ -398,12 +405,15 @@ a:hover {
 }
 
 /* ==========================================================================
-   NAVBAR SUPERIOR (Línea 1 Compacta y Clara)
+   NAVBAR SUPERIOR (Línea 1 Compacta y Clara - Altura Sincronizada con Sidebar)
    ========================================================================== */
 .app-navbar {
+  height: var(--tv-navbar-height, 64px);
+  min-height: var(--tv-navbar-height, 64px);
+  max-height: var(--tv-navbar-height, 64px);
   background: var(--tv-surface);
   border-bottom: 1px solid var(--tv-border);
-  padding: 0.55rem 1.25rem;
+  padding: 0 1.25rem;
   position: sticky;
   top: 0;
   z-index: 1020;
@@ -411,6 +421,8 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
 }
 
 .navbar-breadcrumb {

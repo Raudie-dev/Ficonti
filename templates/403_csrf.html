@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Seguridad CSRF · TributoVE{% endblock %}
+
+{% block layout_content %}
+<div class="d-flex align-items-center justify-content-center min-vh-100 p-3" style="background: var(--tv-bg, #0B0E0C);">
+  <div class="card card-custom p-4 p-md-5 text-center shadow-lg" style="max-width: 540px; border-radius: 24px; border: 1px solid var(--tv-border);">
+    <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(234, 179, 8, 0.12); color: #eab308; font-size: 1.8rem; border: 1px solid rgba(234, 179, 8, 0.25);">
+      <i class="bi bi-shield-exclamation"></i>
+    </div>
+
+    <h2 class="fw-bold text-white mb-2" style="letter-spacing: -0.02em;">Sesión de Formulario Expirada</h2>
+    <p class="text-dim small mb-4" style="line-height: 1.5;">
+      Por protección de seguridad contra falsificación de solicitudes (CSRF), este formulario requiere un token actualizado. Esto suele ocurrir cuando la página permaneció abierta mucho tiempo o se inició sesión en otra pestaña.
+    </p>
+
+    <div class="p-3 mb-4 text-start rounded-3" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border); font-size: 0.8rem; color: var(--tv-text-muted);">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-info-circle text-lime"></i>
+        <strong class="text-white">¿Cómo resolverlo?</strong>
+      </div>
+      <span>Simplemente haz clic en <strong>Recargar Página</strong> para renovar tus credenciales de seguridad e intentar de nuevo.</span>
+    </div>
+
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2.5">
+      <button type="button" class="btn btn-dash-primary px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2" onclick="window.location.reload();">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Recargar Página</span>
+      </button>
+      <a href="{% url 'core:landing' %}" class="btn btn-outline-custom px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-house"></i>
+        <span>Volver al Inicio</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
