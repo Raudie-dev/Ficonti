@@ -1,0 +1,561 @@
+{% extends 'layouts/admin.html' %}
+{% load humanize %}
+
+{% block title %}Planes SaaS & Visibilidad · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2">
+
+  <!-- Navegación por pestañas: Planes SaaS y Datos de Cobro -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <ul class="nav nav-pills" id="planesTab" role="tablist" style="background: var(--tv-surface-subtle); padding: 4px; border-radius: 14px; border: 1px solid var(--tv-border);">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active px-3 py-2 fw-bold" id="tab-planes" data-bs-toggle="pill" data-bs-target="#content-planes" type="button" role="tab" style="border-radius: 10px; font-size: 0.85rem;">
+          <i class="bi bi-grid-fill me-1.5"></i> Planes SaaS & Portada
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-3 py-2 fw-bold" id="tab-cobro" data-bs-toggle="pill" data-bs-target="#content-cobro" type="button" role="tab" style="border-radius: 10px; font-size: 0.85rem;">
+          <i class="bi bi-wallet2 me-1.5"></i> Cuentas Bancarias de Cobro
+        </button>
+      </li>
+    </ul>
+
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'superadmin:pagos' %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2" style="border-radius: 10px; font-size: 0.82rem;">
+        <i class="bi bi-receipt-cutoff"></i>
+        <span>Conciliación de Pagos</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="tab-content" id="planesTabContent">
+
+    <!-- ========================================================================
+         PESTAÑA 1: PLANES SAAS & VISIBILIDAD EN PORTADA (ESTRUCTURA EXACTA DE LA IMAGEN)
+         ======================================================================== -->
+    <div class="tab-pane fade show active" id="content-planes" role="tabpanel">
+
+      <!-- Encabezado / Banner Superior Exacto -->
+      <div class="card card-custom p-4 mb-4" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 18px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div>
+            <h4 class="fw-bold mb-1 text-white" style="letter-spacing: -0.02em;">Planes SaaS & Visibilidad en Portada</h4>
+            <p class="text-dim small mb-0">Crea y modifica planes de suscripción. Selecciona exactamente cuáles se mostrarán públicamente en la página principal.</p>
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm d-inline-flex align-items-center gap-2 px-3 py-2.5 fw-bold text-white"
+                    onclick="abrirCrearPlan()"
+                    style="background: #800020; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; box-shadow: 0 4px 14px rgba(128, 0, 32, 0.35);">
+              <i class="bi bi-plus-circle-fill"></i>
+              <span>+ Crear Nuevo Plan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadrícula de Tarjetas de Planes (Exacta a la imagen) -->
+      <div class="row g-4">
+        {% for plan in planes %}
+        <div class="col-md-6 col-xl-4">
+          <div class="card card-custom h-100 p-4 d-flex flex-column justify-content-between"
+               style="background: var(--tv-surface); border: 1px solid {% if plan.codigo == 'TEST' %}rgba(245, 158, 11, 0.35){% else %}var(--tv-border){% endif %}; border-radius: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+
+            <div>
+              <!-- Fila Superior de Badges / Píldoras -->
+              <div class="d-flex flex-wrap align-items-center gap-1.5 mb-3">
+                <!-- Badge de Código / Categoría -->
+                <span class="badge fw-bold px-2 py-1"
+                      style="font-size: 0.68rem; letter-spacing: 0.04em; border-radius: 6px;
+                             {% if plan.etiqueta_badge == 'TEST' %}background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);
+                             {% elif plan.etiqueta_badge == 'STARTER' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
+                             {% elif plan.etiqueta_badge == 'PRO' %}background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3);
+                             {% else %}background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);{% endif %}">
+                  {{ plan.etiqueta_badge }}
+                </span>
+
+                <!-- Badge de Visibilidad -->
+                {% if plan.mostrar_en_landing %}
+                  <span class="badge d-inline-flex align-items-center gap-1 px-2 py-1"
+                        style="background: rgba(45, 212, 191, 0.12); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.25); font-size: 0.68rem; border-radius: 6px;">
+                    <i class="bi bi-eye"></i> En Landing
+                  </span>
+                {% else %}
+                  <span class="badge d-inline-flex align-items-center gap-1 px-2 py-1"
+                        style="background: rgba(251, 191, 36, 0.12); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); font-size: 0.68rem; border-radius: 6px;">
+                    <i class="bi bi-eye-slash"></i> Oculto / Privado
+                  </span>
+                {% endif %}
+
+                <!-- Badge de Feature Extra -->
+                {% if plan.incluye_ia %}
+                  <span class="badge d-inline-flex align-items-center gap-1 px-2 py-1"
+                        style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); font-size: 0.68rem; border-radius: 6px;">
+                    <i class="bi bi-stars"></i> IA Global Incluida
+                  </span>
+                {% endif %}
+                {% if plan.api_propia %}
+                  <span class="badge d-inline-flex align-items-center gap-1 px-2 py-1"
+                        style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); font-size: 0.68rem; border-radius: 6px;">
+                    <i class="bi bi-key"></i> API Propia
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Nombre Comercial del Plan -->
+              <h4 class="fw-bold text-white mb-3" style="font-size: 1.35rem; letter-spacing: -0.01em;">
+                {{ plan.nombre }}
+              </h4>
+
+              <!-- Bloque de Precios (Mensual y Anual) -->
+              <div class="p-3 mb-3 d-flex align-items-center justify-content-between"
+                   style="background: rgba(0, 0, 0, 0.22); border: 1px solid var(--tv-border); border-radius: 14px;">
+                <div>
+                  <span class="fw-bolder" style="font-size: 1.7rem; color: #f43f5e; letter-spacing: -0.03em;">
+                    ${{ plan.precio_mensual|floatformat:2 }}
+                  </span>
+                  <span class="text-dim small ms-1" style="font-size: 0.78rem;">{{ plan.moneda }} / mes</span>
+                </div>
+                <div class="text-end ps-2 border-start" style="border-color: rgba(255,255,255,0.08) !important;">
+                  <div class="fw-bold text-white" style="font-size: 0.95rem;">${{ plan.precio_anual|floatformat:2 }}</div>
+                  <div class="text-dim" style="font-size: 0.68rem;">{{ plan.moneda }} / año</div>
+                </div>
+              </div>
+
+              <!-- Fila de Límites: Usuarios y Empresas / Sucursales -->
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <div class="p-2 text-center rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--tv-border); font-size: 0.78rem;">
+                    <i class="bi bi-people me-1 text-dim"></i>
+                    <strong class="text-white">
+                      {% if plan.limite_usuarios == 0 %}Ilimitados{% else %}{{ plan.limite_usuarios }} Usuarios{% endif %}
+                    </strong>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-2 text-center rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--tv-border); font-size: 0.78rem;">
+                    <i class="bi bi-buildings me-1 text-dim"></i>
+                    <strong class="text-white">
+                      {% if plan.limite_empresas == 0 %}Ilimitadas{% else %}{{ plan.limite_empresas }} Sucursales{% endif %}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Módulos Incluidos -->
+              <div class="mb-4">
+                <div class="text-dim fw-bold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                  Módulos Incluidos ({{ plan.total_modulos }}):
+                </div>
+                <div class="d-flex flex-wrap gap-1.5">
+                  {% for mod_nombre in plan.modulos_nombres %}
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #d1d5db; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.7rem; font-weight: 500; border-radius: 8px; padding: 4px 8px;">
+                      {{ mod_nombre }}
+                    </span>
+                  {% empty %}
+                    <span class="text-dim small fst-italic">Ningún módulo asignado.</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de Acción de la Tarjeta -->
+            <div class="d-flex align-items-center gap-2 pt-3 border-top" style="border-color: var(--tv-border) !important;">
+              <button type="button" class="btn btn-sm flex-grow-1 py-2 fw-semibold text-white d-inline-flex align-items-center justify-content-center gap-1.5"
+                      onclick="abrirEditarPlan({{ plan.pk }}, '{{ plan.nombre|escapejs }}', '{{ plan.codigo|escapejs }}', '{{ plan.etiqueta_badge|escapejs }}', '{{ plan.precio_mensual }}', '{{ plan.precio_anual }}', {{ plan.limite_usuarios }}, {{ plan.limite_empresas }}, {% if plan.mostrar_en_landing %}true{% else %}false{% endif %}, {% if plan.incluye_ia %}true{% else %}false{% endif %}, {% if plan.api_propia %}true{% else %}false{% endif %}, {{ plan.modulos|default:'[]'|safe }})"
+                      style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; font-size: 0.82rem;">
+                <i class="bi bi-pencil"></i>
+                <span>Editar Plan</span>
+              </button>
+
+              <form method="post" action="{% url 'superadmin:plan_eliminar' plan.pk %}" onsubmit="return confirm('¿Seguro que desea eliminar el plan «{{ plan.nombre }}»?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger p-2" title="Eliminar plan" style="border-radius: 10px;">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <div class="card card-custom p-5">
+            <i class="bi bi-inbox fs-1 text-dim d-block mb-3"></i>
+            <h5 class="text-white fw-bold">No hay planes registrados</h5>
+            <p class="text-dim small mb-3">Haga clic en "+ Crear Nuevo Plan" para dar de alta el primer plan de suscripción.</p>
+            <button type="button" class="btn btn-dash-primary mx-auto px-4 py-2" onclick="abrirCrearPlan()">
+              + Crear Primer Plan
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+    <!-- ========================================================================
+         PESTAÑA 2: CUENTAS BANCARIAS Y MÉTODOS DE COBRO (CONFIGURACIÓN)
+         ======================================================================== -->
+    <div class="tab-pane fade" id="content-cobro" role="tabpanel">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="card card-custom p-4">
+            <h5 class="fw-bold text-white mb-2"><i class="bi bi-bank me-2 text-mindaro"></i>Datos Bancarios de Cobro</h5>
+            <p class="text-dim small mb-4">Estas cuentas se mostrarán a los contadores en su ficha de renovación y en pantallas de corte.</p>
+
+            <form method="post" action="{% url 'superadmin:planes_cobro' %}" novalidate>
+              {% csrf_token %}
+
+              <!-- Pago Móvil -->
+              <div class="p-3 rounded-3 mb-4" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--tv-border);">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #4ade80;">
+                  <i class="bi bi-phone"></i> Pago Móvil (Venezuela)
+                </h6>
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold text-dim">Banco Receptor</label>
+                    {{ config_form.pago_movil_banco }}
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Teléfono</label>
+                    {{ config_form.pago_movil_telefono }}
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Cédula / RIF</label>
+                    {{ config_form.pago_movil_rif }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transferencia Bancaria -->
+              <div class="p-3 rounded-3 mb-4" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--tv-border);">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #38bdf8;">
+                  <i class="bi bi-bank"></i> Transferencia Bancaria Nacional
+                </h6>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Banco</label>
+                    {{ config_form.transferencia_banco }}
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Titular / Beneficiario</label>
+                    {{ config_form.transferencia_beneficiario }}
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold text-dim">Número de Cuenta (20 dígitos)</label>
+                    {{ config_form.transferencia_cuenta }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Zelle -->
+              <div class="p-3 rounded-3 mb-4" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--tv-border);">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.85rem; color: #a78bfa;">
+                  <i class="bi bi-globe"></i> Zelle / Pagos Internacionales
+                </h6>
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Correo Electrónico</label>
+                    {{ config_form.zelle_correo }}
+                  </div>
+                  <div class="col-sm-6">
+                    <label class="form-label small fw-bold text-dim">Titular</label>
+                    {{ config_form.zelle_titular }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contacto de Reporte e Instrucciones -->
+              <div class="mb-4">
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dim">WhatsApp o Correo para Reportar Comprobantes</label>
+                  {{ config_form.contacto }}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dim">Instrucciones Adicionales</label>
+                  {{ config_form.instrucciones }}
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-dash-primary w-100 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2" style="border-radius: 12px;">
+                <i class="bi bi-save"></i>
+                <span>Guardar Cuentas Bancarias de Cobro</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card card-custom p-4">
+            <h6 class="fw-bold text-white mb-2"><i class="bi bi-eye text-mindaro me-2"></i>Vista Previa de Cuentas</h6>
+            <p class="text-dim small mb-4">Así ven los usuarios los datos al renovar su cuenta:</p>
+
+            <div class="d-flex flex-column gap-3">
+              <div class="p-3 rounded-3" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border);">
+                <div class="fw-bold text-white small mb-1" style="color: #4ade80 !important;"><i class="bi bi-phone me-1"></i> Pago Móvil</div>
+                <div class="small text-dim">
+                  <div>Banco: <span class="text-white">{{ config.pago_movil_banco|default:'No configurado' }}</span></div>
+                  <div>Teléfono: <span class="text-white">{{ config.pago_movil_telefono|default:'No configurado' }}</span></div>
+                  <div>RIF: <span class="text-white">{{ config.pago_movil_rif|default:'No configurado' }}</span></div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-3" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border);">
+                <div class="fw-bold text-white small mb-1" style="color: #38bdf8 !important;"><i class="bi bi-bank me-1"></i> Transferencia</div>
+                <div class="small text-dim">
+                  <div>Banco: <span class="text-white">{{ config.transferencia_banco|default:'No configurado' }}</span></div>
+                  <div>Cuenta: <span class="text-white font-monospace" style="font-size: 0.74rem;">{{ config.transferencia_cuenta|default:'No configurado' }}</span></div>
+                  <div>Beneficiario: <span class="text-white">{{ config.transferencia_beneficiario|default:'No configurado' }}</span></div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-3" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border);">
+                <div class="fw-bold text-white small mb-1" style="color: #a78bfa !important;"><i class="bi bi-globe me-1"></i> Zelle</div>
+                <div class="small text-dim">
+                  <div>Correo: <span class="text-white">{{ config.zelle_correo|default:'No configurado' }}</span></div>
+                  <div>Titular: <span class="text-white">{{ config.zelle_titular|default:'No configurado' }}</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================
+     MODAL FLOTANTE: CREAR / EDITAR PLAN (ESTRUCTURA EXACTA DE LA IMAGEN 2)
+     ======================================================================== -->
+<div class="modal fade" id="modalPlan" tabindex="-1" aria-labelledby="modalPlanLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 22px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+
+      <!-- Header del Modal Exacto -->
+      <div class="p-4 d-flex align-items-start justify-content-between border-bottom" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white"
+               style="width: 44px; height: 44px; background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); font-size: 1.25rem;">
+            <i class="bi bi-stars"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-white mb-0" id="modalPlanLabel">Crear Nuevo Plan de Suscripción</h5>
+            <p class="text-dim small mb-0 mt-0.5">Define las características, precios y visibilidad pública del plan.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- Formulario del Modal -->
+      <form method="post" id="formPlan" action="{% url 'superadmin:plan_crear' %}" novalidate>
+        {% csrf_token %}
+
+        <div class="modal-body p-4">
+
+          <!-- Fila 1: Nombre y Código Único -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ plan_form.nombre.id_for_label }}" class="form-label small fw-bold text-dim">Nombre Comercial del Plan *</label>
+              {{ plan_form.nombre }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ plan_form.codigo.id_for_label }}" class="form-label small fw-bold text-dim">Código Único (Identificador) *</label>
+              {{ plan_form.codigo }}
+            </div>
+          </div>
+
+          <!-- Fila 2: Precios Mensual y Anual -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ plan_form.precio_mensual.id_for_label }}" class="form-label small fw-bold text-dim">Precio Mensual ($ USD) *</label>
+              {{ plan_form.precio_mensual }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ plan_form.precio_anual.id_for_label }}" class="form-label small fw-bold text-dim">Precio Anual ($ USD) *</label>
+              {{ plan_form.precio_anual }}
+            </div>
+          </div>
+
+          <!-- Fila 3: Límites de Usuarios y Empresas -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ plan_form.limite_usuarios.id_for_label }}" class="form-label small fw-bold text-dim">Límite de Usuarios (0 = Ilimitado)</label>
+              {{ plan_form.limite_usuarios }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ plan_form.limite_empresas.id_for_label }}" class="form-label small fw-bold text-dim">Límite de Sucursales / Empresas (0 = Ilimitado)</label>
+              {{ plan_form.limite_empresas }}
+            </div>
+          </div>
+
+          <!-- Etiqueta de Categoría (Badge) -->
+          <div class="mb-3">
+            <label for="{{ plan_form.etiqueta_badge.id_for_label }}" class="form-label small fw-bold text-dim">Etiqueta Badge (Ej: STARTER, PRO, ENTERPRISE, TEST)</label>
+            {{ plan_form.etiqueta_badge }}
+          </div>
+
+          <!-- Checkbox Card 1: Mostrar en Landing (Con borde resaltado como en la imagen) -->
+          <div class="p-3 rounded-3 mb-3" style="background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.35);">
+            <div class="form-check d-flex align-items-start gap-2 mb-0">
+              {{ plan_form.mostrar_en_landing }}
+              <div>
+                <label class="form-check-label fw-bold text-white small" for="{{ plan_form.mostrar_en_landing.id_for_label }}">
+                  Mostrar en la Página Principal (Index / Landing)
+                </label>
+                <div class="text-dim" style="font-size: 0.76rem;">
+                  Si se desmarca, este plan será privado y solo podrá ser asignado directamente desde el panel SuperAdmin.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checkbox Card 2: Incluir Motor de IA / API Propia -->
+          <div class="p-3 rounded-3 mb-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--tv-border);">
+            <div class="form-check d-flex align-items-start gap-2 mb-2">
+              {{ plan_form.incluye_ia }}
+              <div>
+                <label class="form-check-label fw-bold text-white small" for="{{ plan_form.incluye_ia.id_for_label }}">
+                  Incluir Motor de Inteligencia Fiscal y Asistente Tributario
+                </label>
+                <div class="text-dim" style="font-size: 0.76rem;">
+                  Si está marcado, los usuarios con este plan podrán usar funciones automatizadas y soporte prioritario.
+                </div>
+              </div>
+            </div>
+
+            <div class="form-check d-flex align-items-start gap-2 pt-2 border-top" style="border-color: rgba(255,255,255,0.06) !important;">
+              {{ plan_form.api_propia }}
+              <div>
+                <label class="form-check-label fw-semibold text-white small" for="{{ plan_form.api_propia.id_for_label }}">
+                  Habilitar Acceso a API Propia
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Módulos Incluidos en este Plan (Exacto a la imagen) -->
+          <div class="mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <span class="fw-bold text-white small">Módulos Incluidos en este Plan:</span>
+              <div class="d-flex gap-1.5">
+                <button type="button" class="btn btn-sm btn-outline-custom py-0.5 px-2" style="font-size: 0.72rem; border-radius: 6px;" onclick="marcarModulos('todos')">
+                  ✓ Todos los módulos
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-custom py-0.5 px-2" style="font-size: 0.72rem; border-radius: 6px;" onclick="marcarModulos('pack')">
+                  ⚡ Pack Inicial (6)
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-custom py-0.5 px-2" style="font-size: 0.72rem; border-radius: 6px;" onclick="marcarModulos('ninguno')">
+                  ✕ Quitar todos
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid de Checkboxes de Módulos -->
+            <div class="row g-2" id="contenedorModulos">
+              {% for mod_key, mod_label in modulos_disponibles %}
+              <div class="col-sm-6 col-md-4">
+                <div class="p-2 rounded-3 h-100 d-flex align-items-center gap-2"
+                     style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--tv-border); font-size: 0.78rem;">
+                  <input type="checkbox" name="modulos" value="{{ mod_key }}" id="mod_{{ mod_key }}" class="form-check-input modulo-chk m-0">
+                  <label for="mod_{{ mod_key }}" class="text-white mb-0 text-truncate fw-medium" title="{{ mod_label }}">
+                    {{ mod_label }}
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="modal-footer p-3 border-top d-flex justify-content-end gap-2" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+          <button type="button" class="btn btn-outline-custom px-4" data-bs-dismiss="modal" style="border-radius: 10px;">
+            Cancelar
+          </button>
+          <button type="submit" id="btnSubmitPlan" class="btn fw-bold px-4 text-white d-inline-flex align-items-center gap-1.5"
+                  style="background: #800020; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; box-shadow: 0 4px 14px rgba(128, 0, 32, 0.35);">
+            <i class="bi bi-check-lg"></i>
+            <span id="btnSubmitText">Guardar Nuevo Plan</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const urlCrearPlan = "{% url 'superadmin:plan_crear' %}";
+  const packInicial = ['planificacion', 'retenciones_islr', 'retenciones_iva', 'calendario', 'conciliacion', 'cedula_fiscal'];
+
+  function abrirCrearPlan() {
+    const modalEl = document.getElementById('modalPlan');
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('formPlan');
+
+    form.action = urlCrearPlan;
+    document.getElementById('modalPlanLabel').innerText = 'Crear Nuevo Plan de Suscripción';
+    document.getElementById('btnSubmitText').innerText = 'Guardar Nuevo Plan';
+
+    form.reset();
+    document.getElementById('id_nombre').value = '';
+    document.getElementById('id_codigo').value = '';
+    document.getElementById('id_etiqueta_badge').value = 'STARTER';
+    document.getElementById('id_precio_mensual').value = '10.00';
+    document.getElementById('id_precio_anual').value = '80.00';
+    document.getElementById('id_limite_usuarios').value = '3';
+    document.getElementById('id_limite_empresas').value = '1';
+    document.getElementById('id_mostrar_en_landing').checked = true;
+    document.getElementById('id_incluye_ia').checked = false;
+    document.getElementById('id_api_propia').checked = true;
+
+    marcarModulos('todos');
+    modal.show();
+  }
+
+  function abrirEditarPlan(pk, nombre, codigo, badge, mensual, anual, usuarios, empresas, landing, ia, api, modulos) {
+    const modalEl = document.getElementById('modalPlan');
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('formPlan');
+
+    form.action = `/superadmin/planes/${pk}/editar/`;
+    document.getElementById('modalPlanLabel').innerText = `Editar Plan: ${nombre}`;
+    document.getElementById('btnSubmitText').innerText = 'Actualizar Plan';
+
+    document.getElementById('id_nombre').value = nombre;
+    document.getElementById('id_codigo').value = codigo;
+    document.getElementById('id_etiqueta_badge').value = badge;
+    document.getElementById('id_precio_mensual').value = mensual;
+    document.getElementById('id_precio_anual').value = anual;
+    document.getElementById('id_limite_usuarios').value = usuarios;
+    document.getElementById('id_limite_empresas').value = empresas;
+    document.getElementById('id_mostrar_en_landing').checked = landing;
+    document.getElementById('id_incluye_ia').checked = ia;
+    document.getElementById('id_api_propia').checked = api;
+
+    // Check individual module checkboxes
+    const chks = document.querySelectorAll('.modulo-chk');
+    chks.forEach(chk => {
+      chk.checked = modulos.includes(chk.value);
+    });
+
+    modal.show();
+  }
+
+  function marcarModulos(modo) {
+    const chks = document.querySelectorAll('.modulo-chk');
+    chks.forEach(chk => {
+      if (modo === 'todos') {
+        chk.checked = true;
+      } else if (modo === 'ninguno') {
+        chk.checked = false;
+      } else if (modo === 'pack') {
+        chk.checked = packInicial.includes(chk.value);
+      }
+    });
+  }
+</script>
+{% endblock %}

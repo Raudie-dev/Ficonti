@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block layout_content %}
+<div class="app-wrapper">
+  <!-- SuperAdmin Sidebar idéntico al estilo del panel de Contador -->
+  <aside class="app-sidebar" id="appSidebar">
+    <!-- Usuario en cabecera del Sidebar (mismo componente y altura que contador) -->
+    <div class="sidebar-user-header">
+      <div class="sidebar-user-avatar">
+        {{ superadmin_actual.nombre|slice:":1"|upper|default:"A" }}
+      </div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ superadmin_actual.nombre|default:superadmin_actual.usuario }}</div>
+        <div class="sidebar-user-role">
+          <span class="text-lime"><i class="bi bi-shield-lock-fill"></i> Administrador Maestro</span>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Opciones">
+          <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 14px;">
+          <li><a class="dropdown-item" href="{% url 'superadmin:mi_cuenta' %}"><i class="bi bi-person me-2"></i> Mi perfil</a></li>
+          <li><a class="dropdown-item" href="{% url 'usuarios:login' %}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i> Portal Contadores</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form method="post" action="{% url 'superadmin:logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión Admin</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Buscador con Shortcut ⌘ K -->
+    <div class="sidebar-search-box">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" id="sidebarSearchInput" placeholder="Buscar sección..." autocomplete="off">
+      <span class="shortcut-tag">⌘ K</span>
+    </div>
+
+    <!-- Navegación por grupos -->
+    <div class="sidebar-scroll" id="sidebarNavScroll">
+      <nav class="sidebar-nav">
+        <!-- ADMINISTRACIÓN -->
+        <div class="sidebar-heading">Administración</div>
+        <a class="nav-link {% if request.resolver_match.url_name == 'panel' %}active{% endif %}" href="{% url 'superadmin:panel' %}">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Panel de control</span>
+        </a>
+        <a class="nav-link {% if 'contador' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'superadmin:contadores' %}">
+          <i class="bi bi-people-fill"></i>
+          <span>Contadores &amp; Suscripciones</span>
+        </a>
+
+        <!-- FINANZAS Y COBRO -->
+        <div class="sidebar-heading mt-2">Finanzas y Cobro</div>
+        <a class="nav-link {% if request.resolver_match.url_name == 'pagos' %}active{% endif %}" href="{% url 'superadmin:pagos' %}">
+          <i class="bi bi-receipt-cutoff"></i>
+          <span>Conciliación de pagos</span>
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'planes' %}active{% endif %}" href="{% url 'superadmin:planes' %}">
+          <i class="bi bi-sliders"></i>
+          <span>Planes SaaS &amp; Visibilidad</span>
+        </a>
+
+        <!-- SISTEMA Y SEGURIDAD -->
+        <div class="sidebar-heading mt-2">Seguridad y Sistema</div>
+        <a class="nav-link {% if 'administrador' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'superadmin:administradores' %}">
+          <i class="bi bi-shield-shaded"></i>
+          <span>SuperAdministradores</span>
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'mi_cuenta' %}active{% endif %}" href="{% url 'superadmin:mi_cuenta' %}">
+          <i class="bi bi-gear-fill"></i>
+          <span>Mi cuenta</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Pie del Sidebar con Isotipo Geométrico TributoVE -->
+    <div class="sidebar-footer">
+      <div class="brand-badge">
+        <div class="brand-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span>TributoVE</span>
+      </div>
+      <span class="badge" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.3); font-size: 0.65rem; font-weight: 700; border-radius: 999px;">SUPERADMIN</span>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- SuperAdmin Content Area -->
+  <div class="app-content">
+    <!-- Navbar idéntico al estilo del panel de Contador -->
+    <header class="app-navbar">
+      <!-- Breadcrumb izquierda -->
+      <div class="d-flex align-items-center gap-2">
+        <button class="action-circle-btn d-lg-none" id="sidebarToggle" aria-label="Abrir menú">
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div class="navbar-breadcrumb d-none d-sm-flex">
+          <div class="nav-icon-box">
+            <i class="bi bi-shield-lock-fill text-lime"></i>
+          </div>
+          <span>TributoVE</span>
+          <span class="text-dim">/</span>
+          <span class="breadcrumb-item active">
+            {% if request.resolver_match.url_name == 'panel' %}
+              Panel de Control
+            {% elif 'contador' in request.resolver_match.url_name %}
+              Contadores &amp; Suscripciones
+            {% elif request.resolver_match.url_name == 'pagos' %}
+              Auditoría &amp; Pagos
+            {% elif request.resolver_match.url_name == 'planes' %}
+              Planes SaaS &amp; Visibilidad
+            {% elif 'administrador' in request.resolver_match.url_name %}
+              SuperAdministradores
+            {% elif request.resolver_match.url_name == 'mi_cuenta' %}
+              Mi Cuenta
+            {% else %}
+              SuperAdmin
+            {% endif %}
+          </span>
+        </div>
+
+        <!-- Título compacto en pantallas móviles -->
+        <span class="d-sm-none fw-bold small text-truncate" style="max-width: 140px; color: var(--tv-text);">
+          {% if request.resolver_match.url_name == 'panel' %}
+            Panel
+          {% elif 'contador' in request.resolver_match.url_name %}
+            Contadores
+          {% elif request.resolver_match.url_name == 'pagos' %}
+            Pagos
+          {% elif request.resolver_match.url_name == 'planes' %}
+            Planes
+          {% else %}
+            SuperAdmin
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- Barra de Herramientas Derecha (Acciones Circulares) -->
+      <div class="navbar-actions">
+        <!-- Badge SuperAdmin -->
+        <span class="badge d-none d-md-inline-flex align-items-center gap-1.5 py-1.5 px-3" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); border-radius: 999px; font-size: 0.76rem; font-weight: 700;">
+          <i class="bi bi-shield-check"></i>
+          <span>Administrador Maestro</span>
+        </span>
+
+        <!-- Acceso al Portal de Contadores -->
+        <a href="{% url 'usuarios:login' %}" target="_blank" class="action-circle-btn" title="Abrir portal de contadores en pestaña nueva">
+          <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+
+        <!-- Botón Toggle de Modo Claro / Oscuro -->
+        <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)">
+          <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+        </button>
+
+        <!-- Dropdown Usuario SuperAdmin -->
+        <div class="dropdown">
+          <button class="action-circle-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta de SuperAdministrador">
+            <i class="bi bi-person-fill-gear"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 14px; min-width: 230px;">
+            <li class="dropdown-header text-uppercase fw-bold text-muted" style="font-size: 0.68rem;">
+              {{ superadmin_actual.nombre|default:superadmin_actual.usuario }}
+            </li>
+            <li><a class="dropdown-item" href="{% url 'superadmin:mi_cuenta' %}"><i class="bi bi-person me-2"></i> Mi perfil</a></li>
+            <li><a class="dropdown-item" href="{% url 'superadmin:administradores' %}"><i class="bi bi-shield-shaded me-2"></i> Administradores</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'superadmin:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión Admin</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow-1 p-2 p-sm-3 p-md-4">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endblock %}

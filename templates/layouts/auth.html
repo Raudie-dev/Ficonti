@@ -1,0 +1,499 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+/* ==========================================================================
+   ESTRUCTURA EXACTA DE LOGIN (ESTILO TUGA'S APP / REFERENCIA)
+   ========================================================================== */
+body {
+  background: var(--tv-bg, #0B0E0C) !important;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+[data-bs-theme="light"] body {
+  background: #EAEAEA !important;
+}
+
+.auth-split-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Tarjeta Principal Dividida */
+.auth-split-card {
+  width: 100%;
+  max-width: 960px;
+  min-height: 590px;
+  background: #FFFFFF;
+  border-radius: 28px;
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  flex-direction: row !important;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+[data-bs-theme="dark"] .auth-split-card {
+  background: #141815;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.6);
+}
+
+/* Columna Izquierda: Formulario */
+.auth-form-side {
+  width: 48%;
+  flex: 0 0 48%;
+  padding: 3.25rem 2.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Columna Derecha: Escaparate Visual */
+.auth-showcase-side {
+  width: 52%;
+  flex: 0 0 52%;
+  padding: 1rem;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.auth-showcase-panel {
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  background: #F1F8F4;
+  padding: 2rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+[data-bs-theme="dark"] .auth-showcase-panel {
+  background: #16221A;
+  border: 1px solid rgba(210, 248, 101, 0.15);
+}
+
+/* Tipografía de Cabecera */
+.auth-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #111111;
+  margin-bottom: 0.5rem;
+  line-height: 1.15;
+}
+
+[data-bs-theme="dark"] .auth-title {
+  color: #FFFFFF;
+}
+
+.auth-subtitle {
+  font-size: 0.85rem;
+  color: #71717A;
+  line-height: 1.45;
+  margin-bottom: 2rem;
+}
+
+[data-bs-theme="dark"] .auth-subtitle {
+  color: #A1A1AA;
+}
+
+/* Inputs Píldora Redondos */
+.auth-pill-input {
+  border-radius: 999px !important;
+  height: 48px !important;
+  padding: 0 1.4rem !important;
+  font-size: 0.92rem !important;
+  border: 1.5px solid #E2E4E8 !important;
+  background: #FFFFFF !important;
+  color: #111111 !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+[data-bs-theme="dark"] .auth-pill-input {
+  background: #1A201C !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF !important;
+}
+
+.auth-pill-input:focus {
+  border-color: #22C55E !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .auth-pill-input:focus {
+  border-color: #D2F865 !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Botón Principal Píldora Negro */
+.btn-auth-pill {
+  border-radius: 999px !important;
+  height: 48px !important;
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  border: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
+  cursor: pointer !important;
+}
+
+[data-bs-theme="dark"] .btn-auth-pill {
+  background: #D2F865 !important;
+  color: #0B0E0C !important;
+}
+
+.btn-auth-pill:hover {
+  transform: translateY(-1px) !important;
+  opacity: 0.92 !important;
+}
+
+/* Divisor 'or continue with' */
+.auth-split-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #8E8E93;
+  font-size: 0.78rem;
+  margin: 1.75rem 0;
+}
+
+.auth-split-divider::before,
+.auth-split-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+[data-bs-theme="dark"] .auth-split-divider::before,
+[data-bs-theme="dark"] .auth-split-divider::after {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.auth-split-divider span {
+  padding: 0 0.85rem;
+}
+
+/* Botones Circulares Sociales (G, Apple, Facebook) */
+.auth-social-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+  background: #000000;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  text-decoration: none;
+  border: 0;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+}
+
+[data-bs-theme="dark"] .auth-social-circle {
+  background: #1A201C;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-social-circle:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   ILUSTRACIÓN FINANCIERA Y CONTABLE (CHARTS, GRÁFICAS Y CARDS)
+   ========================================================================== */
+.showcase-scene {
+  width: 100%;
+  padding: 1.5rem 0.5rem;
+}
+
+/* Tarjeta Principal de Gráfica */
+.fintech-main-chart-card {
+  width: 100%;
+  max-width: 370px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.25rem 1.35rem 1.15rem;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 1;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+[data-bs-theme="dark"] .fintech-main-chart-card {
+  background: #141815;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 40px -5px rgba(0, 0, 0, 0.55);
+}
+
+.live-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22C55E;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  display: inline-block;
+}
+
+.chart-header-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #6B7280;
+  text-transform: uppercase;
+}
+[data-bs-theme="dark"] .chart-header-tag {
+  color: #9CA3AF;
+}
+
+.chart-growth-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #16A34A;
+  background: rgba(34, 197, 94, 0.12);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+}
+[data-bs-theme="dark"] .chart-growth-pill {
+  color: #D2F865;
+  background: rgba(210, 248, 101, 0.15);
+}
+
+.chart-currency {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #111111;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+[data-bs-theme="dark"] .chart-currency {
+  color: #FFFFFF;
+}
+
+.chart-caption {
+  font-size: 0.72rem;
+  color: #8B958E;
+  margin-top: 2px;
+}
+
+/* Widgets Flotantes Contables */
+.fintech-float-pill {
+  position: absolute;
+  background: #FFFFFF;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 2;
+  white-space: nowrap;
+}
+[data-bs-theme="dark"] .fintech-float-pill {
+  background: #1A221C;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.fintech-float-pill.top-left {
+  top: 8px;
+  left: 8px;
+}
+.fintech-float-pill.bottom-left {
+  bottom: 8px;
+  left: 8px;
+}
+.fintech-float-pill.bottom-right {
+  bottom: 8px;
+  right: 8px;
+}
+
+.fintech-float-card {
+  position: absolute;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 0.55rem 0.95rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 2;
+}
+[data-bs-theme="dark"] .fintech-float-card {
+  background: #1A221C;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+.fintech-float-card.top-right {
+  top: 8px;
+  right: 8px;
+}
+
+.icon-pulse-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+}
+.icon-pulse-box.modules {
+  background: rgba(210, 248, 101, 0.15);
+}
+.icon-pulse-box.bank {
+  background: rgba(45, 81, 40, 0.2);
+}
+
+.pill-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.15;
+}
+[data-bs-theme="dark"] .pill-label {
+  color: #FFFFFF;
+}
+
+.pill-status {
+  font-size: 0.65rem;
+  color: #6B7280;
+}
+[data-bs-theme="dark"] .pill-status {
+  color: #9CA3AF;
+}
+
+.donut-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.15;
+}
+[data-bs-theme="dark"] .donut-title {
+  color: #FFFFFF;
+}
+.donut-sub {
+  font-size: 0.65rem;
+  color: #22C55E;
+  font-weight: 600;
+}
+
+/* Dots de paginación */
+.showcase-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.showcase-dots .dot-sm {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D1D5DB;
+}
+.showcase-dots .dot-lg {
+  width: 22px;
+  height: 6px;
+  border-radius: 999px;
+  background: #111111;
+}
+[data-bs-theme="dark"] .showcase-dots .dot-lg {
+  background: #D2F865;
+}
+
+/* Adaptación Responsive */
+@media (max-width: 900px) {
+  .auth-split-card {
+    flex-direction: column !important;
+    max-width: 460px;
+    min-height: auto;
+    border-radius: 24px;
+  }
+  .auth-form-side {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    padding: 2.5rem 1.75rem;
+  }
+  .auth-showcase-side {
+    display: none !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block layout_content %}
+<div class="auth-split-wrapper">
+  <!-- Botón superior para volver a la Landing Page -->
+  <div class="position-absolute top-0 start-0 p-3 p-md-4">
+    <a href="{% url 'core:landing' %}" class="btn btn-sm btn-outline-custom d-inline-flex align-items-center gap-1.5 px-3 py-1.5" style="border-radius: 999px; font-size: 0.8rem;">
+      <i class="bi bi-arrow-left"></i>
+      <span>Volver a Portada</span>
+    </a>
+  </div>
+
+  <!-- Botón superior flotante de cambio de tema (Claro / Oscuro) -->
+  <div class="position-absolute top-0 end-0 p-3 p-md-4">
+    <button type="button" class="action-circle-btn theme-toggle-btn shadow-sm" title="Cambiar tema (Claro / Oscuro)">
+      <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+    </button>
+  </div>
+
+  <!-- Tarjeta Dividida Idéntica a la Imagen de Referencia -->
+  <div class="auth-split-card">
+    <!-- Columna Izquierda: Formulario -->
+    <div class="auth-form-side">
+      {% block content %}{% endblock %}
+    </div>
+
+    <!-- Columna Derecha: Escaparate Visual con Personaje Zen -->
+    <div class="auth-showcase-side">
+      <div class="auth-showcase-panel">
+        {% block auth_showcase %}
+          {% include 'partials/auth_illustration.html' %}
+        {% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function togglePasswordVisibility(fieldId, btn) {
+    var input = document.getElementById(fieldId);
+    if (!input) return;
+    var icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      if (icon) icon.className = 'bi bi-eye-slash';
+    } else {
+      input.type = 'password';
+      if (icon) icon.className = 'bi bi-eye';
+    }
+  }
+</script>
+{% endblock %}

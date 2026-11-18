@@ -1,0 +1,1209 @@
+<!doctype html><html lang="es"><head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Conciliación Bancaria VE</title><style>
+:root{--bg:#f5f3ec;--c:#fff;--t:#26332d;--g:#1f6f50;--g2:#e2f0e8;--a:#c8871a;--b:#d6dad3;--r:#b3261e;--ok:#1f7a4d;--w:#9a6200;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#141f1a;--c:#1d2b25;--t:#e6eee9;--g:#4cc38a;--g2:#24382f;--a:#e0a43c;--b:#35483f;--r:#ff8a80;--ok:#6fdc9f;--w:#f0b44c}}
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{background:var(--g);color:#fff;padding:12px 16px}header h1{margin:0;font-size:18px}header small{opacity:.85}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 12px;background:var(--c);border-bottom:2px solid var(--a);position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:8px 12px;border-radius:6px;color:var(--t);font-weight:600;white-space:nowrap;cursor:pointer}nav .on{background:var(--g);color:#fff}
+main{padding:14px;max-width:1300px;margin:auto}.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:16px;color:var(--g)}.sc{overflow-x:auto}table{border-collapse:collapse;width:100%}th{background:var(--g);color:#fff;padding:6px;font-size:12px;text-align:left;white-space:nowrap}
+td{border-bottom:1px solid var(--b);padding:2px 4px}td input,td select{width:100%;min-width:80px;border:1px solid transparent;background:transparent;color:var(--t);padding:4px;font:inherit}td input:focus,td select:focus{border-color:var(--a);outline:0;background:var(--g2)}
+.n{text-align:right;font-variant-numeric:tabular-nums}.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.f label{font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.f input,.f select,textarea{padding:7px;border:1px solid var(--b);border-radius:6px;background:var(--c);color:var(--t);font:inherit}textarea{width:100%;min-height:110px}
+.b{background:var(--g);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin:4px 4px 4px 0}.b.s{background:var(--a)}.b.x{background:none;color:var(--r);padding:2px 8px}
+.tg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}.ok{background:var(--g2);color:var(--ok)}.wr{background:#fbefd2;color:var(--w)}.er{background:#fbdcd9;color:var(--r)}
+.tot td{font-weight:700;background:var(--g2)}.big{font-size:18px;font-weight:700;padding:12px;border-radius:8px;text-align:center;margin:10px 0}
+@media print{header,nav,.np{display:none!important}body{background:#fff}.card{border:0}}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head><body>
+<header><h1>Conciliación Bancaria · Venezuela</h1><small>Multicuenta · Retenciones IVA/ISLR · Asientos Debe/Haber</small></header>
+<nav id="nv"></nav><main id="v"></main>
+<script>
+const $=s=>document.querySelector(s),N=v=>parseFloat(v)||0,R=v=>Math.round((v+Number.EPSILON)*100)/100,
+F=v=>v===''||v==null?'':R(v).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}),
+D=d=>d?d.split('-').reverse().join('/'):'';
+const ISLR={'HON-PNR':[.03,83.3334,'Honorarios PN residente'],'HON-PJD':[.05,0,'Honorarios PJ domiciliada'],'COM-PNR':[.03,83.3334,'Comisiones PN residente'],'COM-PJD':[.05,0,'Comisiones PJ domiciliada'],'INT-PNR':[.03,83.3334,'Intereses PN residente'],'INT-PJD':[.05,0,'Intereses PJ domiciliada'],'ARR-PNR':[.03,83.3334,'Arrendamiento PN residente'],'ARR-PJD':[.05,0,'Arrendamiento PJ domiciliada'],'SRV-PNR':[.01,0,'Servicios PN residente'],'SRV-PJD':[.02,0,'Servicios PJ domiciliada'],'NO-RET':[0,0,'Sin retención ISLR']};
+const TIPOS={'Comisión bancaria':['6.1.05.01','Gastos por comisiones bancarias'],'IGTF':['6.1.05.02','Gasto IGTF'],'Nota de débito':['6.1.05.99','Otros gastos bancarios'],'Nota de crédito':['4.2.01.99','Otros ingresos bancarios'],'Intereses ganados':['4.2.01.01','Ingresos financieros'],'Depósito no identificado':['2.1.09.01','Depósitos por identificar'],'Otro':['9.9.99.99','Por clasificar']};
+const CT={cxp:['2.1.01.01','Cuentas por pagar proveedores'],iva:['2.1.03.01','IVA retenido por enterar'],isl:['2.1.03.02','ISLR retenido por enterar']};
+const demo=()=>({cfg:{emp:'EMPRESA EJEMPLO, C.A.',rif:'J-00000000-0',fecha:'2026-09-30',ut:43,dig:6,elab:'Analista',rev:'Revisor',cp:'Lic. Nombre Apellido',cpc:'CPC N° 00000'},sel:'BAN-01',
+cuentas:[{id:'BAN-01',banco:'Banco ejemplo',num:'0000-0000-00-0000000000',mon:'VES',cod:'1.1.01.02.001',nom:'Bancos Bs.',sb:3528.5,sl:5299.5,tasa:''},{id:'BAN-02',banco:'Banco ejemplo 2',num:'0000-0000-00-1111111111',mon:'USD',cod:'1.1.01.03.001',nom:'Bancos USD',sb:5985,sl:5750,tasa:100}],
+libro:[['2026-09-15','CE-0101','Depósito cliente A','458712',5000,'BAN-01'],['2026-09-18','CP-0230','Pago proveedor B','000231',-1200.5,'BAN-01'],['2026-09-20','CP-0238','Pago fact. 0001234 (neto)','556677',-10200,'BAN-01'],['2026-09-25','CP-0245','Cheque 4455 en circulación','004455',-800,'BAN-01'],['2026-09-29','CE-0108','Depósito en tránsito','778899',2500,'BAN-01'],['2026-09-12','CE-0102','Cobro exterior','880011',1000,'BAN-02'],['2026-09-28','CP-0246','Transferencia en tránsito','880022',-250,'BAN-02']].map(a=>({f:a[0],c:a[1],d:a[2],r:a[3],m:a[4],id:a[5]})),
+banco:[['2026-09-15','458712','Depósito',5000,'BAN-01',''],['2026-09-18','000231','Transferencia',-1200.5,'BAN-01',''],['2026-09-20','556677','Transferencia Serv. XYZ',-10200,'BAN-01',''],['2026-09-28','990011','Comisión mantenimiento',-45,'BAN-01','Comisión bancaria'],['2026-09-30','990012','Impuesto IGTF',-36,'BAN-01','IGTF'],['2026-09-30','990013','Intereses',10,'BAN-01','Intereses ganados'],['2026-09-12','880011','Cobro exterior',1000,'BAN-02',''],['2026-09-30','990100','Comisión internacional',-15,'BAN-02','Comisión bancaria']].map(a=>({f:a[0],r:a[1],d:a[2],m:a[3],id:a[4],t:a[5]})),
+ret:[{fa:'2026-09-10',nf:'0001234',prov:'Servicios Técnicos XYZ, C.A.',rif:'J-12345678-9',base:10000,al:.16,pi:.75,con:'SRV-PJD',sus:'N',fp:'2026-09-20',id:'BAN-01',ref:'556677'}]});
+let S;try{S=JSON.parse(localStorage.getItem('cvapp'))}catch(e){}const FIRST=!S;S=S||demo();S.cfg.emp=EMPRESA.nombre;S.cfg.rif=EMPRESA.rif;let tab='cta',wl=FIRST,pan='',shv={};const CV={cxc:['1.1.02.01','Cuentas por cobrar clientes'],ria:['1.1.05.01','IVA retenido por clientes (anticipo)'],rig:['1.1.05.02','ISLR retenido por clientes (anticipo)']},SV={v:[{fa:'2026-09-10',nf:'V-0001',cli:'Corporación A, C.A.',rif:'J-11111111-1',base:5000,al:.16,ci:.75,cr:0,fv:'2026-10-10'},{fa:'2026-08-01',nf:'V-0002',cli:'Comercial B, C.A.',rif:'J-22222222-2',base:2000,al:.16,ci:0,cr:0,fv:'2026-08-31'}],c:[{fc:'2026-09-15',cli:'Corporación A, C.A.',id:'BAN-01',ref:'458712',m:5000,igtf:0,nf:'V-0001'}]};
+function ap(){if(S.t)[['islr',ISLR],['tipos',TIPOS],['ct',CT]].forEach(([k,o])=>{if(S.t[k]){Object.keys(o).forEach(x=>delete o[x]);Object.assign(o,S.t[k])}});S.t={islr:ISLR,tipos:TIPOS,ct:CT};S.cfg.mail=S.cfg.mail||'';['cxc','ria','rig'].forEach(k=>{CT[k]=CT[k]||CV[k]});if(!S.vta){S.vta=SV.v;S.cob=SV.c}}ap();
+const save=()=>{try{localStorage.setItem('cvapp',JSON.stringify(S))}catch(e){}};
+const K=(id,r,m)=>id+'|'+String(r||'').trim().slice(-N(S.cfg.dig))+'|'+Math.round(m*100);
+function calc(){const ok=id=>S.cuentas.some(c=>c.id==id),bk={},lk={};
+S.libro.forEach(x=>{x.k=K(x.id,x.r,N(x.m));lk[x.k]=(lk[x.k]||0)+1});S.banco.forEach(x=>{x.k=K(x.id,x.r,N(x.m));bk[x.k]=(bk[x.k]||0)+1});
+const pre=x=>!x.id?'FALTA CUENTA':!ok(x.id)?'CUENTA NO EXISTE':'';
+S.libro.forEach(x=>x.e=pre(x)||(!bk[x.k]?'PENDIENTE EN BANCO':lk[x.k]>bk[x.k]?'REVISAR: DUPLICADO':'CONCILIADO'));
+S.banco.forEach(x=>x.e=pre(x)||(!lk[x.k]?'NO REGISTRADO EN LIBROS':bk[x.k]>lk[x.k]?'REVISAR: DUPLICADO':'CONCILIADO'));
+S.ret.forEach(x=>{const b=N(x.base),iva=R(b*N(x.al)),ri=R(iva*N(x.pi)),t=ISLR[x.con];let is=0;if(t&&b>t[1]*N(S.cfg.ut))is=Math.max(0,R(b*t[0]-(x.sus=='S'?N(S.cfg.ut)*t[0]*83.3334:0)));
+x.iva=iva;x.ri=ri;x.is=is;x.tot=R(b+iva);x.neto=R(b+iva-ri-is);x.e=(!x.fp||!x.ref||!x.id)?'INCOMPLETO':bk[K(x.id,x.ref,-x.neto)]?'PAGO EN BANCO':'SIN PAGO EN BANCO'})}
+function ac(c){const L=S.libro.filter(x=>x.id==c.id&&x.e=='PENDIENTE EN BANCO'),B=S.banco.filter(x=>x.id==c.id&&x.e=='NO REGISTRADO EN LIBROS'),s=(a,f)=>R(a.filter(f).reduce((t,x)=>t+N(x.m),0));
+const dt=s(L,x=>N(x.m)>0),cc=s(L,x=>N(x.m)<0),nc=s(B,x=>N(x.m)>0),nd=s(B,x=>N(x.m)<0),sb=R(N(c.sb)+dt+cc),sl=R(N(c.sl)+nc+nd);return{dt,cc,nc,nd,sb,sl,d:R(sb-sl),B}}
+const tg=e=>`<span class="tg ${/^(CONCILIADO|PAGO EN)/.test(e)?'ok':/^(REVISAR|FALTA|CUENTA|SIN)/.test(e)?'er':'wr'}">${e}</span>`;
+const ids=()=>S.cuentas.map(c=>c.id).filter(Boolean);
+function inp(k,i,c){const v=S[k][i][c.k]??'',o=typeof c.o=='function'?c.o():c.o;const h=`onchange="U('${k}',${i},'${c.k}',this.value${c.t=='number'?',1':''})"`;
+if(o)return`<select ${h}><option value=""></option>${o.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('')}</select>`;
+return`<input ${h} type="${c.t||'text'}" ${c.t=='number'?'step=any class=n':''} value="${String(v).replace(/"/g,'&quot;')}">`}
+function grid(k,cols,ex=[],tot){return`<div class=sc><table><tr>${cols.map(c=>`<th>${c.l}`).join('')}${ex.map(e=>`<th>${e[0]}`).join('')}<th></tr>${S[k].map((r,i)=>`<tr>${cols.map(c=>`<td>${inp(k,i,c)}`).join('')}${ex.map(e=>`<td class=n>${e[1](r)}`).join('')}<td><button class="b x np" onclick="X('${k}',${i})">✕</button></tr>`).join('')}${tot||''}</table></div><button class="b np" onclick="A('${k}')">+ Agregar fila</button>`}
+function U(k,i,f,v,n){S[k][i][f]=n?N(v):v;save();draw()}function X(k,i){S[k].splice(i,1);save();draw()}function A(k){S[k].push({});save();draw()}
+function C(f,v){S.cfg[f]=v;save();draw()}
+const cc=[['id','ID'],['banco','Banco'],['num','N° cuenta'],['mon','Moneda'],['cod','Código contable'],['nom','Cuenta contable'],['sb','Saldo estado de cta','number'],['sl','Saldo libros','number'],['tasa','Tasa BCV','number']].map(a=>({k:a[0],l:a[1],t:a[2],o:a[0]=='mon'?['VES','USD','EUR','COP','CNY']:0}));
+const V={};
+V.cta=()=>{const f=(l,k,t='text')=>`<label>${l}<input type=${t} value="${S.cfg[k]}" onchange="C('${k}',this.value)"></label>`;
+return`<div class=card><h2>Configuración general</h2><div class=f>${f('Razón social','emp')}${f('RIF','rif')}${f('Fecha de corte','fecha','date')}${f('Unidad Tributaria (Bs.)','ut','number')}${f('Dígitos de referencia a comparar','dig','number')}${f('Elaborado por','elab')}${f('Revisado por','rev')}${f('Contador Público','cp')}${f('N° CPC','cpc')}${f('Correo del destinatario del informe','mail','email')}</div></div>
+<div class=card><h2>Cuentas bancarias (estado de conciliación)</h2>${grid('cuentas',cc,[['Saldo bancario concil.',c=>F(ac(c).sb)],['Saldo libros ajust.',c=>F(ac(c).sl)],['Diferencia',c=>F(ac(c).d)],['Estado',c=>c.id?tg(ac(c).d==0?'CONCILIADO':'DIFERENCIA'):'']])}</div>`};
+const imp=k=>`<button class="b s np" onclick="pan=pan=='${k}'?'':'${k}';draw()">Pegar desde Excel / CSV</button>${pan==k?`<div class="card np"><b>Pegue filas (separadas por tab, ; o coma):</b> ${k=='libro'?'Fecha, Comprobante, Descripción, Referencia, Monto':'Fecha, Referencia, Descripción, Monto (o Débito y Crédito)'}<br><label>Cuenta: <select id=pc>${ids().map(i=>`<option>${i}</option>`).join('')}</select></label><textarea id=pt></textarea><button class=b onclick="IM('${k}')">Importar</button></div>`:''}`;
+const pm=s=>{s=String(s||'').replace(/["\sBs.$]/g,m=>m=='.'?'.':'').trim();if(!s)return 0;let n=/^\(.*\)$/.test(s)||/-$/.test(s)||/^-/.test(s);s=s.replace(/[()-]/g,'');const c=s.lastIndexOf(','),p=s.lastIndexOf('.');
+if(c>p)s=s.replace(/\./g,'').replace(',','.');else if(p>c){if(c<0&&s.length-p==4&&s.split('.').length==2)s=s.replace('.','');else s=s.replace(/,/g,'')}const v=parseFloat(s);return isNaN(v)?null:n?-v:v};
+const pf=s=>{const m=String(s).trim().split(' ')[0].split(/[\/.-]/);if(m.length!=3)return null;let[d,mo,y]=m.map(Number);if(y<100)y+=2000;return(d&&mo&&y>1990)?`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`:null};
+function IM(k){const id=$('#pc').value;let n=0;$('#pt').value.split('\n').forEach(l=>{if(!l.trim())return;const p=l.split(/\t|;|,(?=\s*\d{1,2}[\/-])|,/).map(x=>x.trim()),f=pf(p[0]);if(!f)return;
+if(k=='libro'){const m=pm(p[4]);if(m==null)return;S.libro.push({f,c:p[1],d:p[2],r:p[3],m,id});n++}else{let m=p.length>4?(pm(p[4])||0)-Math.abs(pm(p[3])||0):pm(p[3]);if(m==null)return;S.banco.push({f,r:p[1],d:p[2],m,id,t:''});n++}});pan='';save();draw();alert(n+' movimientos importados.')}
+V.lib=()=>`<div class=card><h2>Libro SISCON (ingresos + / egresos −)</h2>${imp('libro')}${grid('libro',[{k:'f',l:'Fecha',t:'date'},{k:'c',l:'Comprobante'},{k:'d',l:'Descripción'},{k:'r',l:'Referencia'},{k:'m',l:'Monto',t:'number'},{k:'id',l:'Cuenta',o:ids}],[['Estado',x=>tg(x.e)]])}</div>`;
+V.ban=()=>`<div class=card><h2>Banco · Estado de cuenta (créditos + / débitos −)</h2>${imp('banco')}${grid('banco',[{k:'f',l:'Fecha',t:'date'},{k:'r',l:'Referencia'},{k:'d',l:'Descripción'},{k:'m',l:'Monto',t:'number'},{k:'id',l:'Cuenta',o:ids},{k:'t',l:'Tipo (si no está en libros)',o:Object.keys(TIPOS)}],[['Estado',x=>tg(x.e)]])}</div>`;
+V.ret=()=>{const T=S.ret.reduce((a,x)=>[a[0]+(x.iva||0),a[1]+(x.ri||0),a[2]+(x.is||0),a[3]+(x.neto||0)],[0,0,0,0]);
+return`<div class=card><h2>Retenciones de IVA e ISLR a proveedores</h2><p class=np>IVA ret. = IVA × %; ISLR = base × tarifa − sustraendo (UT × tarifa × 83,3334) si aplica. Tarifas por defecto: valídelas con el Decreto 1.808.</p>${grid('ret',[{k:'fa',l:'Fecha factura',t:'date'},{k:'nf',l:'N° factura'},{k:'prov',l:'Proveedor'},{k:'rif',l:'RIF'},{k:'base',l:'Base imponible',t:'number'},{k:'al',l:'Alícuota IVA',o:['0.16','0.08','0']},{k:'pi',l:'% ret. IVA',o:['0.75','1','0']},{k:'con',l:'Concepto ISLR',o:Object.keys(ISLR)},{k:'sus',l:'Sustraendo',o:['S','N']},{k:'fp',l:'Fecha pago',t:'date'},{k:'id',l:'Cuenta',o:ids},{k:'ref',l:'Ref. pago'}],
+[['IVA',x=>F(x.iva)],['IVA ret.',x=>F(x.ri)],['ISLR ret.',x=>F(x.is)],['Neto a pagar',x=>F(x.neto)],['Estado',x=>tg(x.e)]],`<tr class=tot><td colspan=12>TOTALES<td class=n>${F(S.ret.reduce((t,x)=>t+(x.iva||0),0))}<td class=n>${F(T[1])}<td class=n>${F(T[2])}<td class=n>${F(T[3])}<td><td></tr>`)}</div>`};
+V.inf=()=>{const c=S.cuentas.find(x=>x.id==S.sel)||S.cuentas[0];if(!c)return'<div class=card>Registre una cuenta.</div>';S.sel=c.id;const a=ac(c),r=(l,v,b)=>`<tr${b?' class=tot':''}><td>${l}<td class=n>${F(v)}</tr>`,
+rt=S.ret.filter(x=>x.id==c.id),sm=f=>R(rt.reduce((t,x)=>t+(x[f]||0),0)),q=(a,b)=>R(rt.filter(x=>x.fp>=S.cfg.fecha.slice(0,8)+a&&x.fp<=S.cfg.fecha.slice(0,8)+b).reduce((t,x)=>t+x.ri,0)),
+st=(f,e)=>S[f].filter(x=>x.id==c.id&&x.e==e).length;
+return`<div class=card><div class=np><label>Cuenta: <select onchange="S.sel=this.value;save();draw()">${ids().map(i=>`<option ${i==c.id?'selected':''}>${i}</option>`).join('')}</select></label> <button class=b onclick="PDF()">Descargar PDF</button><button class="b s" onclick="window.print()">Imprimir</button><button class="b s" onclick="SH('mail')">Enviar por correo</button><button class="b s" onclick="SH('wa')">Compartir por WhatsApp</button>${pan=='sh'?shp():''}</div>
+<h2 style="text-align:center;font-size:20px">CONCILIACIÓN BANCARIA</h2><p style="text-align:center"><b>${S.cfg.emp}</b> · RIF ${S.cfg.rif}<br>${c.banco} · Cuenta ${c.num} · ${c.mon}<br>Cuenta contable ${c.cod} ${c.nom} · Al ${D(S.cfg.fecha)}</p>
+<table>${r('A. Saldo según estado de cuenta',c.sb,1)}${r('(+) Depósitos y créditos en tránsito',a.dt)}${r('(−) Cheques y pagos en circulación',a.cc)}${r('SALDO BANCARIO CONCILIADO',a.sb,1)}
+${r('B. Saldo según libros',c.sl,1)}${r('(+) Créditos bancarios no registrados (N/C, intereses)',a.nc)}${r('(−) Débitos bancarios no registrados (comisiones, IGTF, N/D)',a.nd)}${r('SALDO LIBROS AJUSTADO',a.sl,1)}</table>
+<div class="big ${a.d==0?'ok':'er'}">Diferencia: ${F(a.d)} · ${a.d==0?'CONCILIADO':'NO CONCILIADO: revise saldos iniciales, duplicados o signos'}</div>
+${c.mon!='VES'&&N(c.tasa)?`<p>Equivalente en Bs. (tasa ${c.tasa}): <b>${F(a.sb*N(c.tasa))}</b></p>`:''}
+<h2>C. Partidas del banco no registradas en libros</h2><table><tr><th>Tipo<th>Monto<th>Cuenta sugerida</tr>${Object.keys(TIPOS).map(t=>`<tr><td>${t}<td class=n>${F(R(a.B.filter(x=>x.t==t).reduce((s,x)=>s+N(x.m),0)))}<td>${TIPOS[t].join(' · ')}</tr>`).join('')}<tr class=tot><td>Sin clasificar<td class=n>${F(R(a.B.filter(x=>!TIPOS[x.t]).reduce((s,x)=>s+N(x.m),0)))}<td></tr></table>
+<h2>D. Estadísticas</h2><p>Libros: ${st('libro','CONCILIADO')} conciliadas · ${st('libro','PENDIENTE EN BANCO')} pendientes · ${st('libro','REVISAR: DUPLICADO')} duplicados. Banco: ${st('banco','CONCILIADO')} conciliadas · ${st('banco','NO REGISTRADO EN LIBROS')} no registradas · ${st('banco','REVISAR: DUPLICADO')} duplicados.</p>
+<h2>E. Retenciones pagadas desde esta cuenta</h2><table>${r('Neto pagado a proveedores',sm('neto'))}${r('IVA retenido',sm('ri'))}${r('ISLR retenido',sm('is'))}${r('IVA retenido 1ª quincena del mes',q('01','15'))}${r('IVA retenido 2ª quincena del mes',q('16','31'))}<tr><td>Pagos sin reflejo en banco<td class=n>${rt.filter(x=>x.e=='SIN PAGO EN BANCO').length}</tr></table>
+<p style="margin-top:50px;display:flex;justify-content:space-around;text-align:center"><span>______________<br>${S.cfg.elab}<br><small>Elaborado por</small></span><span>______________<br>${S.cfg.rev}<br><small>Revisado por</small></span><span>______________<br>${S.cfg.cp}<br><small>Contador Público · ${S.cfg.cpc}</small></span></p></div>`};
+function asi(){const L=[];let n=0;const cta=id=>S.cuentas.find(c=>c.id==id)||{};
+S.banco.filter(x=>x.e=='NO REGISTRADO EN LIBROS').forEach(x=>{n++;const m=N(x.m),t=TIPOS[x.t]||['POR CLASIFICAR','Partida por clasificar'],g='Ajuste bancario: '+x.d+' (ref. '+x.r+')',b=cta(x.id);
+L.push([n,x.f,t[0],t[1],g,m<0?-m:'',m>0?m:'']);L.push([n,x.f,b.cod||'?',b.nom||'',g,m>0?m:'',m<0?-m:''])});
+const o=n;S.ret.filter(x=>N(x.base)).forEach(x=>{n++;const b=cta(x.id),f=x.fp||x.fa,g='Pago factura '+(x.nf||'')+' - '+(x.prov||'');
+L.push([n,f,CT.cxp[0],CT.cxp[1],g,x.tot,'']);L.push([n,f,b.cod||'?',b.nom||'',g,'',x.neto]);L.push([n,f,CT.iva[0],CT.iva[1],g,'',x.ri]);L.push([n,f,CT.isl[0],CT.isl[1],g,'',x.is])});return L}
+V.asi=()=>{const L=asi(),d=R(L.reduce((t,r)=>t+N(r[5]),0)),h=R(L.reduce((t,r)=>t+N(r[6]),0));
+return`<div class=card><h2>Asientos contables (Debe / Haber)</h2><p>Ajustes bancarios y pagos con retenciones. Las cuentas son ejemplos: ajústelas a su plan de cuentas.</p><div class=sc><table><tr><th>N°<th>Fecha<th>Código<th>Cuenta<th>Glosa<th>Debe<th>Haber</tr>${L.map(r=>`<tr><td>${r[0]}<td>${D(r[1])}<td>${r[2]}<td>${r[6]!==''?'&nbsp;&nbsp;&nbsp;&nbsp;':''}${r[3]}<td>${r[4]}<td class=n>${F(r[5])}<td class=n>${F(r[6])}</tr>`).join('')}<tr class=tot><td colspan=5>TOTAL ${d==h?'· CUADRA':'· DESCUADRE'}<td class=n>${F(d)}<td class=n>${F(h)}</tr></table></div>
+<button class="b np" onclick="dl('asientos_'+S.cfg.fecha+'.csv',CSVA())">Descargar CSV</button><button class="b s np" onclick="pan='csv';draw()">Ver CSV para copiar</button>${pan=='csv'?`<textarea readonly onclick="this.select()">N°;Fecha;Código;Cuenta;Glosa;Debe;Haber\n${L.map(r=>[r[0],D(r[1]),r[2],r[3],r[4],r[5]===''?'':R(r[5]).toFixed(2).replace('.',','),r[6]===''?'':R(r[6]).toFixed(2).replace('.',',')].join(';')).join('\n')}</textarea>`:''}</div>`};
+V.res=()=>`<div class=card><h2>Respaldo de datos</h2><p>Los datos se guardan en este navegador. Copie el respaldo para guardarlo o llevarlo a otro equipo.</p><button class=b onclick="dl('respaldo_conciliacion.json',JSON.stringify(S))">Descargar respaldo (.json)</button><label class="b s">Cargar respaldo desde archivo<input type=file accept=.json hidden onchange="LF(this)"></label><br><textarea id=bk onclick="this.select()">${JSON.stringify(S).replace(/</g,'&lt;')}</textarea><br><button class=b onclick="try{S=JSON.parse($('#bk').value.replace(/&lt;/g,'<'));ap();save();tab='cta';draw()}catch(e){alert('Respaldo inválido')}">Restaurar desde el cuadro</button><button class="b s" onclick="if(confirm('¿Borrar todos los movimientos, retenciones y cuentas? La configuración se conserva.')){S.libro=[];S.banco=[];S.ret=[];S.vta=[];S.cob=[];S.cuentas=[];save();tab='cta';draw()}">Limpiar datos del período</button><button class="b s" onclick="if(confirm('¿Restaurar los datos de ejemplo?')){S=demo();S.cfg.emp=EMPRESA.nombre;S.cfg.rif=EMPRESA.rif;ap();save();draw()}">Cargar ejemplo</button></div>`;
+async function dl(n,d){let m=null;try{m=await claude.use('downloads')}catch(e){}if(!m){alert('La descarga no está disponible en esta vista. Use el cuadro de texto para copiar.');return}try{await m.save({filename:n,data:d})}catch(e){if(e.code!='declined')alert('No se pudo guardar: '+(e.message||e.code))}}
+function LF(e){const f=e.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);ap();save();tab='cta';draw()}catch(x){alert('Archivo inválido')}};r.readAsText(f)}
+const CSVA=()=>'\ufeffN°;Fecha;Código;Cuenta;Glosa;Debe;Haber\n'+asi().map(r=>[r[0],D(r[1]),r[2],r[3],r[4],r[5]===''?'':R(r[5]).toFixed(2).replace('.',','),r[6]===''?'':R(r[6]).toFixed(2).replace('.',',')].join(';')).join('\n');
+function PDF(){const J=window.jspdf;if(!J){alert('No cargó el generador de PDF. Use Imprimir.');return}const c=S.cuentas.find(x=>x.id==S.sel);if(!c)return;const a=ac(c),d=new J.jsPDF(),M=S.cfg,y=()=>d.lastAutoTable.finalY+8,T=(h,b,s,w)=>d.autoTable({startY:s,head:[h],body:b,theme:'grid',styles:{fontSize:8},headStyles:{fillColor:[31,111,80]},columnStyles:w||{1:{halign:'right'}}});
+d.setFontSize(15);d.text('CONCILIACIÓN BANCARIA',105,16,{align:'center'});d.setFontSize(10);d.text([M.emp+' · RIF '+M.rif,c.banco+' · Cuenta '+c.num+' · '+c.mon,'Al '+D(M.fecha)],105,23,{align:'center'});
+T(['Concepto','Monto'],[['Saldo según estado de cuenta',F(c.sb)],['(+) Depósitos en tránsito',F(a.dt)],['(-) Cheques y pagos en circulación',F(a.cc)],['SALDO BANCARIO CONCILIADO',F(a.sb)],['Saldo según libros',F(c.sl)],['(+) Créditos bancarios no registrados',F(a.nc)],['(-) Débitos bancarios no registrados',F(a.nd)],['SALDO LIBROS AJUSTADO',F(a.sl)],['DIFERENCIA',F(a.d)]],38);
+const rt=S.ret.filter(x=>x.id==c.id),sm=f=>R(rt.reduce((t,x)=>t+(x[f]||0),0));T(['Retenciones pagadas desde esta cuenta','Monto'],[['Neto pagado',F(sm('neto'))],['IVA retenido',F(sm('ri'))],['ISLR retenido',F(sm('is'))]],y());
+T(['Tipo de partida no registrada','Monto','Cuenta sugerida'],Object.keys(TIPOS).map(t=>[t,F(R(a.B.filter(x=>x.t==t).reduce((s,x)=>s+N(x.m),0))),TIPOS[t].join(' · ')]),y(),{1:{halign:'right'}});
+let z=y()+22;if(z>270){d.addPage();z=30}d.setFontSize(9);[[M.elab,'Elaborado por',30],[M.rev,'Revisado por',105],[M.cp+' '+M.cpc,'Contador Público',170]].forEach(s=>{d.line(s[2]-22,z,s[2]+22,z);d.text(s[0],s[2],z+5,{align:'center'});d.text(s[1],s[2],z+10,{align:'center'})});
+const L=asi();if(L.length){d.addPage();d.setFontSize(12);d.text('ASIENTOS CONTABLES',14,16);T(['N°','Fecha','Código','Cuenta','Glosa','Debe','Haber'],L.map(r=>[r[0],D(r[1]),r[2],r[3],r[4],F(r[5]),F(r[6])]),22,{5:{halign:'right'},6:{halign:'right'}})}
+dl('Conciliacion_'+c.id+'_'+M.fecha+'.pdf',d.output('blob'))}
+function SH(k){const c=S.cuentas.find(x=>x.id==S.sel)||{},m='Informe de Conciliación Bancaria - '+S.cfg.emp+' - cuenta '+c.id+' al '+D(S.cfg.fecha),b='Estimados,\n\nAdjunto el informe de conciliación bancaria de '+S.cfg.emp+' ('+c.banco+', cuenta '+c.id+') al '+D(S.cfg.fecha)+'.\n\nSaludos,\n'+S.cfg.cp+'\n'+S.cfg.cpc;shv=k=='mail'?{u:'mailto:'+S.cfg.mail+'?subject='+encodeURIComponent(m)+'&body='+encodeURIComponent(b),t:m+'\n\n'+b,n:'Abrir correo'}:{u:'https://wa.me/?text='+encodeURIComponent(m+'. Te adjunto el PDF.'),t:m+'. Te adjunto el PDF.',n:'Abrir WhatsApp'};pan='sh';draw()}
+const shp=()=>`<div class="card np"><b>1) Descargue el PDF  2) Abra el mensaje y adjunte el archivo</b> (los adjuntos no se pueden automatizar desde el navegador).<br><button class=b onclick="PDF()">Descargar PDF</button><a class="b s" style="text-decoration:none;display:inline-block" href="${shv.u}" target="_blank" rel="noopener">${shv.n}</a><textarea readonly onclick="this.select()">${shv.t}</textarea></div>`;
+const ti=(g,k,i,v,t)=>`<td><input ${t?'type=number step=any class=n':''} value="${v}" onchange="TE('${g}','${k}',${i},this.value)">`;
+function TE(g,k,i,v){const o={islr:ISLR,tipos:TIPOS,ct:CT}[g];o[k][i]=g=='islr'&&i<2?(i==0?N(v)/100:N(v)):v;save();draw()}
+V.tab=()=>`<div class=card><h2>Conceptos de retención ISLR (Decreto 1.808)</h2><p>Tarifa en %, pago mínimo en UT. Valide con la normativa vigente y la unidad tributaria actual.</p><div class=sc><table><tr><th>Código<th>Concepto<th>Tarifa %<th>Pago mínimo (UT)</tr>${Object.keys(ISLR).map(k=>`<tr><td><b>${k}</b>${ti('islr',k,2,ISLR[k][2])}${ti('islr',k,0,R(ISLR[k][0]*100),1)}${ti('islr',k,1,ISLR[k][1],1)}</tr>`).join('')}</table></div></div><div class=card><h2>Plan de cuentas · partidas bancarias</h2><div class=sc><table><tr><th>Tipo de partida<th>Código<th>Cuenta</tr>${Object.keys(TIPOS).map(k=>`<tr><td><b>${k}</b>${ti('tipos',k,0,TIPOS[k][0])}${ti('tipos',k,1,TIPOS[k][1])}</tr>`).join('')}</table></div></div><div class=card><h2>Plan de cuentas · retenciones</h2><div class=sc><table><tr><th>Concepto<th>Código<th>Cuenta</tr>${[['cxp','Cuentas por pagar'],['iva','IVA retenido'],['isl','ISLR retenido'],['cxc','Cuentas por cobrar clientes'],['ria','IVA retenido por clientes'],['rig','ISLR retenido por clientes']].map(a=>`<tr><td><b>${a[1]}</b>${ti('ct',a[0],0,CT[a[0]][0])}${ti('ct',a[0],1,CT[a[0]][1])}</tr>`).join('')}</table></div></div>`;
+function asi(id){const L=[];let n=0;const cta=i=>S.cuentas.find(c=>c.id==i)||{},ok=x=>!id||x.id==id;
+S.banco.filter(x=>x.e=='NO REGISTRADO EN LIBROS'&&ok(x)).forEach(x=>{n++;const m=N(x.m),t=TIPOS[x.t]||['POR CLASIFICAR','Partida por clasificar'],g='Ajuste bancario: '+x.d+' (ref. '+x.r+')',b=cta(x.id);L.push([n,x.f,t[0],t[1],g,m<0?-m:'',m>0?m:'','A',x.id]);L.push([n,x.f,b.cod||'?',b.nom||'',g,m>0?m:'',m<0?-m:'','A',x.id])});
+S.ret.filter(x=>N(x.base)&&ok(x)).forEach(x=>{n++;const b=cta(x.id),f=x.fp||x.fa,g='Pago factura '+(x.nf||'')+' - '+(x.prov||'');[[CT.cxp,x.tot,''],[[b.cod||'?',b.nom||''],'',x.neto],[CT.iva,'',x.ri],[CT.isl,'',x.is]].forEach(a=>L.push([n,f,a[0][0],a[0][1],g,a[1],a[2],'R',x.id]))});return L}
+const TT=(L,g)=>{const l=g?L.filter(r=>r[7]==g):L;return[R(l.reduce((t,r)=>t+N(r[5]),0)),R(l.reduce((t,r)=>t+N(r[6]),0))]};
+let fa='';
+const CSVB=()=>{const L=asi(fa),t=TT(L),f=v=>v===''?'':R(v).toFixed(2).replace('.',',');return '\ufeffAsiento;Fecha;Código;Cuenta;Glosa;Debe;Haber;Cuenta bancaria\n'+L.map(r=>[r[0],D(r[1]),r[2],r[3],r[4],f(r[5]),f(r[6]),r[8]].join(';')).join('\n')+'\n;;;;TOTAL GENERAL;'+f(t[0])+';'+f(t[1])+';'};
+V.asi=()=>{const L=asi(fa),h=(l,t)=>`<tr class=tot><td colspan=5>${l}<td class=n>${F(t[0])}<td class=n>${F(t[1])}</tr>`;let o='';
+L.forEach((r,i)=>{o+=`<tr><td>${r[0]}<td>${D(r[1])}<td>${r[2]}<td>${r[6]!==''?'&nbsp;&nbsp;&nbsp;&nbsp;':''}${r[3]}<td>${r[4]}<td class=n>${F(r[5])}<td class=n>${F(r[6])}</tr>`;if(!L[i+1]||L[i+1][0]!=r[0]){const t=TT(L.filter(q=>q[0]==r[0]));o+=`<tr style="background:var(--g2)"><td colspan=5 class=n><i>Total asiento ${r[0]} · ${t[0]==t[1]?'cuadra':'DESCUADRE'}</i><td class=n><i>${F(t[0])}</i><td class=n><i>${F(t[1])}</i></tr>`}});
+const ta=TT(L,'A'),tr=TT(L,'R'),tz=TT(L);
+return`<div class=card><h2>Asientos contables (Debe / Haber)</h2><p>Ajustes bancarios y pagos con retenciones, con total por asiento, subtotales y total general. Las cuentas son ejemplos: ajústelas en Tablas.</p><div class=np><label>Cuenta: <select onchange="fa=this.value;draw()"><option value="">Todas</option>${ids().map(i=>`<option ${i==fa?'selected':''}>${i}</option>`).join('')}</select></label> <button class=b onclick="dl('asientos_'+S.cfg.fecha+'.csv',CSVB())">Descargar CSV</button><button class="b s" onclick="pan='csv';draw()">Ver CSV para copiar</button></div><div class=sc><table><tr><th>Asiento<th>Fecha<th>Código<th>Cuenta<th>Glosa<th>Debe<th>Haber</tr>${o}${h('SUBTOTAL ajustes bancarios',ta)}${h('SUBTOTAL pagos con retenciones',tr)}${h('TOTAL GENERAL · '+(tz[0]==tz[1]?'CUADRA':'DESCUADRE'),tz)}</table></div>${pan=='csv'?`<textarea readonly onclick="this.select()">${CSVB()}</textarea>`:''}</div>`};
+function RP(c){const a=ac(c),Lp=S.libro.filter(x=>x.id==c.id&&x.e=='PENDIENTE EN BANCO'),mi=f=>S[f].filter(x=>x.id==c.id),cn=(f,e)=>mi(f).filter(x=>x.e==e).length,rt=S.ret.filter(x=>x.id==c.id&&N(x.base)),sm=f=>R(rt.reduce((t,x)=>t+(x[f]||0),0)),fe=S.cfg.fecha.slice(0,8),q=(u,v)=>R(rt.filter(x=>x.fp>=fe+u&&x.fp<=fe+v).reduce((t,x)=>t+x.ri,0)),nT=Lp.filter(x=>N(x.m)>0).length,nN=a.B.filter(x=>N(x.m)>0).length,
+tip=Object.keys(TIPOS).map(t=>{const b=a.B.filter(x=>x.t==t);return[t,F(b.reduce((s,x)=>s+N(x.m),0)),b.length,TIPOS[t].join(' · ')]}),sc=a.B.filter(x=>!TIPOS[x.t]),A=asi(c.id),ta=TT(A,'A'),tr=TT(A,'R'),tz=TT(A),H=['Concepto','Monto','N° partidas'];
+return[{t:'A. Saldo según estado de cuenta bancario',h:H,n:[1,2],r:[['*Saldo según estado de cuenta bancario',F(c.sb),''],['(+) Depósitos y créditos en tránsito (en libros, no en banco)',F(a.dt),nT],['(-) Cheques, pagos y débitos en circulación (en libros, no en banco)',F(a.cc),Lp.length-nT],['*SALDO BANCARIO CONCILIADO',F(a.sb),'']]},
+{t:'B. Saldo según libros',h:H,n:[1,2],r:[['*Saldo según libros (mayor analítico)',F(c.sl),''],['(+) Créditos bancarios no registrados en libros (N/C, intereses)',F(a.nc),nN],['(-) Débitos bancarios no registrados en libros (comisiones, IGTF, N/D)',F(a.nd),a.B.length-nN],['*SALDO LIBROS AJUSTADO',F(a.sl),'']]},
+{t:'Resultado de la conciliación',h:['Concepto','Valor'],n:[1],r:[['*DIFERENCIA (saldo bancario conciliado - saldo libros ajustado)',F(a.d)],['Estado',a.d==0?'CONCILIADO':'NO CONCILIADO: revise saldos iniciales, partidas anteriores, duplicados o signos']].concat(c.mon!='VES'&&N(c.tasa)?[['Saldo conciliado equivalente en Bs. (tasa '+c.tasa+')',F(a.sb*N(c.tasa))]]:[],[['Alertas de duplicados (libro + banco)',cn('libro','REVISAR: DUPLICADO')+cn('banco','REVISAR: DUPLICADO')]])},
+{t:'C. Partidas del banco no registradas en libros (base para asientos de ajuste)',h:['Tipo de partida','Monto','N°','Cuenta contable sugerida'],n:[1,2],r:tip.concat([['Sin clasificar (indique el tipo en BANCO)',F(sc.reduce((s,x)=>s+N(x.m),0)),sc.length,''],['*TOTAL NO REGISTRADO EN LIBROS',F(a.nc+a.nd),a.B.length,'']])},
+{t:'D. Estadísticas del cruce',h:['Indicador','Cantidad'],n:[1],r:[['*Partidas en libros',mi('libro').length],['   Conciliadas',cn('libro','CONCILIADO')],['   Pendientes en banco (en tránsito / circulación)',Lp.length],['   Alertas: duplicados en libros',cn('libro','REVISAR: DUPLICADO')],['*Partidas en banco',mi('banco').length],['   Conciliadas',cn('banco','CONCILIADO')],['   No registradas en libros',a.B.length],['   Alertas: duplicados en banco',cn('banco','REVISAR: DUPLICADO')]]},
+{t:'E. Retenciones de IVA / ISLR pagadas desde esta cuenta',h:['Concepto','Monto / cantidad'],n:[1],r:[['Facturas pagadas con retención (N°)',rt.length],['Neto pagado a proveedores',F(sm('neto'))],['IVA retenido (total)',F(sm('ri'))],['ISLR retenido (total)',F(sm('is'))],['IVA retenido 1ª quincena del mes de corte',F(q('01','15'))],['IVA retenido 2ª quincena del mes de corte',F(q('16','31'))],['Alerta: pagos sin reflejo en banco',rt.filter(x=>x.e=='SIN PAGO EN BANCO').length]]},
+{t:'F. Totalización de asientos contables',h:['Grupo','Debe','Haber'],n:[1,2],r:[['Ajustes bancarios',F(ta[0]),F(ta[1])],['Pagos con retenciones',F(tr[0]),F(tr[1])],['*TOTAL GENERAL '+(tz[0]==tz[1]?'(CUADRA)':'(DESCUADRE)'),F(tz[0]),F(tz[1])]]}]
+.concat(Lp.length?[{t:'Detalle: partidas en tránsito y en circulación',h:['Fecha','Comprobante','Descripción','Referencia','Monto'],n:[4],r:Lp.map(x=>[D(x.f),x.c||'',x.d||'',x.r||'',F(x.m)])}]:[],a.B.length?[{t:'Detalle: partidas del banco no registradas en libros',h:['Fecha','Referencia','Descripción','Monto','Tipo'],n:[3],r:a.B.map(x=>[D(x.f),x.r||'',x.d||'',F(x.m),x.t||'(sin clasificar)'])}]:[],rt.length?[{t:'Detalle: facturas con retención',h:['Factura','Proveedor','Base','IVA ret.','ISLR ret.','Neto','Estado'],n:[2,3,4,5],r:rt.map(x=>[x.nf||'',x.prov||'',F(x.base),F(x.ri),F(x.is),F(x.neto),x.e]).concat([['*TOTAL','',F(sm('base')||rt.reduce((t,x)=>t+N(x.base),0)),F(sm('ri')),F(sm('is')),F(sm('neto')),'']])}]:[])}
+const SEC=s=>`<h2>${s.t}</h2><div class=sc><table><tr>${s.h.map(h=>`<th>${h}`).join('')}</tr>${s.r.map(r=>{const b=String(r[0]).startsWith('*');return`<tr${b?' class=tot':''}>${r.map((v,i)=>`<td${s.n.includes(i)?' class=n':''}>${i?v:String(v).replace(/^\*/,'')}`).join('')}</tr>`}).join('')}</table></div>`;
+V.inf=()=>{const c=S.cuentas.find(x=>x.id==S.sel)||S.cuentas[0];if(!c)return'<div class=card>Registre una cuenta.</div>';S.sel=c.id;const a=ac(c);
+return`<div class=card><div class=np><label>Cuenta: <select onchange="S.sel=this.value;save();draw()">${ids().map(i=>`<option ${i==c.id?'selected':''}>${i}</option>`).join('')}</select></label> <button class=b onclick="PDF()">Descargar PDF</button><button class="b s" onclick="window.print()">Imprimir</button><button class="b s" onclick="SH('mail')">Enviar por correo</button><button class="b s" onclick="SH('wa')">Compartir por WhatsApp</button>${pan=='sh'?shp():''}</div>
+<h2 style="text-align:center;font-size:20px">CONCILIACIÓN BANCARIA</h2><p style="text-align:center"><b>${S.cfg.emp}</b> · RIF ${S.cfg.rif}<br>${c.banco} · Cuenta ${c.num} · ${c.mon}<br>Cuenta contable ${c.cod} ${c.nom} · Fecha de corte ${D(S.cfg.fecha)}</p>
+<div class="big ${a.d==0?'ok':'er'}">Diferencia: ${F(a.d)} · ${a.d==0?'CONCILIADO: los saldos cuadran':'NO CONCILIADO'}</div>${RP(c).map(SEC).join('')}
+<p style="margin-top:50px;display:flex;justify-content:space-around;text-align:center"><span>______________<br>${S.cfg.elab}<br><small>Elaborado por</small></span><span>______________<br>${S.cfg.rev}<br><small>Revisado por</small></span><span>______________<br>${S.cfg.cp}<br><small>Contador Público · ${S.cfg.cpc}</small></span></p></div>`};
+function PDF(){const J=window.jspdf;if(!J){alert('No cargó el generador de PDF. Use Imprimir.');return}const c=S.cuentas.find(x=>x.id==S.sel);if(!c)return;const d=new J.jsPDF(),M=S.cfg,tb=(s,y)=>{const bi=s.r.map(r=>String(r[0]).startsWith('*')),cs={};s.n.forEach(i=>cs[i]={halign:'right'});d.autoTable({startY:y,head:[s.h],body:s.r.map(r=>r.map((v,i)=>i?v:String(v).replace(/^\*/,''))),theme:'grid',styles:{fontSize:8},headStyles:{fillColor:[31,111,80]},columnStyles:cs,didParseCell:h=>{if(h.section=='body'&&bi[h.row.index])h.cell.styles.fontStyle='bold'}});return d.lastAutoTable.finalY+8};let y=40;
+d.setFontSize(15);d.text('CONCILIACIÓN BANCARIA',105,16,{align:'center'});d.setFontSize(10);d.text([M.emp+' · RIF '+M.rif,c.banco+' · Cuenta '+c.num+' · '+c.mon,'Cuenta contable '+c.cod+' '+c.nom+' · Fecha de corte '+D(M.fecha)],105,23,{align:'center'});
+RP(c).forEach(s=>{if(y>250){d.addPage();y=16}d.setFontSize(10);d.setFont(undefined,'bold');d.text(s.t,14,y);d.setFont(undefined,'normal');y=tb(s,y+2)});
+if(y>240){d.addPage();y=20}y+=18;d.setFontSize(9);[[M.elab,'Elaborado por',30],[M.rev,'Revisado por',105],[M.cp+' '+M.cpc,'Contador Público',170]].forEach(s=>{d.line(s[2]-22,y,s[2]+22,y);d.text(String(s[0]),s[2],y+5,{align:'center'});d.text(s[1],s[2],y+10,{align:'center'})});
+const L=asi(c.id);if(L.length){d.addPage();d.setFontSize(12);d.text('ASIENTOS CONTABLES',14,16);const t=TT(L),rows=[];L.forEach((r,i)=>{rows.push([r[0],D(r[1]),r[2],(r[6]!==''?'    ':'')+r[3],r[4],F(r[5]),F(r[6])]);if(!L[i+1]||L[i+1][0]!=r[0]){const u=TT(L.filter(q=>q[0]==r[0]));rows.push(['*','','','','Total asiento '+r[0],F(u[0]),F(u[1])])}});rows.push(['*','','','','TOTAL GENERAL',F(t[0]),F(t[1])]);
+const bi=rows.map(r=>r[0]=='*');d.autoTable({startY:20,head:[['Asiento','Fecha','Código','Cuenta','Glosa','Debe','Haber']],body:rows.map(r=>r[0]=='*'?['',...r.slice(1)]:r),theme:'grid',styles:{fontSize:7},headStyles:{fillColor:[31,111,80]},columnStyles:{5:{halign:'right'},6:{halign:'right'}},didParseCell:h=>{if(h.section=='body'&&bi[h.row.index])h.cell.styles.fontStyle='bold'}})}
+dl('Conciliacion_'+c.id+'_'+M.fecha+'.pdf',d.output('blob'))}
+let dq='M';
+function DEC(){const per=S.cfg.fecha.slice(0,7),f=x=>x.fp||x.fa||'',L=S.ret.filter(x=>N(x.base)&&f(x).slice(0,7)==per).sort((a,b)=>f(a)<f(b)?-1:1);L.forEach((x,i)=>{x.cp=per.replace('-','')+String(i+1).padStart(8,'0');x.ci='ISLR-'+per.replace('-','')+'-'+String(i+1).padStart(4,'0');x.fd=f(x);x.su=x.is>0?Math.max(0,R(N(x.base)*(ISLR[x.con]||[0])[0]-x.is)):0});return L.filter(x=>dq=='M'||(dq=='1'?+x.fd.slice(8)<=15:+x.fd.slice(8)>15))}
+const CSVD=(k)=>{const L=DEC(),n=v=>R(v).toFixed(2).replace('.',',');return '\ufeff'+(k=='iva'?'Comprobante;Fecha;Proveedor;RIF;Factura;Base;Alicuota;IVA;% Retencion;IVA retenido\n'+L.filter(x=>x.ri>0).map(x=>[x.cp,D(x.fd),x.prov,x.rif,x.nf,n(N(x.base)),(N(x.al)*100)+'%',n(x.iva),(N(x.pi)*100)+'%',n(x.ri)].join(';')).join('\n'):'Comprobante;Fecha;Beneficiario;RIF;Concepto;Base;Tarifa;Sustraendo;ISLR retenido\n'+L.filter(x=>x.is>0).map(x=>[x.ci,D(x.fd),x.prov,x.rif,x.con,n(N(x.base)),((ISLR[x.con]||[0])[0]*100)+'%',n(x.su),n(x.is)].join(';')).join('\n'))};
+const CP=(t,x,rows)=>`<div class=card style="page-break-inside:avoid;border:2px solid var(--g)"><h2 style="text-align:center">${t}</h2><table>${[['N° de comprobante',rows[0]],['Fecha de emisión',D(x.fd)],['Período fiscal',x.fd.slice(0,4)+'/'+x.fd.slice(5,7)],['Agente de retención',S.cfg.emp+' · RIF '+S.cfg.rif],['Sujeto retenido',(x.prov||'')+' · RIF '+(x.rif||'')],['Factura N° / fecha',(x.nf||'')+' · '+D(x.fa)]].concat(rows.slice(1)).map(r=>`<tr><td><b>${r[0]}</b><td>${r[1]}</tr>`).join('')}</table><p style="margin-top:40px;text-align:center">______________________<br>${S.cfg.cp} · ${S.cfg.cpc}<br><small>Agente de retención</small></p></div>`;
+V.dec=()=>{const L=DEC(),I=L.filter(x=>x.ri>0),T=L.filter(x=>x.is>0),s=(a,f)=>R(a.reduce((t,x)=>t+N(x[f]),0)),per=S.cfg.fecha.slice(0,7),cs={};T.forEach(x=>{const c=cs[x.con]=cs[x.con]||[0,0,0];c[0]++;c[1]+=N(x.base);c[2]+=x.is});
+return`<div class=card><h2>Declaraciones de retenciones · período ${per.slice(5)}/${per.slice(0,4)}</h2><p>Se toman las facturas pagadas (o, si no hay fecha de pago, facturadas) en el mes de la fecha de corte. Los números de comprobante se generan en orden de fecha: verifíquelos con su numeración oficial.</p><div class=np><label>IVA: <select onchange="dq=this.value;draw()"><option value=M ${dq=='M'?'selected':''}>Mes completo</option><option value=1 ${dq=='1'?'selected':''}>1ª quincena</option><option value=2 ${dq=='2'?'selected':''}>2ª quincena</option></select></label> <button class=b onclick="window.print()">Imprimir</button><button class="b s" onclick="dl('relacion_iva_'+S.cfg.fecha.slice(0,7)+'.csv',CSVD('iva'))">CSV relación IVA</button><button class="b s" onclick="dl('relacion_islr_'+S.cfg.fecha.slice(0,7)+'.csv',CSVD('islr'))">CSV relación ISLR</button></div></div>
+<div class=card><h2>Relación de retenciones de IVA</h2><div class=sc><table><tr><th>Comprobante<th>Fecha<th>Proveedor<th>RIF<th>Factura<th>Base<th>IVA<th>% ret.<th>IVA retenido</tr>${I.map(x=>`<tr><td>${x.cp}<td>${D(x.fd)}<td>${x.prov||''}<td>${x.rif||''}<td>${x.nf||''}<td class=n>${F(x.base)}<td class=n>${F(x.iva)}<td class=n>${N(x.pi)*100}%<td class=n>${F(x.ri)}</tr>`).join('')||'<tr><td colspan=9>Sin retenciones en el período</tr>'}<tr class=tot><td colspan=5>TOTAL A ENTERAR<td class=n>${F(s(I,'base'))}<td class=n>${F(s(I,'iva'))}<td><td class=n>${F(s(I,'ri'))}</tr></table></div></div>
+<div class=card><h2>Resumen de retenciones de ISLR por concepto</h2><div class=sc><table><tr><th>Concepto<th>N° pagos<th>Base<th>ISLR retenido</tr>${Object.keys(cs).map(k=>`<tr><td>${k} · ${ISLR[k]?ISLR[k][2]:''}<td class=n>${cs[k][0]}<td class=n>${F(cs[k][1])}<td class=n>${F(cs[k][2])}</tr>`).join('')||'<tr><td colspan=4>Sin retenciones en el período</tr>'}<tr class=tot><td>TOTAL A ENTERAR<td class=n>${T.length}<td class=n>${F(s(T,'base'))}<td class=n>${F(s(T,'is'))}</tr></table></div></div>
+<div class=np><h2 style="color:var(--g)">Comprobantes para imprimir</h2></div>${I.map(x=>CP('COMPROBANTE DE RETENCIÓN DEL IMPUESTO AL VALOR AGREGADO (IVA)',x,[x.cp,['Base imponible',F(x.base)],['Alícuota / IVA causado',N(x.al)*100+'% · '+F(x.iva)],['Porcentaje de retención',N(x.pi)*100+'%'],['<b>IVA retenido</b>','<b>'+F(x.ri)+'</b>']])).join('')}${T.map(x=>CP('COMPROBANTE DE RETENCIÓN DEL IMPUESTO SOBRE LA RENTA (ISLR)',x,[x.ci,['Concepto',x.con+' · '+(ISLR[x.con]?ISLR[x.con][2]:'')],['Base de cálculo',F(x.base)],['Tarifa',R((ISLR[x.con]||[0])[0]*100)+'%'],['Sustraendo',F(x.su)],['<b>ISLR retenido</b>','<b>'+F(x.is)+'</b>']])).join('')}`};
+function VT(){const fc=S.cfg.fecha,bk=new Set(S.banco.map(x=>x.k));S.vta.forEach(x=>{const b=N(x.base);x.iva=R(b*N(x.al));x.tot=R(b+x.iva);x.ri=R(x.iva*N(x.ci));x.rg=N(x.cr);x.co=R(S.cob.filter(c=>c.nf&&c.nf==x.nf).reduce((t,c)=>t+N(c.m),0));x.sd=R(x.tot-x.ri-x.rg-x.co);const v=x.fv||x.fa;x.dv=v?Math.floor((new Date(fc)-new Date(v))/864e5):0;x.e=x.sd<=0.005?'COBRADA':x.dv>0?'VENCIDA':x.co>0?'COBRO PARCIAL':'POR COBRAR'});
+S.cob.forEach(c=>{c.e=(!c.id||!c.ref||!N(c.m))?'INCOMPLETO':!S.vta.some(x=>x.nf==c.nf)?'FACTURA NO EXISTE':bk.has(K(c.id,c.ref,N(c.m)))?'CONCILIADO':'SIN DEPÓSITO EN BANCO'})}
+const tc=e=>`<span class="tg ${/^(COBRADA|CONCILIADO)/.test(e)?'ok':/^(VENCIDA|SIN|FACTURA)/.test(e)?'er':'wr'}">${e}</span>`;
+V.vta=()=>{VT();const cta=i=>S.cuentas.find(c=>c.id==i)||{},sm=(a,f)=>R(a.reduce((t,x)=>t+N(x[f]),0)),cl={},A=[];let n=0;
+S.vta.filter(x=>x.sd>0.005).forEach(x=>{const k=x.cli||'(sin cliente)',a=cl[k]=cl[k]||[0,0,0,0,0,0],i=x.dv<=0?0:x.dv<=30?1:x.dv<=60?2:x.dv<=90?3:4;a[i]=R(a[i]+x.sd);a[5]=R(a[5]+x.sd)});
+S.cob.filter(c=>c.e!='INCOMPLETO'&&c.e!='FACTURA NO EXISTE').forEach(c=>{n++;const b=cta(c.id),g='Cobro factura '+c.nf+' - '+(c.cli||'');A.push([n,c.fc,b.cod||'?',b.nom||'',g,N(c.m),'','C']);A.push([n,c.fc,CT.cxc[0],CT.cxc[1],g,'',N(c.m),'C'])});
+S.vta.filter(x=>x.ri+x.rg>0).forEach(x=>{n++;const g='Retenciones sufridas factura '+x.nf+' - '+(x.cli||'');if(x.ri)A.push([n,x.fa,CT.ria[0],CT.ria[1],g,x.ri,'','C']);if(x.rg)A.push([n,x.fa,CT.rig[0],CT.rig[1],g,x.rg,'','C']);A.push([n,x.fa,CT.cxc[0],CT.cxc[1],g,'',R(x.ri+x.rg),'C'])});
+const t=TT(A),rw=(l,v)=>`<tr><td>${l}<td class=n>${v}</tr>`;
+return`<div class=card><h2>Facturas de venta</h2><p>Registre cada factura emitida, el % de IVA que el cliente le retiene y el ISLR que le retuvo. El saldo, los días vencidos y el estado se calculan solos.</p>${grid('vta',[{k:'fa',l:'Fecha',t:'date'},{k:'nf',l:'N° factura'},{k:'cli',l:'Cliente'},{k:'rif',l:'RIF'},{k:'base',l:'Base imponible',t:'number'},{k:'al',l:'Alícuota IVA',o:['0.16','0.08','0']},{k:'ci',l:'% IVA retenido por cliente',o:['0.75','1','0']},{k:'cr',l:'ISLR retenido por cliente',t:'number'},{k:'fv',l:'Vencimiento',t:'date'}],[['IVA',x=>F(x.iva)],['Total',x=>F(x.tot)],['Ret. IVA',x=>F(x.ri)],['Cobrado',x=>F(x.co)],['Saldo',x=>F(x.sd)],['Días venc.',x=>x.sd>0.005&&x.dv>0?x.dv:''],['Estado',x=>tc(x.e)]])}</div>
+<div class=card><h2>Cobranzas</h2><p>Cada cobro se aplica a una factura y se busca como depósito en la hoja Banco (misma cuenta, referencia y monto).</p>${imp2()}${grid('cob',[{k:'fc',l:'Fecha',t:'date'},{k:'cli',l:'Cliente'},{k:'id',l:'Cuenta',o:ids},{k:'ref',l:'Referencia'},{k:'m',l:'Monto depositado',t:'number'},{k:'igtf',l:'IGTF incluido (info)',t:'number'},{k:'nf',l:'Factura aplicada',o:()=>S.vta.map(x=>x.nf).filter(Boolean)}],[['Estado',c=>tc(c.e)]])}</div>
+<div class=card><h2>Antigüedad de saldos por cliente</h2><div class=sc><table><tr><th>Cliente<th>Por vencer<th>1-30 días<th>31-60<th>61-90<th>Más de 90<th>Total por cobrar</tr>${Object.keys(cl).map(k=>`<tr><td>${k}${cl[k].map(v=>`<td class=n>${F(v)}`).join('')}</tr>`).join('')||'<tr><td colspan=7>Sin saldos pendientes</tr>'}<tr class=tot><td>TOTAL${[0,1,2,3,4,5].map(i=>`<td class=n>${F(R(Object.values(cl).reduce((s,a)=>s+a[i],0)))}`).join('')}</tr></table></div></div>
+<div class=card><h2>Resumen de ventas y cobranzas</h2><table>${rw('Facturado (base imponible)',F(sm(S.vta,'base')))}${rw('IVA débito fiscal',F(sm(S.vta,'iva')))}${rw('Total facturado',F(sm(S.vta,'tot')))}${rw('IVA retenido por clientes',F(sm(S.vta,'ri')))}${rw('ISLR retenido por clientes',F(sm(S.vta,'rg')))}${rw('Total cobrado',F(sm(S.cob,'m')))}${rw('IGTF incluido en cobros',F(sm(S.cob,'igtf')))}<tr class=tot><td>SALDO POR COBRAR<td class=n>${F(R(S.vta.reduce((s,x)=>s+Math.max(0,x.sd),0)))}</tr>${rw('Cobros sin depósito en banco',S.cob.filter(c=>c.e=='SIN DEPÓSITO EN BANCO').length)}${rw('Facturas vencidas',S.vta.filter(x=>x.e=='VENCIDA').length)}</table></div>
+<div class=card><h2>Asientos de cobranza y retenciones sufridas (Debe / Haber)</h2><div class=sc><table><tr><th>Asiento<th>Fecha<th>Código<th>Cuenta<th>Glosa<th>Debe<th>Haber</tr>${A.map((r,i)=>`<tr><td>${r[0]}<td>${D(r[1])}<td>${r[2]}<td>${r[6]!==''?'&nbsp;&nbsp;&nbsp;&nbsp;':''}${r[3]}<td>${r[4]}<td class=n>${F(r[5])}<td class=n>${F(r[6])}</tr>`+((!A[i+1]||A[i+1][0]!=r[0])?(u=>`<tr style="background:var(--g2)"><td colspan=5 class=n><i>Total asiento ${r[0]} · ${u[0]==u[1]?'cuadra':'DESCUADRE'}</i><td class=n><i>${F(u[0])}</i><td class=n><i>${F(u[1])}</i></tr>`)(TT(A.filter(q=>q[0]==r[0]))):'')).join('')}<tr class=tot><td colspan=5>TOTAL GENERAL · ${t[0]==t[1]?'CUADRA':'DESCUADRE'}<td class=n>${F(t[0])}<td class=n>${F(t[1])}</tr></table></div></div>`};
+const imp2=()=>`<button class="b s np" onclick="pan=pan=='cob'?'':'cob';draw()">Pegar cobros desde Excel / CSV</button>${pan=='cob'?`<div class="card np"><b>Una fila por cobro:</b> Fecha, Cliente, Referencia, Monto, Factura aplicada<br><label>Cuenta: <select id=pc>${ids().map(i=>`<option>${i}</option>`).join('')}</select></label><textarea id=pt></textarea><button class=b onclick="IC()">Importar</button></div>`:''}`;
+function IC(){const id=$('#pc').value;let n=0;$('#pt').value.split('\n').forEach(l=>{const p=l.split(/\t|;/).map(x=>x.trim()),f=pf(p[0]),m=pm(p[3]);if(!f||m==null)return;S.cob.push({fc:f,cli:p[1],id,ref:p[2],m,igtf:0,nf:p[4]||''});n++});pan='';save();draw();alert(n+' cobros importados.')}
+const WEL=()=>`<div class="card np" style="border:2px solid var(--a)"><h2>Bienvenido al sistema de conciliación bancaria</h2><p>Elija cómo quiere comenzar. Sus datos se guardan solo en este navegador: descargue un respaldo desde la pestaña Respaldo con regularidad.</p><button class=b onclick="BL()">Empezar en blanco</button><button class="b s" onclick="wl=false;save();draw()">Ver con datos de ejemplo</button><button class=b onclick="tab='man';draw()">Leer el manual</button></div>`;
+function BL(){const c=S.cfg;S={cfg:{emp:EMPRESA.nombre,rif:EMPRESA.rif,fecha:new Date().toISOString().slice(0,10),ut:c.ut,dig:c.dig,elab:'',rev:'',cp:'',cpc:'',mail:''},sel:'',cuentas:[],libro:[],banco:[],ret:[],vta:[],cob:[],t:S.t};wl=false;save();tab='cta';draw()}
+const MAN=[['1. Para qué sirve','Concilia las cuentas bancarias de la empresa (libro vs. estado de cuenta), calcula retenciones de IVA e ISLR a proveedores, genera comprobantes y relaciones para declarar, concilia ventas y cobranzas, y produce el informe y los asientos con Debe y Haber. Admite hasta varias cuentas, incluso en divisas.'],
+['2. Primeros pasos','<ol><li><b>Cuentas:</b> complete la configuración (empresa, RIF, fecha de corte, unidad tributaria, firmantes) y registre cada cuenta con un ID único (ej. BAN-01), su moneda, su cuenta contable y los saldos del estado de cuenta y de libros a la fecha de corte.</li><li><b>Tablas:</b> revise tarifas de ISLR, pago mínimo y los códigos de su plan de cuentas.</li><li><b>Libro:</b> cargue los movimientos de la cuenta según su contabilidad (ingresos +, egresos −) con el ID de cuenta y la referencia. Puede pegar filas desde Excel.</li><li><b>Banco:</b> cargue el estado de cuenta (créditos +, débitos −), pegando filas o importando un CSV.</li><li>Revise la columna <b>Estado</b> de ambas hojas y clasifique en Banco el <b>tipo</b> de cada partida no registrada en libros.</li><li><b>Informe:</b> elija la cuenta; la diferencia debe ser 0,00.</li><li><b>Asientos:</b> contabilice los ajustes y los pagos con retenciones; descargue el CSV si lo necesita.</li></ol>'],
+['3. Cómo se hace el cruce','Una partida del libro y una del banco se consideran la misma cuando coinciden la cuenta, los últimos N dígitos de la referencia (N se define en Cuentas > Configuración; por defecto 6) y el monto con su signo. Si la misma combinación aparece más veces en un lado que en el otro, se marca REVISAR: DUPLICADO.'],
+['4. Estados y colores','<ul><li><b>CONCILIADO / PAGO EN BANCO</b> (verde): encontrado en ambos lados.</li><li><b>PENDIENTE EN BANCO</b>: está en libros y no en el banco (depósito en tránsito o cheque en circulación).</li><li><b>NO REGISTRADO EN LIBROS</b>: está en el banco y no en libros (comisión, IGTF, N/D, N/C, intereses): genera asiento de ajuste.</li><li><b>REVISAR, FALTA CUENTA, CUENTA NO EXISTE, SIN PAGO/DEPÓSITO EN BANCO</b> (rojo): requieren corrección.</li></ul>'],
+['5. Si la diferencia no es cero','Verifique: (a) saldos iniciales de Cuentas; (b) partidas de períodos anteriores aún pendientes, que deben cargarse; (c) signos invertidos; (d) duplicados; (e) partidas sin cuenta o con referencia mal escrita; (f) tipos sin clasificar en Banco.'],
+['6. Retenciones a proveedores','En Retenciones registre cada factura pagada. <b>IVA retenido</b> = IVA × % de retención (75% general o 100% en casos especiales). <b>ISLR</b> = base × tarifa del concepto − sustraendo (UT × tarifa × 83,3334) si marca S. El sustraendo se aplica una sola vez al mes por beneficiario: usted decide cuándo marcarlo. El neto a pagar debe aparecer en el banco con la misma referencia.'],
+['7. Declaraciones','La pestaña toma el mes de la fecha de corte: relación de IVA retenido (mes o quincena), resumen de ISLR por concepto, comprobantes para imprimir y CSV. Los números de comprobante son correlativos generados por la app: compárelos con su numeración oficial.'],
+['8. Ventas y cobranzas','Registre facturas emitidas (con el IVA y el ISLR que el cliente le retiene) y cada cobro aplicado a una factura. El cobro se concilia con un depósito del banco. Obtendrá saldos, antigüedad por cliente y asientos de cobranza.'],
+['9. Respaldo y privacidad','Los datos viven solo en este navegador y en este equipo. Cada persona que abre el enlace tiene sus propios datos. Si cambia de equipo o borra los datos del navegador los perderá: descargue el respaldo (.json) al terminar cada período y cárguelo cuando lo necesite.'],
+['10. Qué debe validar usted','Tarifas y pagos mínimos de ISLR, valor de la unidad tributaria, alicuotas y porcentajes de retención de IVA vigentes, códigos de su plan de cuentas y el tratamiento del IGTF. La app calcula con los valores que usted configura. No genera el archivo TXT del portal del SENIAT. Correo y WhatsApp abren el mensaje pero el PDF debe adjuntarse a mano.']];
+V.man=()=>`<div class=card><h2>Manual de usuario</h2><div class=np><button class=b onclick="window.print()">Imprimir manual</button><button class="b s" onclick="BL()">Empezar en blanco</button></div>${MAN.map(m=>`<h3 style="color:var(--g);margin:16px 0 6px">${m[0]}</h3><div>${m[1]}</div>`).join('')}</div>`;
+const NV=[['cta','Cuentas'],['lib','Libro'],['ban','Banco'],['ret','Retenciones'],['vta','Ventas y cobranzas'],['dec','Declaraciones'],['inf','Informe'],['asi','Asientos'],['tab','Tablas'],['res','Respaldo'],['man','Manual']];
+function draw(){calc();$('#nv').innerHTML=NV.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="tab='${t[0]}';pan='';draw()">${t[1]}</button>`).join('');$('#v').innerHTML=(wl?WEL():'')+V[tab]()}
+draw();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:0};window.UXMODID='conc';window.UX={status:function(){var dm=demo();function nm(o){o=JSON.parse(JSON.stringify(o));['libro','banco','ret','vta','cob'].forEach(function(a){var ks=dm[a]&&dm[a][0]?Object.keys(dm[a][0]):null;(o[a]||[]).forEach(function(x){if(ks)Object.keys(x).forEach(function(k){if(ks.indexOf(k)<0)delete x[k]})})});delete o.cfg.mail;delete o.t;delete o.vta;delete o.cob;o.cfg.emp='';o.cfg.rif='';return JSON.stringify(o)}
+ calc();var cu=S.cuentas.length,mv=S.libro.length+S.banco.length,vc=S.vta.length+':'+S.cob.length,b0=null,same=nm(S)===nm(dm);
+ try{b0=localStorage.getItem('ux_vc0')}catch(e){}
+ if(same&&b0===null){try{localStorage.setItem('ux_vc0',vc)}catch(e){}b0=vc}
+ if((!cu&&!mv)||(same&&vc===b0))return{est:'sin',det:cu?'Con datos de ejemplo':'Sin cuentas'};
+ var dif=S.cuentas.filter(function(c){return Math.abs(ac(c).d)>0.005}).length,pend=S.libro.concat(S.banco).filter(function(x){return x.e&&x.e!=='CONCILIADO'}).length;
+ return dif===0&&pend===0?{est:'ok',det:cu+' cuentas conciliadas'}:{est:'proc',det:dif+' cuenta(s) con diferencia, '+pend+' mov. pendientes'}},cur:function(){return tab},after:function(){save();pan='';draw()},clear:{
+cta:{l:"Limpiar cuentas y responsables",f:function(){S.cuentas=[];S.sel='';['elab','rev','cp','cpc','mail'].forEach(function(k){S.cfg[k]=''})}},
+lib:{l:"Limpiar el libro",f:function(){S.libro=[]}},
+ban:{l:"Limpiar el estado de cuenta del banco",f:function(){S.banco=[]}},
+ret:{l:"Limpiar las retenciones",f:function(){S.ret=[]}},
+vta:{l:"Limpiar ventas y cobros",f:function(){S.vta=[];S.cob=[]}}}};/*UX_END*/
+</script><script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body></html>

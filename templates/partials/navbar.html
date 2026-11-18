@@ -1,0 +1,126 @@
+{% load humanize %}
+<header class="app-navbar">
+  <!-- Breadcrumb estilo Imagen de Referencia -->
+  <div class="d-flex align-items-center gap-2">
+    <button class="action-circle-btn d-lg-none" id="sidebarToggle" aria-label="Abrir menú">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <div class="navbar-breadcrumb d-none d-sm-flex">
+      <div class="nav-icon-box">
+        <i class="bi bi-layers-half"></i>
+      </div>
+      <span>TributoVE</span>
+      <span class="text-dim">/</span>
+      <span class="breadcrumb-item active">
+        {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}
+          Overview &amp; Estatus
+        {% elif request.resolver_match.app_name == 'empresas' %}
+          Mis Empresas
+        {% elif request.resolver_match.app_name == 'usuarios' %}
+          Configuración
+        {% else %}
+          {{ request.resolver_match.app_name|title }}
+        {% endif %}
+      </span>
+    </div>
+
+    <!-- Título compacto en pantallas móviles -->
+    <span class="d-sm-none fw-bold small text-truncate" style="max-width: 130px; color: var(--tv-text);">
+      {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}
+        Estatus
+      {% elif request.resolver_match.app_name == 'empresas' %}
+        Empresas
+      {% elif request.resolver_match.app_name == 'usuarios' %}
+        Ajustes
+      {% else %}
+        {{ request.resolver_match.app_name|title }}
+      {% endif %}
+    </span>
+  </div>
+
+  <!-- Barra de Herramientas Derecha (Acciones Circulares) -->
+  <div class="navbar-actions">
+    <!-- Botón Instalar PWA (Se muestra cuando está disponible) -->
+    <button type="button" id="pwaInstallBtn" class="action-circle-btn d-none" title="Instalar TributoVE en este dispositivo">
+      <i class="bi bi-download" style="color: var(--tv-lime);"></i>
+    </button>
+
+    <!-- Selector Rápido de Empresa Activa -->
+    {% if empresa_activa %}
+    <div class="dropdown">
+      <button class="btn btn-sm btn-dash-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.82rem;">
+        <span class="table-avatar" style="width: 22px; height: 22px; font-size: 0.7rem;">{{ empresa_activa.nombre|slice:":1"|upper }}</span>
+        <span class="fw-bold text-truncate d-none d-md-inline" style="max-width: 170px;">{{ empresa_activa.nombre }}</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 14px; min-width: 250px;">
+        <li class="dropdown-header text-uppercase fw-bold text-muted" style="font-size: 0.68rem;">Cambiar empresa activa</li>
+        {% for emp in user.empresas.all %}
+        <li>
+          <form method="post" action="{% url 'empresas:activar' emp.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if emp.pk == empresa_activa.pk %}active fw-bold{% endif %}">
+              <span class="text-truncate">{{ emp.nombre }}</span>
+              {% if emp.pk == empresa_activa.pk %}<i class="bi bi-check2 text-lime ms-2"></i>{% endif %}
+            </button>
+          </form>
+        </li>
+        {% empty %}
+        <li><span class="dropdown-item text-muted">No tiene empresas</span></li>
+        {% endfor %}
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item fw-bold" href="{% url 'empresas:lista' %}" style="color: var(--tv-lime);"><i class="bi bi-plus-circle me-1"></i> Gestionar empresas</a></li>
+      </ul>
+    </div>
+
+    <!-- Selector de Moneda Rápido -->
+    <div class="dropdown d-none d-md-block">
+      <button class="action-circle-btn" type="button" data-bs-toggle="dropdown" title="Moneda de cálculo">
+        <span class="fw-bold" style="font-size: 0.72rem; color: var(--tv-lime);">{{ empresa_activa.moneda_simbolo }}</span>
+      </button>
+      <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border" style="min-width: 260px; border-radius: 14px;">
+        <h6 class="dropdown-header px-0 pt-0 text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">Moneda de trabajo</h6>
+        <form method="post" action="{% url 'empresas:moneda' empresa_activa.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <div class="mb-2">
+            <select name="moneda" class="form-select form-select-sm" id="id_moneda_nav" onchange="document.getElementById('tasa_nav_wrap').style.display = this.value === 'VES' ? 'none' : 'block'">
+              <option value="VES" {% if empresa_activa.moneda == 'VES' %}selected{% endif %}>Bolívares (Bs)</option>
+              <option value="USD" {% if empresa_activa.moneda == 'USD' %}selected{% endif %}>Dólares (USD)</option>
+              <option value="EUR" {% if empresa_activa.moneda == 'EUR' %}selected{% endif %}>Euros (EUR)</option>
+              <option value="COP" {% if empresa_activa.moneda == 'COP' %}selected{% endif %}>Pesos (COP)</option>
+              <option value="CNY" {% if empresa_activa.moneda == 'CNY' %}selected{% endif %}>Yuan (CNY)</option>
+            </select>
+          </div>
+          <div class="mb-2" id="tasa_nav_wrap" style="display: {% if empresa_activa.es_bolivares %}none{% else %}block{% endif %};">
+            <label class="form-label small text-muted mb-1">Tasa en Bs:</label>
+            <input type="number" step="0.0001" name="tasa" class="form-control form-control-sm" value="{{ empresa_activa.tasa|default_if_none:'' }}" placeholder="Ej. 65.50">
+          </div>
+          <button type="submit" class="btn btn-dash-primary btn-sm w-100">Aplicar moneda</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Botón Toggle de Modo Claro / Oscuro -->
+    <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)">
+      <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+    </button>
+
+    <!-- Notificaciones / Estatus Suscripción -->
+    <a href="{% url 'usuarios:mi_cuenta' %}" class="action-circle-btn position-relative" title="Estado de cuenta">
+      <i class="bi bi-bell"></i>
+      {% if user.suscripcion_activa %}
+        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle"></span>
+      {% else %}
+        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"></span>
+      {% endif %}
+    </a>
+
+    <!-- Idioma / Región -->
+    <button class="action-circle-btn d-none d-sm-inline-flex" title="Venezuela (SENIAT)">
+      <i class="bi bi-globe"></i>
+    </button>
+  </div>
+</header>

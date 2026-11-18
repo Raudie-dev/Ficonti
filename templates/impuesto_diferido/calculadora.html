@@ -1,0 +1,1131 @@
+<!DOCTYPE html><html lang="es"><head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Impuesto Diferido – NIC 12 y BA VEN-NIF 11</title>
+<style>
+:root{--g:#1f4d3a;--g2:#2d6a4f;--gl:#e6f0ea;--bg:#f5f7f6;--s:#fff;--t:#17211c;--m:#5b6b63;--b:#d3ddd8;--ok:#d4edda;--er:#f8d7da;--in:#fff8dc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--g:#1b4332;--g2:#2d6a4f;--gl:#1c2e25;--bg:#0f1a15;--s:#15231c;--t:#e6efe9;--m:#9db1a6;--b:#2b3d34;--ok:#1d4d33;--er:#5a2326;--in:#2a2a14;color-scheme:dark}}
+:root[data-theme="dark"]{--g:#1b4332;--g2:#2d6a4f;--gl:#1c2e25;--bg:#0f1a15;--s:#15231c;--t:#e6efe9;--m:#9db1a6;--b:#2b3d34;--ok:#1d4d33;--er:#5a2326;--in:#2a2a14;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.45 Arial,Helvetica,sans-serif}
+header{background:var(--g);color:#fff;padding:14px 20px}header h1{margin:0;font-size:20px;letter-spacing:.3px}header span{font-size:12px;opacity:.85}
+nav{background:var(--g2);display:flex;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+nav button{background:none;border:0;color:#fff;padding:11px 16px;cursor:pointer;font:inherit;border-bottom:3px solid transparent}nav button.a{background:var(--g);border-bottom-color:#fff;font-weight:700}
+main{padding:18px 20px;max-width:1280px;margin:auto}h2{color:var(--g2);font-size:16px;margin:18px 0 8px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.grid label{display:flex;flex-direction:column;font-size:12px;color:var(--m);gap:3px}
+input,select,textarea{font:inherit;color:var(--t);background:var(--in);border:1px solid var(--b);border-radius:5px;padding:5px 7px;width:100%}
+.w{overflow-x:auto;border:1px solid var(--b);border-radius:8px;background:var(--s)}table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{background:var(--g);color:#fff;padding:7px 6px;text-align:center;font-weight:600;white-space:nowrap}td{border-top:1px solid var(--b);padding:4px 6px;white-space:nowrap}
+td.n,.r{text-align:right;font-variant-numeric:tabular-nums}tr.t td{background:var(--gl);font-weight:700}td input,td select{min-width:70px;padding:3px 5px}td input.c{min-width:230px}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.k div{background:var(--g);color:#fff;border-radius:8px;padding:12px;text-align:center}.k b{display:block;font-size:22px}.k small{opacity:.85}
+.bt{background:var(--g2);color:#fff;border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font:inherit;text-decoration:none;display:inline-block;margin:3px 6px 3px 0}.bt.s{background:var(--s);color:var(--g2);border:1px solid var(--g2)}
+.ok{background:var(--ok)}.er{background:var(--er)}.m{color:var(--m);font-size:12px}ul{padding-left:18px}details.card summary{cursor:pointer;font-weight:700;color:var(--g2);font-size:15px}details.card[open] summary{margin-bottom:8px}.gt td,.gt th{white-space:normal}.hl{background:var(--gl);border-left:4px solid var(--g2);padding:8px 12px;border-radius:4px;margin:8px 0}
+@media print{header,nav,.np{display:none!important}body{background:#fff;color:#000}main{padding:0}.card,.w{border-color:#999}}
+</style>
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head><body>
+<header><h1>Impuesto Diferido · NIC 12 / Sección 29 y BA VEN-NIF 11</h1><span id="sub"></span></header><nav id="nav"></nav><main id="m"></main>
+<script>
+const KEY="idapp-v2",$=q=>document.querySelector(q),r2=x=>Math.round((x+Number.EPSILON)*100)/100,E=encodeURIComponent;
+const F=(n,d=2)=>Math.abs(n)<.005?"-":n.toLocaleString("es-VE",{minimumFractionDigits:d,maximumFractionDigits:d});
+const D=[["Efectivo en caja y bancos (incluye US$ en el exterior)","Activo","Monetario",76549,0,0,0,0,75549],["Cuentas por cobrar (incluye venta de inmueble a plazos)","Activo","Monetario",323078,0,0,0,0,317078],["Provisión cuentas por cobrar","Pasivo","Monetario",80000,0,0,0,0,0],["Inventarios (brutos)","Activo","No monetario",15000,0,0,0,0,22500],["Provisión inventarios","Pasivo","Monetario",0],["Gastos pagados por anticipado","Activo","No monetario",85341,0,0,0,0,35341],["Inversiones a valor razonable con cambios en resultados","Activo","Monetario",650000,0,0,0,0,500000],["Propiedad, planta y equipos","Activo","No monetario",2560700,0,0,0,200000,2320340],["Activos intangibles","Activo","No monetario",18970],["Otros activos","Activo","No monetario",4500],["Préstamos bancarios","Pasivo","Monetario",120000],["Cuentas por pagar a proveedores","Pasivo","Monetario",242874],["Gastos acumulados por pagar","Pasivo","Monetario",76439,0,0,0,0,15879],["Impuesto por pagar","Pasivo","Monetario",65429],["Ingresos diferidos (licencia cobrada por adelantado)","Pasivo","No monetario",83333.33,0,0,0,0,0],["Prestaciones sociales por pagar","Pasivo","Monetario",87653]];
+const mk=a=>({c:a[0],t:a[1],n:a[2]||"Monetario",E:a[3],F:a[4]||0,G:a[5]||0,H:a[6]||0,g:"Resultados",x:"No",K:a[7]||0,bf:a[8]===undefined?"":a[8],tx:"",re:"",pa:0,pp:0});
+const sample=()=>({p:{ent:"Compañía Ejemplo, C.A. (REEMPLAZAR)",rif:"J-00000000-0",fecha:"2026-12-31",mon:"Bs.",marco:"VEN-NIF GE",spe:"Sí",pol:"No",tasa:30,pat:2978410,prep:"Nombre del preparador",cargo:"Gerente de Contabilidad",dest:"Director(a) de Finanzas",mail:"correo@empresa.com",wa:"584121234567",cA:"Impuesto sobre la renta diferido activo",cP:"Impuesto sobre la renta diferido pasivo",cR:"Gasto (ingreso) por impuesto sobre la renta diferido",cO:"Otros resultados integrales – efecto del impuesto diferido",cG:"Plusvalía"},rows:D.map(mk),c:{u:1340678,k:330000,pm:[["Exceso en pago a directores",14500],["Multas",7000],["Intereses de bonos de la deuda pública",-75000],["",0],["",0]]}});
+let S,tab="gui";const OP=new Set();try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}S=S||sample();S.p.ent=EMPRESA.nombre;S.p.rif=EMPRESA.rif;S.p.spe=EMP_ES?"Sí":"No";S.p.mon=MON.esBs?"Bs.":MON.lab;
+const sv=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const fd=()=>S.p.fecha.split("-").reverse().join("/");
+function cr(r){const p=S.p,N=k=>+r[k]||0,z={bf:0,d:0,cl:"",ua:0,xp:0,om:0,im:0,na:0,np:0,ef:0};if(!r.c||!r.t)return z;
+let{ua,om,im}=z,vp=0,cl="-",tasa=r.tx===""?p.tasa/100:r.tx/100,A=r.t=="Activo",M=r.n!="No monetario";
+const bf=r.bf!==""&&r.bf!=null?N("bf"):(N("F")||N("G")||N("H"))?(A?(M?N("E")-N("F")+N("G"):N("G")):(M?N("E")+N("F")-N("G"):N("E")-N("H"))):N("E"),d=r2(N("E")-bf);
+if(Math.abs(d)>=.005){cl=(A?d>0:d<0)?"P":"A";const pot=r2(Math.abs(d)*tasa),ex=r.x=="Sí";
+if(cl=="A"&&!ex){ua=r2(pot*(r.re===""?1:r.re/100));im=r2(pot-ua)}
+if(cl=="P"&&!ex){vp=pot;if(p.pol=="Sí"&&p.spe=="Sí"&&A&&!M)om=r2(Math.min(Math.max(N("K"),0),Math.abs(d))*tasa)}}
+const xp=r2(vp-om),na=r2(ua-N("pa")),np=r2(xp-N("pp"));return{bf,d,cl,ua,xp,om,im,na,np,ef:r2(na-np)}}
+function T(){const p=S.p,R=S.rows.map(cr),s=k=>r2(R.reduce((a,x)=>a+x[k],0)),g=G=>r2(R.reduce((a,x,i)=>a+(S.rows[i].g==G?x.ef:0),0));
+const falt=S.rows.filter(r=>r.c&&!(r.t&&r.n&&r.g)).length,alert=S.rows.filter((r,i)=>r.c&&+r.K>0&&+r.K>Math.abs(R[i].d)+.005).length;
+const o={R,ua:s("ua"),xp:s("xp"),om:s("om"),im:s("im"),na:s("na"),np:s("np"),ef:s("ef"),gR:g("Resultados"),gO:g("ORI"),gP:g("Plusvalía"),pat:+p.pat||0,falt,alert};
+o.neta=r2(o.ua-o.xp);o.pct=o.pat?o.neta/o.pat:0;o.opct=o.pat?o.om/o.pat:0;
+o.as=["Resultados","ORI","Plusvalía"].map(G=>{const ix=S.rows.map((r,i)=>i).filter(i=>S.rows[i].g==G),a=k=>r2(ix.reduce((s,i)=>s+R[i][k],0)),sg=(k,f)=>r2(ix.reduce((s,i)=>s+(f(R[i][k])?R[i][k]:0),0)),net=a("ef");
+const L=[[p.cA,sg("na",v=>v>0),0],[p.cP,-sg("np",v=>v<0),0],[G=="ORI"?p.cO:G=="Plusvalía"?p.cG:p.cR,Math.max(0,-net),0],["      a  "+p.cA,0,-sg("na",v=>v<0)],["      a  "+p.cP,0,sg("np",v=>v>0)],["      a  "+(G=="ORI"?p.cO:G=="Plusvalía"?p.cG:p.cR),0,Math.max(0,net)]];
+const d=r2(L.reduce((s,l)=>s+l[1],0)),h=r2(L.reduce((s,l)=>s+l[2],0));return{G,L,d,h,ok:Math.abs(d-h)<.01}});
+o.ok=!falt&&!alert&&o.as.every(a=>a.ok);return o}
+function bullets(t){const p=S.p,m=p.mon,b=[];
+b.push(`Se reconoce un impuesto diferido ${t.neta>=0?"activo":"pasivo"} neto de ${m} ${F(Math.abs(t.neta),0)}${t.pat?` (${F(Math.abs(t.pct)*100,1)}% del patrimonio contable)`:""}.`);
+b.push(`El ajuste del período genera un ${t.gR<0?"gasto":"ingreso"} en resultados de ${m} ${F(Math.abs(t.gR),0)}${Math.abs(t.gO)>.005?`; efecto en patrimonio vía ORI: ${m} ${F(t.gO,0)}`:""}${Math.abs(t.gP)>.005?`; contra plusvalía: ${m} ${F(t.gP,0)}`:""}.`);
+b.push(t.om>.005?`Política BA VEN-NIF 11: no se reconoce un ID pasivo de ${m} ${F(t.om,0)}${t.pat?` (${F(t.opct*100,1)}% del patrimonio)`:""}; su monto y composición deben revelarse en notas.`:p.pol=="Sí"?"Política BA VEN-NIF 11 adoptada: no hay ID pasivo omitido en este cierre.":p.spe=="Sí"?"Sujeto pasivo especial sin política BA VEN-NIF 11: el boletín solo puede adoptarse en el primer ejercicio aplicable (párr. 13); confirme la decisión.":"La política BA VEN-NIF 11 no aplica: la entidad no es sujeto pasivo especial.");
+b.push(t.im>.005?`ID activo no reconocido por falta de ganancias fiscales futuras probables: ${m} ${F(t.im,0)}; revise las proyecciones fiscales.`:"Todo el ID activo calculado se considera realizable con las ganancias fiscales futuras proyectadas.");
+b.push(t.ok?"Controles de integridad: OK (asientos cuadrados, sin datos faltantes ni alertas).":"ATENCIÓN: hay controles pendientes; revise antes de presentar este informe.");return b}
+const sel=(o,v,a)=>`<select ${a}>${o.map(x=>`<option${x==v?" selected":""}>${x}</option>`).join("")}</select>`;
+const th=a=>`<tr>${a.map(x=>`<th>${x}</th>`).join("")}</tr>`;
+const AS=t=>t.as.map((a,i)=>`<p style="margin:10px 0 4px"><b>Asiento Nº ${i+1} – contrapartida en ${a.G}</b></p><div class="w"><table><thead>${th(["Cuenta","Debe","Haber"])}</thead><tbody>${a.L.map(l=>`<tr style="${l[1]||l[2]?"":"opacity:.35"}"><td style="white-space:pre">${l[0]}</td><td class="r">${F(l[1])}</td><td class="r">${F(l[2])}</td></tr>`).join("")}<tr class="t"><td>TOTALES <span class="${a.ok?"ok":"er"}" style="padding:1px 8px;border-radius:9px">${a.ok?"OK":"Descuadre"}</span></td><td class="r">${F(a.d)}</td><td class="r">${F(a.h)}</td></tr></tbody></table></div>${a.d?"":'<p class="m">Sin movimiento en este asiento.</p>'}`).join("")+`<h2>7. Detalle de asientos por partida</h2><div class="w"><table><thead>${th(["Partida","Contrapartida","ID act. Dr","ID act. Cr","ID pas. Dr","ID pas. Cr","Contrap. Dr","Contrap. Cr"])}</thead><tbody>${S.rows.map((r,i)=>[r,t.R[i]]).filter(([r,c])=>r.c&&(c.na||c.np)).map(([r,c])=>`<tr><td>${r.c}</td><td>${r.g}</td><td class="r">${F(Math.max(c.na,0))}</td><td class="r">${F(Math.max(-c.na,0))}</td><td class="r">${F(Math.max(-c.np,0))}</td><td class="r">${F(Math.max(c.np,0))}</td><td class="r">${F(Math.max(-c.ef,0))}</td><td class="r">${F(Math.max(c.ef,0))}</td></tr>`).join("")}</tbody></table></div><p class="m">Los asientos registran la diferencia entre el ID que debería existir al cierre y el saldo previo en libros; el ID no se amortiza, se recalcula.</p>`;
+const P=[["ent","Razón social"],["rif","RIF"],["fecha","Fecha de cierre","date"],["mon","Moneda"],["marco","Marco contable","s",["VEN-NIF GE","VEN-NIF PYME"]],["spe","¿Sujeto pasivo especial?","s",["Sí","No"]],["pol","¿Aplica política BA VEN-NIF 11?","s",["Sí","No"]],["tasa","Tarifa de impuesto (%) – ejemplo del libro","number"],["pat","Patrimonio contable total","number"],["prep","Preparado por"],["cargo","Cargo"],["dest","Dirigido a"],["mail","Correo del destinatario"],["wa","WhatsApp (código país + número)"],["cA","Cuenta ID activo"],["cP","Cuenta ID pasivo"],["cR","Contrapartida: Resultados"],["cO","Contrapartida: ORI"],["cG","Contrapartida: Plusvalía"]];
+const V={
+gui(){return`<div class="hl"><b>Guía para contadores públicos.</b> Si nunca ha calculado el impuesto diferido, siga esta guía en orden. Cada sección se abre con un clic. Los datos precargados son un ejemplo: pruebe primero con ellos y luego reemplácelos por los de su entidad.</div>
+<details class="card" open><summary>1. ¿Qué es el impuesto diferido y por qué existe?</summary><p>La contabilidad (VEN-NIF) y la ley de ISLR no reconocen los ingresos y gastos en el mismo momento. Ejemplo: una provisión de cuentas incobrables reduce la utilidad contable hoy, pero el SENIAT solo la deduce cuando se cumplan sus requisitos, en el futuro. Esa diferencia de tiempo genera un impuesto que hoy no está en el balance pero que se pagará o se recuperará después.</p><ul><li><b>Impuesto por pagar</b> (corriente): sale de la declaración de renta, con reglas fiscales.</li><li><b>Gasto por ISLR</b>: sale de la contabilidad. Si ambas bases difieren, los dos montos no coinciden.</li><li><b>Impuesto diferido</b>: es el puente entre ambos. Si se pagará menos en el futuro, es un <b>pasivo</b>; si se recuperará, es un <b>activo</b>.</li></ul><p class="m">Importante: el cálculo se hace sobre la <b>diferencia acumulada</b> de cada partida al cierre (no solo la del año). El asiento registra únicamente el ajuste contra lo que ya tenga en libros.</p></details>
+<details class="card"><summary>2. Los 5 pasos para calcularlo con esta app</summary><ol><li><b>Parámetros</b>: razón social, fecha de cierre, marco (GE o PYME), tarifa de impuesto con la que se realizarán las diferencias, patrimonio y destinatario del informe. Confirme la tarifa vigente en la Ley de ISLR; el 30 % precargado es solo el supuesto del libro.</li><li>En <b>Partidas</b> escriba, por cada cuenta del balance, el <b>valor en libros</b>. Si el fisco la reconoce por un monto distinto, escriba también la <b>base fiscal</b> (ver sección 4); si es igual, déjela vacía.</li><li>Si ya tiene impuesto diferido registrado en libros, use el botón <b>Más</b> de la fila e indíquelo en <i>ID activo / pasivo ya registrado</i>.</li><li>Revise <b>Resumen</b>: el estado general debe decir “OK”. Los asientos para su sistema contable están al final del <b>Informe</b>.</li><li>Prepare las notas con <b>Revelaciones</b> y entregue el <b>Informe</b> al Director de Finanzas desde <b>Compartir</b> (Gmail, WhatsApp o PDF).</li></ol></details>
+<details class="card"><summary>3. Regla de oro: ¿activo o pasivo?</summary><p>Compare la <b>base financiera</b> (valor en libros) con la <b>base fiscal</b> de cada partida:</p><div class="w"><table class="gt"><thead>${th(["Si…","Y la partida es un ACTIVO","Y la partida es un PASIVO"])}</thead><tbody><tr><td>Base financiera MAYOR que base fiscal</td><td class="er">ID <b>pasivo</b></td><td class="ok">ID <b>activo</b></td></tr><tr><td>Base fiscal MAYOR que base financiera</td><td class="ok">ID <b>activo</b></td><td class="er">ID <b>pasivo</b></td></tr></tbody></table></div><p>Monto = |diferencia| × tarifa. La app lo clasifica y lo pinta en verde (activo) o rojo (pasivo) en la columna <i>Clasificación</i>.</p></details>
+<details class="card"><summary>4. ¿Cómo obtengo la base fiscal? (la parte difícil)</summary><p>La base fiscal es lo que el fisco le permitirá deducir (activos) o lo que ya considera pagado (pasivos). Si la conoce, escríbala directo en Partidas. Si no, abra <b>Más</b> y use la calculadora con estas fórmulas:</p><div class="w"><table class="gt"><thead>${th(["Tipo de partida","Fórmula de base fiscal","Columnas que debe llenar","Ejemplos"])}</thead><tbody><tr><td>Activo no monetario</td><td>= Gastos deducibles futuros</td><td>Gastos deducibles</td><td>Inventarios, propiedad planta y equipo, prepagados</td></tr><tr><td>Activo monetario</td><td>= Libros − Ingresos gravables futuros + Gastos deducibles futuros</td><td>Ingresos gravables, gastos deducibles</td><td>Cuentas por cobrar, efectivo en divisas, inversiones</td></tr><tr><td>Pasivo monetario</td><td>= Libros + Ingresos gravables futuros − Gastos deducibles futuros</td><td>Ingresos gravables, gastos deducibles</td><td>Provisiones, intereses por pagar, multas (no deducibles: dejar en 0)</td></tr><tr><td>Pasivo no monetario</td><td>= Libros − Ingresos futuros no gravables</td><td>Ingresos no gravables</td><td>Ingresos cobrados por adelantado</td></tr></tbody></table></div><p><b>Monetario</b> = se cobra o paga en unidades monetarias fijas (efectivo, cuentas por cobrar y por pagar). <b>No monetario</b> = se recupera por uso o venta (inventarios, activos fijos).</p><p><b>Truco práctico:</b> pregúntese “¿cuánto podré deducir fiscalmente cuando recupere este activo?” (activos) o “¿cuánto podré deducir cuando pague este pasivo?” (pasivos). Si la respuesta es “todo lo que dice el libro”, la diferencia es cero y no hay impuesto diferido.</p><p><b>Pérdidas fiscales trasladables:</b> agréguelas como fila Activo no monetario, valor en libros 0 y gastos deducibles futuros = monto de la pérdida. <b>Rebajas por nuevas inversiones:</b> igual, con gastos deducibles = rebaja ÷ tarifa.</p></details>
+<details class="card"><summary>5. Ejemplos resueltos paso a paso</summary><div class="hl"><b>Inventarios.</b> Valor en libros 15.000; el fisco permitirá deducir 22.500 (costo fiscal mayor). Activo no monetario → base fiscal = 22.500. Diferencia = 15.000 − 22.500 = −7.500. Base fiscal mayor en un activo → <b>ID activo</b> = 7.500 × 30 % = <b>2.250</b>.<br>Asiento: Dr. ID activo 2.250 / Cr. Gasto (ingreso) ISLR diferido 2.250.</div><div class="hl"><b>Propiedad, planta y equipos.</b> Libros 2.560.700 (depreciación contable acumulada 439.300); fiscalmente la depreciación acumulada es mayor y su base fiscal es 2.320.340. Diferencia = 240.360. Base financiera mayor en un activo → <b>ID pasivo</b> = 240.360 × 30 % = <b>72.108</b>.<br>Asiento: Dr. Gasto ISLR diferido 72.108 / Cr. ID pasivo 72.108.</div><div class="hl"><b>Provisión de cuentas de cobro dudoso.</b> Libros 80.000; se deducirá fiscalmente cuando se cumplan las condiciones: pasivo monetario, gastos deducibles futuros 80.000 → base fiscal 0. Diferencia 80.000, base financiera mayor en un pasivo → <b>ID activo</b> 24.000.<br>Asiento: Dr. ID activo 24.000 / Cr. Gasto ISLR diferido 24.000.</div><div class="hl"><b>Multa de 6.000 no deducible nunca.</b> Pasivo monetario, gastos deducibles futuros 0 → base fiscal 6.000 = libros. Sin diferencia, <b>no hay ID</b>.</div><p class="m">Todos estos casos ya están cargados en la pestaña Partidas: cambie un número y vea cómo se recalcula todo.</p></details>
+<details class="card"><summary>6. Contrapartida del asiento: ¿Resultados, ORI o Plusvalía?</summary><ul><li><b>Resultados</b> (lo más común): cuando la partida que originó la diferencia pasó por el estado de resultados.</li><li><b>ORI / patrimonio</b>: cuando la diferencia nace de una revaluación de activos (GE), inversiones con cambios en otros resultados integrales, ajustes por conversión o coberturas de flujo de efectivo.</li><li><b>Plusvalía</b>: cuando el impuesto diferido surge al asignar valores razonables en una combinación de negocios.</li></ul><p>Elija la contrapartida en <b>Más</b> (por defecto es Resultados) y la app arma un asiento por cada una al final del Informe.</p></details>
+<details class="card"><summary>7. Reglas de reconocimiento que debe cuidar</summary><ul><li><b>ID pasivo</b>: se reconoce siempre, salvo plusvalía no deducible y reconocimiento inicial sin efecto contable ni fiscal (NIC 12 párr. 15). En esos casos marque <b>“Exenta = Sí”</b>.</li><li><b>ID activo</b>: solo en la medida en que sea <b>probable</b> que existan ganancias fiscales futuras para aprovecharlo. Necesita proyecciones financieras y fiscales de la gerencia. Si solo espera recuperar una parte, use <b>% realización</b>.</li><li><b>Tarifa</b>: la que se aplicará cuando la diferencia se realice. Si una partida se realiza con otra tarifa, use la columna <b>Tarifa %</b>.</li><li><b>Presentación</b>: ID activo y pasivo en cuentas separadas y no corrientes; solo se compensan con derecho legal y misma autoridad fiscal.</li><li><b>GE vs. PYME</b>: en VEN-NIF GE el ID activo se registra neto; en PYME puede registrarse bruto con una corrección valorativa.</li></ul></details>
+<details class="card"><summary>8. Sujetos pasivos especiales y el BA VEN-NIF 11</summary><p>Desde la reforma de la LISLR del 30 de diciembre de 2015, los sujetos pasivos especiales quedaron excluidos del ajuste por inflación fiscal. Contablemente los activos no monetarios se reexpresan por inflación, pero su base fiscal queda a valores históricos. Aplicar la NIC 12 al pie de la letra genera un ID pasivo enorme que puede distorsionar el patrimonio.</p><p>El <b>BA VEN-NIF 11 v1</b> (FCCPV, aprobado el 18 de abril de 2026, vigente para ejercicios desde el 1 de enero de 2017) permite como <b>política contable opcional</b> no reconocer ese ID pasivo.</p><div class="hl"><b>Cuándo aplica:</b> la entidad es sujeto pasivo especial (o su moneda funcional es de economía no hiperinflacionaria, párr. 10) y quiere omitir el ID pasivo de la diferencia imponible entre la base financiera reexpresada de activos no monetarios y su base fiscal sin inflación.</div><ul><li><b>Cómo se usa en la app:</b> en Parámetros ponga “Sí” en sujeto pasivo especial y en política BA VEN-NIF 11. En cada activo no monetario abra <b>Más</b>, marque Naturaleza = No monetario y escriba en <b>Porción por inflación</b> la parte de la diferencia que proviene de la reexpresión. La app omite el ID de esa porción y reconoce el resto de la diferencia.</li><li><b>Revelación obligatoria</b> en notas (párr. 11): monto del ID pasivo no reconocido y composición de las partidas. Está en la pestaña Revelaciones.</li><li><b>Cambio de política</b>: debe cumplir la NIC 8 o la Sección 10 (párr. 12).</li><li><b>Oportunidad</b>: si no se aplica en el primer ejercicio de vigencia (o en el primero en que se notificó la condición de sujeto pasivo especial), no puede aplicarse después (párr. 13).</li><li><b>Pérdida de condición</b>: si deja de ser sujeto pasivo especial o debe reconocer inflación fiscal, vuelve a la NIC 12 estricta (párr. 14).</li></ul></details>
+<details class="card"><summary>9. Errores frecuentes</summary><ul><li>Calcular el diferido solo con el movimiento del año: debe hacerse con la diferencia <b>acumulada</b> y registrar solo el ajuste.</li><li>Olvidar anotar el ID ya registrado (columnas “previo”): el asiento saldría duplicado.</li><li>Confundir activo monetario con no monetario: cambia la fórmula de la base fiscal.</li><li>Reconocer ID activo sin soporte de ganancias fiscales futuras.</li><li>Reconocer ID pasivo sobre plusvalía no deducible.</li><li>Omitir el ID por BA VEN-NIF 11 sin la revelación en notas, o sin ser sujeto pasivo especial.</li><li>Usar una tarifa que no es la vigente al momento de realizarse la diferencia.</li></ul></details>
+<details class="card"><summary>10. Glosario rápido</summary><ul><li><b>Base financiera</b>: valor en libros de la partida.</li><li><b>Base fiscal</b>: monto atribuido a la partida para efectos del impuesto.</li><li><b>Diferencia temporaria</b>: base financiera menos base fiscal.</li><li><b>ID</b>: impuesto diferido (activo o pasivo).</li><li><b>ORI</b>: otros resultados integrales (patrimonio).</li><li><b>GE / PYME</b>: VEN-NIF para grandes entidades (NIC 12) o para pequeñas y medianas (Sección 29).</li><li><b>Sujeto pasivo especial</b>: contribuyente calificado así por la administración tributaria.</li></ul><p class="m">Esta app es una herramienta de apoyo al cálculo y no sustituye el juicio profesional ni la asesoría tributaria.</p></details>
+<button class="bt" data-t="par">Comenzar: ir a Parámetros</button> <button class="bt s" data-t="pt">Ver las partidas de ejemplo</button>`},
+parf(){return`<div class="card"><div class="grid">${P.map(([k,l,t,o])=>`<label>${l}${t=="s"?sel(o,S.p[k],`data-p="${k}"`):`<input data-p="${k}" type="${t||"text"}" value="${S.p[k]}">`}</label>`).join("")}</div><p class="m">Los valores precargados son un EJEMPLO (casos 1–12 del libro). Reemplácelos con los de su entidad. Todo se guarda automáticamente en este navegador.</p><button class="bt s" id="rs">Restaurar ejemplo</button> <button class="bt s" id="cl">Vaciar partidas</button></div>`},
+par_(){return`<div class="card"><h2 style="margin-top:0">Cómo usarlo</h2><ol><li><b>Parámetros</b>: datos de la entidad, marco, política BA VEN-NIF 11, tarifa y destinatarios.</li><li><b>Partidas</b>: cada cuenta con su valor en libros y su base fiscal; el impuesto diferido se calcula solo.</li><li><b>Resumen</b> y <b>Revelaciones</b>: controles y notas.</li><li><b>Informe</b>: resultados, asientos y detalle por partida. <b>Compartir</b>: Gmail, WhatsApp y PDF.</li></ol><p class="m">Herramienta de apoyo; no sustituye el juicio profesional.</p></div>`},
+
+pt(){const n=(i,k,ph)=>`<input class="n r" type="number" step="any" data-i="${i}" data-k="${k}" value="${S.rows[i][k]}"${ph?` placeholder="${ph}"`:""}>`,lb=(l,h,x)=>`<label>${l}${x}<span class="m">${h}</span></label>`;
+return`<div class="hl">Para cada cuenta del balance escriba su <b>valor en libros</b> y su <b>base fiscal</b> (lo que el fisco reconoce). Si son iguales, deje la base fiscal vacía. El impuesto diferido se calcula solo. Use <b>Más</b> para opciones avanzadas. ¿Dudas? Vea la <u data-t="gui" style="cursor:pointer;color:var(--g2)">Guía de uso</u>.</div>
+<div class="w"><table><thead>${th(["#","Cuenta","Tipo","Valor en libros","Base fiscal","Diferencia","Impuesto diferido","",""])}</thead><tbody>${S.rows.map((r,i)=>`<tr data-r="${i}"><td>${i+1}</td><td><input class="c" data-i="${i}" data-k="c" value="${r.c.replace(/"/g,"&quot;")}"></td><td>${sel(["","Activo","Pasivo"],r.t,`data-i="${i}" data-k="t"`)}</td><td>${n(i,"E")}</td><td>${n(i,"bf","= libros")}</td><td class="cc r"></td><td class="cc"></td><td><button class="bt s np" data-o="${i}" style="padding:2px 8px;margin:0">${OP.has(i)?"Menos":"Más"}</button></td><td><button class="bt s np" data-d="${i}" style="padding:2px 8px;margin:0">×</button></td></tr>${OP.has(i)?`<tr><td></td><td colspan="8" style="white-space:normal"><div class="grid">${lb("Naturaleza","No monetario: inventarios, activos fijos, prepagados",sel(["Monetario","No monetario"],r.n,`data-i="${i}" data-k="n"`))}${lb("Contrapartida","Dónde se registra el efecto",sel(["Resultados","ORI","Plusvalía"],r.g,`data-i="${i}" data-k="g"`))}${lb("¿Exenta NIC 12?","Sí: plusvalía o reconocimiento inicial",sel(["No","Sí"],r.x,`data-i="${i}" data-k="x"`))}${lb("Porción por inflación","Solo BA VEN-NIF 11",n(i,"K"))}${lb("Tarifa % propia","Vacío = tarifa general",n(i,"tx"))}${lb("% realización del ID activo","Vacío = 100 %",n(i,"re"))}${lb("ID activo ya registrado","Saldo en libros",n(i,"pa"))}${lb("ID pasivo ya registrado","Saldo en libros",n(i,"pp"))}${lb("Calculadora: ingresos gravables futuros","Si no escribió la base fiscal",n(i,"F"))}${lb("Calculadora: gastos deducibles futuros","Si no escribió la base fiscal",n(i,"G"))}${lb("Calculadora: ingresos futuros no gravables","Pasivos no monetarios",n(i,"H"))}</div></td></tr>`:""}`).join("")}<tr class="t" id="tt"><td></td><td>TOTALES</td><td></td><td></td><td></td><td class="cc"></td><td class="cc"></td><td colspan="2"></td></tr></tbody></table></div><button class="bt np" id="ad">+ Agregar cuenta</button><div id="ct" class="m"></div>`},
+res(){const t=T(),p=S.p,L=(a,b,c)=>`<tr><td>${a}</td><td class="r">${b}</td><td class="m">${c||""}</td></tr>`,ck=(x,y)=>`<tr class="${x?"ok":"er"}"><td>${y}</td><td class="r">${x?"OK":"Revisar"}</td><td></td></tr>`;
+return`<div class="k"><div><small>ID activo (neto)</small><b>${F(t.ua,0)}</b></div><div><small>ID pasivo</small><b>${F(t.xp,0)}</b></div><div><small>Posición neta</small><b>${F(t.neta,0)}</b></div><div><small>${t.gR<0?"Gasto":"Ingreso"} ID del período</small><b>${F(Math.abs(t.gR),0)}</b></div></div>
+<h2>Posición y ajuste del período</h2><div class="w"><table><tbody>${L("Variación del ID activo",F(t.na))+L("Variación del ID pasivo",F(t.np))+L("<b>Efecto neto: ingreso (+) / gasto (−)</b>",F(t.ef))+L("   con contrapartida en Resultados",F(t.gR))+L("   con contrapartida en ORI",F(t.gO))+L("   con contrapartida en Plusvalía",F(t.gP))}</tbody></table></div>
+<h2>No reconocido (insumo de revelaciones)</h2><div class="w"><table><tbody>${L("ID pasivo NO reconocido por BA VEN-NIF 11",F(t.om),"Debe revelarse en notas (párr. 11).")+L("ID activo NO reconocido (improbable)",F(t.im),p.marco=="VEN-NIF PYME"?"Corrección valorativa en PYME.":"")+L("Patrimonio proforma si se reconociera el ID omitido",F(t.pat-t.om))+L("ID omitido / patrimonio",F(t.opct*100,1)+"%")}</tbody></table></div>
+<h2>Controles de integridad</h2><div class="w"><table><tbody>${ck(!t.falt,`Partidas con datos faltantes: ${t.falt}`)+ck(!t.alert,`Alertas (porción inflación > diferencia): ${t.alert}`)+ck(t.as.every(a=>a.ok),"Asientos cuadrados")+ck(!(p.pol=="Sí"&&p.spe!="Sí"),"Política BA 11 coherente con condición de sujeto pasivo especial")+ck(t.ok,"ESTADO GENERAL")}</tbody></table></div>`},
+rev(){const t=T(),p=S.p,c=S.c,tx=p.tasa/100,nm=p.marco=="VEN-NIF PYME"?"la Sección 29 de la NIIF para las PYMES":"la NIC 12",row=(r,x)=>`<tr><td>${r.c}</td><td class="r">${F(x.bf+x.d)}</td><td class="r">${F(x.bf)}</td><td class="r">${F(x.d)}</td>`;
+const ef=r2(-t.gR),teo=r2(c.u*tx),per=c.pm.map(x=>r2(x[1]*tx)),ex=r2(c.k+ef),otros=r2(ex-teo-per.reduce((a,b)=>a+b,0));
+return`<h2>A. Tratamiento alternativo BA VEN-NIF 11</h2><div class="card">${p.pol=="Sí"?`La Entidad, calificada como sujeto pasivo especial, ha adoptado como política contable el tratamiento alternativo del BA VEN-NIF 11 y no reconoce el impuesto diferido pasivo originado por la diferencia temporaria imponible entre las bases financieras de activos no monetarios reexpresados por inflación y sus bases fiscales sin reconocimiento de la inflación. Al ${fd()} el monto no reconocido asciende a ${p.mon} ${F(t.om)}. Las demás diferencias temporarias se reconocen conforme a ${nm}.`:`La Entidad no ha adoptado el tratamiento alternativo del BA VEN-NIF 11; el impuesto diferido se reconoce íntegramente conforme a ${nm}.`}</div>
+<div class="w"><table><thead>${th(["Partida no reconocida","Base financiera","Base fiscal","Diferencia temporaria","Porción inflación","ID pasivo no reconocido"])}</thead><tbody>${S.rows.map((r,i)=>[r,t.R[i]]).filter(([r,x])=>x.om>0).map(([r,x])=>row(r,x)+`<td class="r">${F(Math.min(+r.K||0,x.d))}</td><td class="r">${F(x.om)}</td></tr>`).join("")}<tr class="t"><td>TOTAL</td><td></td><td></td><td></td><td></td><td class="r">${F(t.om)}</td></tr></tbody></table></div>
+<h2>B. Composición del impuesto diferido reconocido</h2><div class="w"><table><thead>${th(["Partida","Base financiera","Base fiscal","Diferencia temporaria","ID activo","ID pasivo"])}</thead><tbody>${S.rows.map((r,i)=>[r,t.R[i]]).filter(([r,x])=>x.ua||x.xp).map(([r,x])=>row(r,x)+`<td class="r">${F(x.ua)}</td><td class="r">${F(x.xp)}</td></tr>`).join("")}<tr class="t"><td>TOTAL</td><td></td><td></td><td></td><td class="r">${F(t.ua)}</td><td class="r">${F(t.xp)}</td></tr></tbody></table></div>
+<h2>C. Conciliación de la tasa efectiva</h2><div class="card"><div class="grid"><label>Utilidad financiera antes de ISLR<input type="number" data-c="u" value="${c.u}"></label><label>Gasto por ISLR corriente<input type="number" data-c="k" value="${c.k}"></label></div></div>
+<div class="w"><table><thead>${th(["Concepto","Importe en base","Efecto en impuesto","% s/ utilidad"])}</thead><tbody><tr><td>Impuesto a la tarifa legal (${p.tasa}%)</td><td class="r">${F(c.u)}</td><td class="r">${F(teo)}</td><td class="r">${F(c.u?teo/c.u*100:0)}%</td></tr>${c.pm.map((x,i)=>`<tr><td><input data-pm="${i}" data-q="0" value="${x[0]}" placeholder="Partida permanente (+ gasto no deducible / − ingreso exento)"></td><td><input class="r" type="number" data-pm="${i}" data-q="1" value="${x[1]}"></td><td class="r">${F(per[i])}</td><td class="r">${F(c.u?per[i]/c.u*100:0)}%</td></tr>`).join("")}<tr><td>Otros efectos (inflación fiscal, tarifas progresivas, otros)</td><td></td><td class="r">${F(otros)}</td><td class="r">${F(c.u?otros/c.u*100:0)}%</td></tr><tr class="t"><td>Gasto ISLR del período (corriente ${F(c.k,0)} + diferido ${F(ef,0)})</td><td></td><td class="r">${F(ex)}</td><td class="r">${F(c.u?ex/c.u*100:0)}%</td></tr></tbody></table></div><p class="m">Otras revelaciones: ID activo y pasivo en cuentas separadas, no corrientes; compensación solo con derecho legal y misma autoridad fiscal; informe pérdidas fiscales y rebajas pendientes con sus vencimientos.</p>`},
+inf(){const t=T(),p=S.p,top=S.rows.map((r,i)=>({r,x:t.R[i]})).filter(o=>o.x.ua||o.x.xp).sort((a,b)=>Math.abs(b.x.ua-b.x.xp)-Math.abs(a.x.ua-a.x.xp)).slice(0,5),mx=Math.max(t.ua,t.xp,t.om,1),bar=[["ID activo",t.ua],["ID pasivo",t.xp],["Omitido BA 11",t.om]].map((b,i)=>`<rect x="${60+i*120}" y="${130-b[1]/mx*110}" width="70" height="${b[1]/mx*110}" fill="var(--g2)"/><text x="${95+i*120}" y="${124-b[1]/mx*110}" text-anchor="middle" font-size="11" fill="currentColor">${F(b[1],0)}</text><text x="${95+i*120}" y="148" text-anchor="middle" font-size="11" fill="currentColor">${b[0]}</text>`).join("");
+return`<div class="card" id="rep"><div style="background:var(--g);color:#fff;text-align:center;padding:12px;border-radius:6px"><b style="font-size:17px">INFORME EJECUTIVO · IMPUESTO SOBRE LA RENTA DIFERIDO</b></div><p style="text-align:center;margin:8px 0 0"><b style="font-size:17px;color:var(--g2)">${p.ent}</b><br><span class="m">RIF ${p.rif} · Cierre ${fd()} · ${p.marco} · Cifras en ${p.mon}<br>Dirigido a: ${p.dest} · Preparado por: ${p.prep} (${p.cargo})</span></p>
+<h2>1. Resultado en una mirada</h2><div class="k"><div><small>ID ACTIVO (NETO)</small><b>${F(t.ua,0)}</b></div><div><small>ID PASIVO</small><b>${F(t.xp,0)}</b></div><div><small>POSICIÓN NETA</small><b>${F(t.neta,0)}</b></div><div><small>${t.gR<0?"GASTO":"INGRESO"} ID DEL PERÍODO</small><b>${F(Math.abs(t.gR),0)}</b></div></div>
+<h2>2. Mensajes clave</h2><ul>${bullets(t).map(b=>`<li>${b}</li>`).join("")}</ul>
+<h2>3. Principales partidas por impacto</h2><div class="w"><table><thead>${th(["Partida","Tipo ID","Dif. temporaria","ID activo","ID pasivo","Efecto período"])}</thead><tbody>${top.map(o=>`<tr><td>${o.r.c}</td><td>${o.x.ua?"ID Activo":"ID Pasivo"}</td><td class="r">${F(o.x.d,0)}</td><td class="r">${F(o.x.ua,0)}</td><td class="r">${F(o.x.xp,0)}</td><td class="r">${F(o.x.ef,0)}</td></tr>`).join("")}</tbody></table></div>
+<h2>4. Impacto de la política BA VEN-NIF 11</h2><div class="w"><table><tbody><tr><td>Patrimonio reportado</td><td class="r">${F(t.pat,0)}</td></tr><tr><td>ID pasivo no reconocido</td><td class="r">${F(t.om,0)}</td></tr><tr><td>Patrimonio proforma si se reconociera</td><td class="r">${F(t.pat-t.om,0)}</td></tr><tr><td>Impacto sobre el patrimonio</td><td class="r">${F(t.opct*100,1)}%</td></tr></tbody></table></div>
+<h2>5. Composición gráfica</h2><svg viewBox="0 0 420 160" style="width:100%;max-width:520px;color:var(--t)"><line x1="40" x2="410" y1="130" y2="130" stroke="var(--b)"/>${bar}</svg>
+<h2>6. Asientos contables propuestos</h2>${AS(t)}<p style="margin-top:26px">Preparado por: ____________________ &nbsp;&nbsp;&nbsp; Revisado por: ____________________</p><p class="m">Cálculo conforme a NIC 12 / Sección 29 NIIF PYME y BA VEN-NIF 11. Documento generado automáticamente; sujeto a revisión y juicio profesional.</p></div>`},
+cmp(){const t=T(),p=S.p,m=p.mon,su=`Impuesto diferido - ${p.ent} - cierre ${fd()}`,msg=`Estimado/a ${p.dest}:\n\nAdjunto el informe ejecutivo de impuesto sobre la renta diferido de ${p.ent} al cierre ${fd()}.\n\n• ID activo (neto): ${m} ${F(t.ua)}\n• ID pasivo: ${m} ${F(t.xp)}\n• Posición neta: ${m} ${F(t.neta)}\n• ${t.gR<0?"Gasto":"Ingreso"} por ID en resultados: ${m} ${F(Math.abs(t.gR))}\n${t.om>.005?`• ID pasivo no reconocido por BA VEN-NIF 11: ${m} ${F(t.om)} (${F(t.opct*100,1)}% del patrimonio)\n`:""}\nQuedo atento/a a sus comentarios.\n${p.prep}\n${p.cargo}`,wa=p.wa.replace(/\D/g,"");
+return`<div class="card"><h2 style="margin-top:0">Enviar</h2><a class="bt" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=${E(p.mail)}&su=${E(su)}&body=${E(msg)}">Enviar por Gmail</a><a class="bt" target="_blank" rel="noopener" href="mailto:${p.mail}?subject=${E(su)}&body=${E(msg)}">Correo predeterminado</a><a class="bt" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${E(msg)}">Enviar por WhatsApp</a><button class="bt s" id="pr">Imprimir / guardar PDF del informe</button><p class="m">Los enlaces abren el borrador con el mensaje completo. No pueden adjuntar archivos: guarde primero el PDF (en el diálogo de impresión elija “Guardar como PDF”) y adjúntelo. Destinatarios editables en Parámetros.</p></div><div class="card"><h2 style="margin-top:0">Mensaje completo</h2><textarea id="mg" rows="13" style="background:var(--s)">${msg}</textarea><button class="bt s" id="cp">Copiar mensaje</button> <span id="ok" class="m"></span></div>`}};
+function upd(){const t=T();document.querySelectorAll("tr[data-r]").forEach(tr=>{const x=t.R[+tr.dataset.r],c=tr.querySelectorAll(".cc");c[0].textContent=F(x.d);const s=x.ua?`Activo ${F(x.ua)}`:x.xp?`Pasivo ${F(x.xp)}`:x.cl=="-"?"Sin diferencia":x.cl?"No se reconoce":"";c[1].textContent=s+(x.om?` · omitido ${F(x.om)}`:"")+(x.im?` · no reconocido ${F(x.im)}`:"");c[1].style.background=x.ua?"var(--ok)":x.xp?"var(--er)":""});
+const cc=$("#tt").querySelectorAll(".cc");cc[1].textContent=`Activo ${F(t.ua,0)} · Pasivo ${F(t.xp,0)}`;$("#ct").textContent=`Cuentas con datos faltantes: ${t.falt} · Alertas: ${t.alert} · Estado: ${t.ok?"OK":"Revisar"}`}
+function show(k){tab=k;$("#nav").innerHTML=[["gui","Guía"],["par","Parámetros"],["pt","Partidas"],["res","Resumen"],["rev","Revelaciones"],["inf","Informe"],["cmp","Compartir"]].map(([a,b])=>`<button class="${a==k?"a":""}" data-t="${a}">${b}</button>`).join("");
+$("#m").innerHTML=(k=="inf"?'<div class="np"><button class="bt s" id="pr">Imprimir / PDF</button></div>':"")+V[k]();if(k=="pt")upd();
+$("#sub").textContent=`${S.p.ent} · cierre ${fd()}`;const pr=$("#pr");if(pr)pr.onclick=()=>{if(tab!="inf"){show("inf")}setTimeout(()=>window.print(),100)}}
+V.par=()=>V.par_()+V.parf();
+document.addEventListener("click",e=>{const t=e.target;if(t.dataset.t)show(t.dataset.t);else if(t.id=="ad"){S.rows.push(mk(["","","",0,0,0,0]));sv();show("pt")}else if(t.dataset.o!==undefined){const i=+t.dataset.o;OP.has(i)?OP.delete(i):OP.add(i);show("pt")}else if(t.dataset.d!==undefined){S.rows.splice(+t.dataset.d,1);OP.clear();sv();show("pt")}else if(t.id=="rs"){S=sample();S.p.ent=EMPRESA.nombre;S.p.rif=EMPRESA.rif;S.p.spe=EMP_ES?"Sí":"No";S.p.mon=MON.esBs?"Bs.":MON.lab;sv();show("par")}else if(t.id=="cl"){S.rows=[mk(["","","",0,0,0,0])];sv();show("par")}else if(t.id=="cp"){const a=$("#mg");a.select();try{navigator.clipboard.writeText(a.value)}catch(x){document.execCommand("copy")}$("#ok").textContent="Copiado."}});
+document.addEventListener("input",e=>{const t=e.target,d=t.dataset;if(d.p){S.p[d.p]=t.type=="number"?+t.value:t.value;$("#sub").textContent=`${S.p.ent} · cierre ${fd()}`}else if(d.k){S.rows[+d.i][d.k]=t.type=="number"?t.value:t.value;if(tab=="pt")upd()}else if(d.c){S.c[d.c]=+t.value||0}else if(d.pm){S.c.pm[+d.pm][+d.q]=d.q=="1"?+t.value||0:t.value}sv()});
+document.addEventListener("change",e=>{if(e.target.dataset.c||e.target.dataset.pm)show("rev")});
+show("gui");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:0};window.UXMODID='dif';window.UX={status:function(){var d=sample();d.p.ent=S.p.ent;d.p.rif=S.p.rif;d.p.spe=S.p.spe;d.p.mon=S.p.mon;if(JSON.stringify(d)===JSON.stringify(S))return{est:'sin',det:'Con partidas de ejemplo'};
+ var n=S.rows.filter(function(r){return r.E||r.F||r.G||r.H}).length,pr=S.p.prep&&S.p.prep!=='Nombre del preparador';
+ return n>0&&pr?{est:'ok',det:n+(n==1?' partida':' partidas')+' con responsable'}:{est:'proc',det:n+(n==1?' partida':' partidas')+(pr?'':' · falta el responsable')}},cur:function(){return tab},after:function(){sv();show(tab)},clear:{
+par:{l:"Limpiar responsables y destinatarios",f:function(){["prep","dest","mail","wa"].forEach(function(k){S.p[k]=""});S.p.pat=0}},
+pt:{l:"Limpiar las partidas",f:function(){S.rows=[mk(["","","",0,0,0,0])];OP.clear()}},
+rev:{l:"Limpiar la conciliación de la tasa efectiva",f:function(){S.c={u:0,k:0,pm:[["",0],["",0],["",0],["",0],["",0]]}}}}};/*UX_END*/
+</script><script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body></html>

@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planificación fiscal SPE 2027</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Newsreader:wght@600&display=swap">
+<style>
+:root{--g:#0B6B3A;--g2:#14A455;--gl:#E1F2E8;--gt:#fff;--bg:#F0F5F1;--s:#fff;--ink:#12231A;--m:#587062;--l:#D0DDD4;--ok:#1B7A44;--w:#9A6000;--b:#B3261E;--okb:#DDF1E5;--wb:#FBEED2;--bb:#F9E1DF;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--g:#3DDC84;--g2:#2FBF71;--gl:#12301F;--gt:#06210F;--bg:#0B1610;--s:#13221A;--ink:#E4F0E8;--m:#9DB5A5;--l:#2A4233;--ok:#6FCF97;--w:#F2B84B;--b:#FF8A80;--okb:#1B3A28;--wb:#3B2F14;--bb:#3E1F1D;color-scheme:dark}}
+:root[data-theme="dark"]{--g:#3DDC84;--g2:#2FBF71;--gl:#12301F;--gt:#06210F;--bg:#0B1610;--s:#13221A;--ink:#E4F0E8;--m:#9DB5A5;--l:#2A4233;--ok:#6FCF97;--w:#F2B84B;--b:#FF8A80;--okb:#1B3A28;--wb:#3B2F14;--bb:#3E1F1D;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:1120px;margin:0 auto;padding:14px}
+header{background:var(--g);color:var(--gt);padding:16px 18px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font:600 24px/1.15 Newsreader,Georgia,serif;margin:0}
+h2{font:600 18px/1.2 Newsreader,Georgia,serif;margin:0 0 8px}
+#sub{opacity:.85;font-size:13px}
+nav{display:flex;gap:6px;overflow-x:auto;margin:12px 0;padding-bottom:4px}
+nav button,.chips button,.btn{font:inherit;border:1px solid var(--l);background:var(--s);color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+nav button[aria-selected="true"],.chips button[aria-pressed="true"],.btn.p{background:var(--g);border-color:var(--g);color:var(--gt)}
+header .btn{background:transparent;color:var(--gt);border-color:var(--gt)}
+.c{background:var(--s);border:1px solid var(--l);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-bottom:12px}
+.grid .c{margin:0}
+.k b{display:block;font:600 24px/1.15 Newsreader,Georgia,serif;color:var(--g)}
+.k span{font-size:12px;color:var(--m)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--l);text-align:left;vertical-align:middle}
+th{font-size:12px;color:var(--m);font-weight:600}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+input,select{font:inherit;border:1px solid var(--l);border-radius:6px;padding:4px 6px;background:var(--s);color:var(--ink);max-width:100%}
+input[type=number]{width:112px;text-align:right}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--g2);outline-offset:2px}
+.pill{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;display:inline-block;white-space:nowrap}
+.ok{background:var(--okb);color:var(--ok)}.wa{background:var(--wb);color:var(--w)}.ba{background:var(--bb);color:var(--b)}.gr{background:var(--gl);color:var(--m)}
+.heat td{text-align:center;font-size:11px;padding:6px 2px;border:2px solid var(--s)}
+.heat td:first-child{text-align:left;font-size:13px;border:0;border-bottom:1px solid var(--l);background:none;color:var(--ink);font-weight:600}
+.note{font-size:12px;color:var(--m);margin:0 0 8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 18px}
+.f label{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--l);padding:4px 0}
+@media print{header,nav,.np{display:none!important}body{background:#fff}.c{break-inside:avoid}}
+</style>
+
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="w">
+<header><div><h1>Planificación fiscal SPE 2027</h1><div id="sub"></div></div><button class="btn np" id="rs">Restablecer datos</button></header>
+<nav id="nav" role="tablist"></nav>
+<main id="m"></main>
+</div>
+<script>
+const M=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const rl=a=>Array.from({length:12},(_,i)=>a[i]??null);
+const D0=()=>({emp:"Constructora Ejemplo, C.A.",rif:"J-00000000-0",mail:"",wa:"",ing:1e7,cos:3.9e6,gas:3.5e6,nom:1.5e6,iva:.16,islr:.34,isae:.01425,loc:.005,div:.4,igtf:.03,pen:.09,inc:.02,faov:.02,ivss:.0451,lod:.01,dep:.01,tol:.05,esc:"Base",
+sc:{Adverso:[-.15,.1],Base:[0,0],Optimista:[.1,-.03]},
+real:[rl([8e5,76e4,9e5]),rl([34e4,33e4,36e4]),rl([3e5,295e3,29e4]),rl([125e3,125e3,13e4])],
+ob:{},ri:[["Media","Alto"],["Alta","Alto"],["Media","Alto"],["Media","Alto"],["Alta","Medio"],["Alta","Medio"],["Media","Medio"],["Media","Medio"],["Media","Medio"]],
+cam:{tasa:100,dev:[.02,.06,.03],inf:[.02,.05,.04],sm:[0,0,6],sh:[0,0,.3],li:.4,lc:.5,lg:.2,pi:.8,pc:1,caja:8e3,cxc:12e3,prov:25e3,deu:1e4,lim:5e3}});
+let S=D0();try{const x=JSON.parse(localStorage.getItem("spe27"));if(x&&x.ri)S=x}catch(e){}S.emp=EMPRESA.nombre;S.rif=EMPRESA.rif;
+const save=()=>{try{localStorage.setItem("spe27",JSON.stringify(S))}catch(e){}};
+const OB=[["Diaria","Registro de operaciones a tasa BCV"],["Diaria","IGTF percibido en cada factura"],["Diaria","Facturación conforme a la providencia"],["Quincenal o mensual","IVA y retenciones de IVA"],["Quincenal o mensual","Anticipos de ISLR e IGTF"],["Quincenal o mensual","Enteramiento de retenciones de ISLR"],["Mensual","Contribución de pensiones"],["Mensual","IVSS y FAOV"],["Mensual","Conciliación de nómina contra parafiscales"],["Mensual","Cierre contable y conciliación fiscal"],["Mensual","Cifras reales y revisión de desviaciones"],["Mensual","Impuesto municipal sobre actividades económicas"],["Trimestral","INCES"],["Trimestral","Revisión de la condición de SPE"],["Trimestral","Proyección de ISLR y escenarios cambiarios"],["Trimestral","Posición en moneda extranjera y trayectorias de tasa"],["Anual","Declaración estimada de ISLR"],["Anual","Declaración definitiva de ISLR"],["Anual","LOCTI, LOD y deporte"],["Anual","Revisión del código de actividad municipal"]];
+const RI=[["Cambio o pérdida de la condición de SPE","Recalcular umbrales cada trimestre y vigilar el buzón del SENIAT."],["ISLR sobre utilidades nominales por inflación","Presupuestar con escenarios cambiarios e indexar precios a tasa BCV."],["Devaluación abrupta con posición neta pasiva en divisas","Calzar activos y pasivos en divisas e indexar contratos."],["Error en percepción o enteramiento del IGTF","Configurar el ERP por medio de pago y conciliar cada período."],["Descalce de liquidez por retenciones y enteros","Sincronizar la cobranza con el calendario fiscal."],["Cambios normativos (calendario, pensiones, reformas)","Asignar un responsable de revisar la Gaceta."],["Diferencias entre nómina y parafiscales","Conciliar nómina con pensiones, IVSS, FAOV e INCES."],["Gastos sin soporte o sin retención","Validar facturas y retenciones antes de pagar."],["Ingresos distintos entre IVA, ISLR y municipio","Usar una sola base de ingresos conciliada."]];
+const PS=[["iva","IVA, alícuota general"],["islr","ISLR, tarifa general personas jurídicas"],["isae","ISAE efectivo sobre ingresos"],["loc","LOCTI sobre ingresos"],["div","Cobros en divisas"],["igtf","IGTF"],["pen","Contribución de pensiones sobre nómina"],["inc","INCES patronal"],["faov","FAOV patronal"],["ivss","IVSS y paro forzoso patronales (sobre nómina)"],["lod","Ley de drogas sobre utilidad"],["dep","Ley del deporte sobre utilidad"],["tol","Tolerancia de desviación"]];
+let tab="dash",fq="Todas";
+const T=[["dash","Tablero"],["sup","Supuestos"],["pro","Proyección"],["seg","Seguimiento"],["obl","Obligaciones"],["rie","Riesgos"],["cam","Cambiario"],["inf","Informe"]];
+const f=n=>n==null||!isFinite(n)?"–":Math.round(n).toLocaleString("es-VE");
+const pc=(n,s)=>n==null||!isFinite(n)?"–":(s&&n>0?"+":"")+(Math.round(n*1000)/10).toLocaleString("es-VE")+"%";
+const H=(...a)=>`<tr>${a.map((x,i)=>`<th${i?' class="n"':""}>${x}</th>`).join("")}</tr>`;
+const R=(...a)=>`<tr>${a.map((x,i)=>`<td${i?' class="n"':""}>${x}</td>`).join("")}</tr>`;
+const TB=(h,r)=>`<div class="sc"><table>${h}${r.join("")}</table></div>`;
+const C=(t,b,n)=>`<section class="c"><h2>${t}</h2>${n?`<p class="note">${n}</p>`:""}${b}</section>`;
+const K=(l,v)=>`<div class="c k"><b>${v}</b><span>${l}</span></div>`;
+const P=(t,c)=>`<span class="pill ${c}">${t}</span>`;
+const I=(p,v,x,st)=>`<input type="number" step="${st||1}" data-p="${p}"${x?` data-x="${x}"`:""} value="${v==null?"":x?Math.round(v*x*1000)/1000:v}">`;
+const TX=(p,v)=>`<input data-p="${p}" value="${v??""}">`;
+const Sel=(p,o,v)=>`<select data-p="${p}">${o.map(a=>`<option${a==v?" selected":""}>${a}</option>`).join("")}</select>`;
+const sp=s=>s=="Revisar"?"ba":s=="En tolerancia"?"ok":"gr";
+const cl=d=>d==null?"gr":Math.abs(d)>S.tol*2?"ba":Math.abs(d)>S.tol?"wa":"ok";
+const rs=r=>({Baja:1,Media:2,Alta:3}[r[0]])*({Bajo:1,Medio:2,Alto:3}[r[1]]);
+function core(i,c,g,n){const p=S,pen=n*p.pen,inc=n*p.inc,ss=n*(p.ivss+p.faov),mu=i*p.isae,ut=i-c-g-pen-inc-ss-mu,b=Math.max(ut,0),isl=b*p.islr,lo=i*p.loc,ld=b*p.lod,dp=b*p.dep;
+return{i,c,ut,isl,pen,inc,ss,mu,lo,ld,dp,own:isl+pen+inc+ss+mu+lo+ld+dp,ivn:i*p.iva-(c+g-n)*p.iva,igtf:i*(1+p.iva)*p.div*p.igtf,net:ut-isl-lo-ld-dp}}
+const sce=k=>{const v=S.sc[k];return core(S.ing*(1+v[0]),S.cos*(1+v[1]),S.gas,S.nom)};
+const base=()=>sce("Base");
+function seg(){const b=base(),bud=[b.i,b.c,S.gas,S.nom],r=S.real,ac=[0,0,0,0,0],pb=[0,0,0,0,0],rows=[],bm=bud[0]/12-bud[1]/12-bud[2]/12;
+for(let m=0;m<12;m++){const d=[],all=r[0][m]!=null&&r[1][m]!=null&&r[2][m]!=null;
+for(let k=0;k<4;k++){const v=r[k][m];if(v==null)d.push(null);else{d.push(v/(bud[k]/12)-1);ac[k]+=v;pb[k]+=bud[k]/12}}
+let res=null;if(all){res=r[0][m]-r[1][m]-r[2][m];d.push(res/bm-1);ac[4]+=res;pb[4]+=bm}else d.push(null);
+const q=d.slice(0,4).filter(x=>x!=null);
+rows.push({d,res,st:!q.length?"Sin datos":q.some(x=>Math.abs(x)>S.tol)?"Revisar":"En tolerancia"})}
+const pj=[0,1,2,3].map(k=>ac[k]+bud[k]-pb[k]);
+return{b,bud,rows,ac,pb,bm,pj,rp:core(pj[0],pj[1],pj[2],pj[3])}}
+const acd=(g,k)=>g.pb[k]>0?g.ac[k]/g.pb[k]-1:null;
+const net=()=>S.cam.caja+S.cam.cxc-S.cam.prov-S.cam.deu;
+const est=()=>net()>=0?"Cubierta":-net()>S.cam.lim?"Sobre el límite":"Dentro del límite";
+function cam(){const c=S.cam,b=base(),n=net();return[0,1,2].map(s=>{let t=c.tasa,pr,tp=[],sm=0,dif=0,si=0;
+for(let m=1;m<=12;m++){pr=t;t=pr*(1+c.dev[s])*(m==c.sm[s]?1+c.sh[s]:1);tp.push(t);dif+=n*(t-pr);sm+=t;si+=Math.pow(1+c.inf[s],m)-1}
+const ta=sm/12,ia=si/12,fi=c.li*ta/c.tasa+(1-c.li)*(1+c.pi*ia),fc=c.lc*ta/c.tasa+(1-c.lc)*(1+c.pc*ia),fg=c.lg*ta/c.tasa+(1-c.lg)*(1+c.pc*ia);
+const ut=b.i*fi-b.c*fc-S.gas*fg-(b.pen+b.inc+b.ss)*fg-b.mu*fi+dif;
+return{tp,tf:t,dev:t/c.tasa-1,inf:Math.pow(1+c.inf[s],12)-1,dif,ut,isl:Math.max(ut,0)*S.islr,dv:ut/b.ut-1}})}
+const al=i=>{const o=S.ob[i]||{};if(o.e=="Listo")return["Cumplida","ok"];if(!o.f)return["Sin fecha","gr"];const d=Math.ceil((new Date(o.f+"T00:00:00")-new Date(new Date().toDateString()))/864e5);return d<0?["Vencida","ba"]:d<=7?[`Vence en ${d} días`,"wa"]:["En plazo","ok"]};
+function bars(t,a,b){const mx=Math.max(1,...a,...b.map(v=>v||0));let o=`<svg viewBox="0 0 600 190" width="100%" role="img" aria-label="${t}">`;
+for(let i=0;i<12;i++){const x=10+i*49,h1=Math.max(0,a[i]/mx*150),h2=b[i]==null?0:Math.max(0,b[i]/mx*150);
+o+=`<rect x="${x}" y="${160-h1}" width="20" height="${h1}" fill="var(--l)"/>${b[i]==null?"":`<rect x="${x+21}" y="${160-h2}" width="20" height="${h2}" fill="var(--g)"/>`}<text x="${x+20}" y="178" font-size="10" text-anchor="middle" fill="var(--m)">${M[i]}</text>`}
+return o+"</svg>"}
+function heat(g){const N=["Ingresos","Costos","Gastos","Nómina","Resultado"];
+let h=`<div class="sc"><table class="heat" style="min-width:640px"><tr><td></td>${M.map(m=>`<td style="color:var(--m)">${m}</td>`).join("")}<td style="color:var(--m)">Año</td></tr>`;
+N.forEach((n,k)=>{h+=`<tr><td>${n}</td>${g.rows.map(r=>`<td class="${cl(r.d[k])}">${r.d[k]==null?"":pc(r.d[k],1)}</td>`).join("")}<td class="${cl(acd(g,k))}">${pc(acd(g,k),1)}</td></tr>`});
+return h+"</table></div>"}
+function dash(){const g=seg(),b=g.b,done=OB.filter((_,i)=>(S.ob[i]||{}).e=="Listo").length,ven=OB.filter((_,i)=>al(i)[0]=="Vencida").length,alto=S.ri.filter(r=>rs(r)>=6).length,hd=g.rows.filter(r=>r.st!="Sin datos").length,ra=g.rows.filter(r=>r.st=="Revisar").length;
+const bi=g.bud[0]/12,br=g.bm;
+return `<div class="grid">${K("Avance de obligaciones",pc(done/OB.length))}${K("Obligaciones vencidas",ven)}${K("Meses en alerta",`${ra} de ${hd}`)}${K("Desviación acumulada de ingresos",pc(acd(g,0),1))}${K("Desviación acumulada del resultado",pc(acd(g,4),1))}${K("ISLR proyectado del año",f(g.rp.isl))}${K("Desviación del ISLR contra presupuesto",pc(g.rp.isl/b.isl-1,1))}${K("Riesgos de nivel alto",alto)}${K("Exposición cambiaria",est())}</div>
+<div class="two">${C("Ingresos por mes","<p class='note'>Gris: presupuesto. Verde: real.</p>"+bars("Ingresos por mes",Array(12).fill(bi),S.real[0]))}${C("Resultado por mes","<p class='note'>Ingresos menos costos y gastos.</p>"+bars("Resultado por mes",Array(12).fill(br),g.rows.map(r=>r.res)))}</div>
+${C("Desviación mes por mes contra el presupuesto",heat(g),`Verde: dentro de la tolerancia de ${pc(S.tol)}. Ámbar: la supera. Rojo: la duplica. Gris: sin datos.`)}
+${C("Estado de cada mes",`<div class="sc"><table class="heat" style="min-width:640px"><tr>${g.rows.map((r,m)=>`<td class="${sp(r.st)}">${M[m]}<br>${r.st}</td>`).join("")}</tr></table></div>`)}`}
+function sup(){return C("Datos de la empresa",`<div class="f"><label>Razón social ${TX("emp",S.emp)}</label><label>RIF ${TX("rif",S.rif)}</label></div>`)+
+C("Cifras del ejercicio",`<div class="f">${[["ing","Ingresos anuales"],["cos","Costos anuales"],["gas","Gastos anuales (incluye nómina)"],["nom","Nómina anual"]].map(a=>`<label>${a[1]} ${I(a[0],S[a[0]])}</label>`).join("")}</div>`,"Cifras de ejemplo en unidades monetarias. Reemplázalas por las de la empresa.")+
+C("Alícuotas y porcentajes",`<div class="f">${PS.map(a=>`<label>${a[1]} (%) ${I(a[0],S[a[0]],100,.01)}</label>`).join("")}</div>`,"Verifica cada alícuota en la Gaceta Oficial y el SENIAT antes de usar datos reales.")+
+C("Escenarios",`<p>Escenario activo: ${Sel("esc",["Adverso","Base","Optimista"],S.esc)}</p>${TB(H("Escenario","Variación de ingresos (%)","Variación de costos (%)"),["Adverso","Base","Optimista"].map(k=>R(k,I(`sc.${k}.0`,S.sc[k][0],100,.5),I(`sc.${k}.1`,S.sc[k][1],100,.5))))}`,"El escenario Base es el presupuesto del seguimiento.")}
+function pro(){const c=sce(S.esc),rw=[["ISLR",c.isl],["Contribución de pensiones",c.pen],["INCES patronal",c.inc],["IVSS, paro forzoso y FAOV patronales",c.ss],["Impuesto municipal (ISAE)",c.mu],["LOCTI",c.lo],["Ley de drogas",c.ld],["Ley del deporte",c.dp]];
+const sc=["Adverso","Base","Optimista"].map(sce);
+return C(`Tributos del año, escenario ${S.esc}`,`<p>Escenario: ${Sel("esc",["Adverso","Base","Optimista"],S.esc)}</p>`+TB(H("Tributo propio","Monto anual","Reserva mensual","Sobre ingresos"),[...rw.map(a=>R(a[0],f(a[1]),f(a[1]/12),pc(a[1]/c.i,0))),R("<b>Total tributos propios</b>",`<b>${f(c.own)}</b>`,`<b>${f(c.own/12)}</b>`,`<b>${pc(c.own/c.i)}</b>`),R("IVA neto a pagar (tránsito)",f(Math.max(c.ivn,0)),f(Math.max(c.ivn,0)/12),""),R("IGTF percibido de clientes (tránsito)",f(c.igtf),f(c.igtf/12),"")]))+
+C("Resultado",TB(H("Concepto","Monto"),[R("Ingresos",f(c.i)),R("Utilidad antes de ISLR",f(c.ut)),R("Utilidad después de tributos propios",f(c.net)),R("Margen después de tributos propios",pc(c.net/c.i))]))+
+C("Comparación de escenarios",TB(H("Concepto","Adverso","Base","Optimista"),[["Ingresos","i"],["Utilidad antes de ISLR","ut"],["ISLR","isl"],["Tributos propios","own"],["IVA neto","ivn"],["Utilidad después de tributos","net"]].map(a=>R(a[0],...sc.map(x=>f(x[a[1]])))).concat([R("Tributos propios sobre ingresos",...sc.map(x=>pc(x.own/x.i))),R("Margen después de tributos",...sc.map(x=>pc(x.net/x.i)))])))}
+function segv(){const g=seg(),b=g.b;let r=g.rows.map((x,m)=>`<tr><td><b>${M[m]}</b></td>${[0,1,2,3].map(k=>`<td class="n">${I(`real.${k}.${m}`,S.real[k][m])}</td>`).join("")}${x.d.map(d=>`<td class="n ${cl(d)}">${d==null?"":pc(d,1)}</td>`).join("")}<td>${P(x.st,sp(x.st))}</td></tr>`).join("");
+const yr=[0,1,2,3].map(k=>g.pj[k]/g.bud[k]-1);yr.push((g.pj[0]-g.pj[1]-g.pj[2])/(g.bm*12)-1);
+r+=`<tr><td><b>Acumulado</b></td><td colspan="4"></td>${[0,1,2,3,4].map(k=>`<td class="n ${cl(acd(g,k))}"><b>${pc(acd(g,k),1)}</b></td>`).join("")}<td></td></tr><tr><td><b>Año proyectado</b></td><td colspan="4"></td>${yr.map(d=>`<td class="n ${cl(d)}"><b>${pc(d,1)}</b></td>`).join("")}<td></td></tr>`;
+const rp=g.rp,rr=[["Ingresos",b.i,g.pj[0]],["Costos",b.c,g.pj[1]],["Gastos (incluye nómina)",S.gas,g.pj[2]],["Nómina",S.nom,g.pj[3]],["Utilidad antes de ISLR",b.ut,rp.ut],["ISLR",b.isl,rp.isl],["Tributos propios",b.own,rp.own],["IVA neto",b.ivn,rp.ivn]];
+return C("Seguimiento: real contra presupuesto",`<div class="sc"><table style="min-width:980px">${H("Mes","Ingresos","Costos","Gastos","Nómina","Δ Ingresos","Δ Costos","Δ Gastos","Δ Nómina","Δ Resultado","Estado")}${r}</table></div>`,`Escribe las cifras reales de cada mes. El presupuesto es el escenario Base en 12 partes iguales. Tolerancia: ${pc(S.tol)}, editable en Supuestos.`)+
+C("Reproyección del ejercicio",TB(H("Concepto","Presupuesto","Proyección ajustada","Desviación","Desviación %","Estado"),rr.map(a=>{const d=a[2]-a[1],p=a[1]?d/a[1]:0,s=Math.abs(p)>S.tol?"Revisar":"En tolerancia";return R(a[0],f(a[1]),f(a[2]),f(d),pc(p,1),P(s,sp(s)))})),"Usa lo real de los meses con datos y el presupuesto de los meses restantes.")}
+function obl(){const fs=["Todas","Diaria","Quincenal o mensual","Mensual","Trimestral","Anual"];
+return C("Obligaciones y deberes formales",`<div class="chips">${fs.map(x=>`<button data-f="${x}" aria-pressed="${x==fq}">${x}</button>`).join("")}</div>`+TB(H("Frecuencia","Obligación","Fecha límite","Estado","Alerta"),OB.map((o,i)=>[o,i]).filter(a=>fq=="Todas"||a[0][0]==fq).map(a=>{const o=S.ob[a[1]]||{},x=al(a[1]);return `<tr><td>${a[0][0]}</td><td><b>${a[0][1]}</b></td><td class="n"><input type="date" data-p="ob.${a[1]}.f" value="${o.f||""}"></td><td class="n">${Sel(`ob.${a[1]}.e`,["Pendiente","En curso","Listo"],o.e||"Pendiente")}</td><td class="n">${P(x[0],x[1])}</td></tr>`})),"Pon la fecha límite del calendario SPE 2027 cuando el SENIAT lo publique.")}
+function rie(){return C("Mapa de riesgos",TB(H("Riesgo","Probabilidad","Impacto","Nivel","Acción mitigante"),RI.map((r,i)=>{const s=rs(S.ri[i]),l=s>=6?["Alto","ba"]:s>=3?["Medio","wa"]:["Bajo","ok"];return `<tr><td><b>${r[0]}</b></td><td class="n">${Sel(`ri.${i}.0`,["Baja","Media","Alta"],S.ri[i][0])}</td><td class="n">${Sel(`ri.${i}.1`,["Bajo","Medio","Alto"],S.ri[i][1])}</td><td class="n">${P(l[0],l[1])}</td><td>${r[1]}</td></tr>`})),"El nivel sale de multiplicar probabilidad por impacto (1 a 9). Seis o más es alto.")}
+function lines(cs){const all=cs.flatMap(c=>c.tp),mx=Math.max(S.cam.tasa,...all),col=["var(--g2)","var(--w)","var(--b)"],nm=["Moderada","Acelerada","Abrupta"];
+return `<svg viewBox="0 0 600 190" width="100%" role="img" aria-label="Tasa BCV proyectada">${cs.map((c,s)=>`<polyline fill="none" stroke="${col[s]}" stroke-width="2.5" points="${c.tp.map((v,m)=>`${10+m*52},${160-v/mx*140}`).join(" ")}"/><text x="${14+s*110}" y="184" font-size="11" fill="${col[s]}">${nm[s]}: ${f(c.tf)}</text>`).join("")}</svg>`}
+function camv(){const c=S.cam,cs=cam(),b=base(),n=net();
+const tr=[["Devaluación mensual (%)","dev",100,.1],["Inflación mensual (%)","inf",100,.1],["Mes del shock (0 = sin shock)","sm",1,1],["Tamaño del shock (%)","sh",100,1]];
+return C("Trayectorias de tasa BCV e inflación",TB(H("Concepto","Moderada","Acelerada","Abrupta"),[R("Tasa BCV inicial (Bs por USD)",I("cam.tasa",c.tasa,0,.01),"","")].concat(tr.map(a=>R(a[0],...[0,1,2].map(s=>I(`cam.${a[1]}.${s}`,c[a[1]][s],a[2]==1?0:a[2],a[3])))))),"Trayectorias ilustrativas, no un pronóstico. Edítalas con tus supuestos.")+
+`<div class="two">${C("Exposición del negocio",`<div class="f">${[["li","Ingresos ligados al dólar (%)"],["lc","Costos ligados al dólar (%)"],["lg","Gastos ligados al dólar (%)"],["pi","Traspaso de inflación a precios (%)"],["pc","Traspaso de inflación a costos (%)"]].map(a=>`<label>${a[1]} ${I("cam."+a[0],c[a[0]],100,1)}</label>`).join("")}</div>`)}
+${C("Posición en moneda extranjera (USD)",`<div class="f">${[["caja","Caja y bancos"],["cxc","Cuentas por cobrar"],["prov","Proveedores"],["deu","Deuda financiera"],["lim","Límite de descubierto"]].map(a=>`<label>${a[1]} ${I("cam."+a[0],c[a[0]])}</label>`).join("")}</div><p>Posición neta: <b>${f(n)} USD</b> ${P(est(),n>=0?"ok":-n>c.lim?"ba":"wa")}</p><p class="note">Cobertura de activos sobre pasivos: ${(c.prov+c.deu?(c.caja+c.cxc)/(c.prov+c.deu):0).toFixed(2)} veces.</p>`)}</div>`+
+C("Resultado anual por trayectoria",TB(H("Concepto","Moderada","Acelerada","Abrupta","Presupuesto"),[R("Tasa BCV a fin de año",...cs.map(x=>f(x.tf)),f(c.tasa)),R("Devaluación del año",...cs.map(x=>pc(x.dev)),""),R("Inflación del año",...cs.map(x=>pc(x.inf)),""),R("Diferencial cambiario neto",...cs.map(x=>f(x.dif)),"0"),R("<b>Utilidad antes de ISLR</b>",...cs.map(x=>`<b>${f(x.ut)}</b>`),`<b>${f(b.ut)}</b>`),R("ISLR estimado",...cs.map(x=>f(x.isl)),f(b.isl)),R("Desviación de la utilidad",...cs.map(x=>pc(x.dv,1)),""),R("Estado",...cs.map(x=>{const s=Math.abs(x.dv)>S.tol?"Revisar":"En tolerancia";return P(s,sp(s))}),"")]))+
+C("Tasa BCV proyectada",lines(cs),"Las ganancias y pérdidas cambiarias se tratan como gravables y deducibles. Confirma su tratamiento con la normativa vigente. Esta vista no cambia la proyección principal.")}
+function inf(){const c=sce(S.esc),g=seg(),cs=cam(),b=base(),top=RI.map((r,i)=>[r,rs(S.ri[i])]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+const msg=`Informe fiscal 2027 - ${S.emp} (escenario ${S.esc}). Ingresos: ${f(c.i)}. Tributos propios: ${f(c.own)} (${pc(c.own/c.i)} de los ingresos). IVA neto a pagar: ${f(Math.max(c.ivn,0))}. Desviación acumulada del resultado: ${pc(acd(g,4),1)}. ISLR proyectado del año: ${f(g.rp.isl)} contra ${f(b.isl)} presupuestado.`;
+const e=encodeURIComponent,gm=`https://mail.google.com/mail/?view=cm&fs=1&to=${e(S.mail)}&su=${e("Informe de planificación fiscal 2027 - "+S.emp)}&body=${e(msg)}`,wa=`https://wa.me/${(S.wa||"").replace(/\D/g,"")}?text=${e(msg)}`;
+return C("Informe ejecutivo",`<p><b>${S.emp}</b> | RIF ${S.rif} | Escenario ${S.esc}</p><p>Con ingresos proyectados de ${f(c.i)} y una utilidad antes de ISLR de ${f(c.ut)}, la carga tributaria propia estimada es ${pc(c.own/c.i)} de los ingresos (${f(c.own)}). Se recomienda reservar ${f(c.own/12)} por mes para tributos propios y ${f(Math.max(c.ivn,0)/12)} por mes para el IVA neto. El margen después de tributos propios es ${pc(c.net/c.i)}.</p>`+TB(H("Cifra clave","Monto"),[R("Ingresos",f(c.i)),R("ISLR",f(c.isl)),R("Tributos propios",f(c.own)),R("IVA neto a pagar",f(Math.max(c.ivn,0))),R("IGTF percibido (tránsito)",f(c.igtf)),R("Utilidad después de tributos propios",f(c.net))]))+
+C("Desviaciones del ejercicio, mes por mes",heat(g),`Tolerancia ${pc(S.tol)}. ISLR proyectado del año: ${f(g.rp.isl)} contra ${f(b.isl)} presupuestado (${pc(g.rp.isl/b.isl-1,1)}).`)+
+C("Riesgo cambiario e inflación",TB(H("Concepto","Moderada","Acelerada","Abrupta"),[R("Devaluación del año",...cs.map(x=>pc(x.dev))),R("Utilidad antes de ISLR",...cs.map(x=>f(x.ut))),R("Desviación contra presupuesto",...cs.map(x=>pc(x.dv,1)))]),`Posición neta en divisas: ${f(net())} USD (${est()}).`)+
+C("Principales riesgos",TB(H("Riesgo","Acción"),top.map(a=>`<tr><td><b>${a[0][0]}</b></td><td>${a[0][1]}</td></tr>`)))+
+`<section class="c np"><h2>Compartir</h2><div class="f"><label>Correo del destinatario ${TX("mail",S.mail)}</label><label>WhatsApp con código de país ${TX("wa",S.wa)}</label></div><p><a class="btn p" target="_blank" rel="noopener" href="${gm}">Enviar por Gmail</a> <a class="btn p" target="_blank" rel="noopener" href="${wa}">Enviar por WhatsApp</a> <button class="btn" onclick="window.print()">Guardar en PDF o imprimir</button></p><p class="note">Gmail y WhatsApp envían un resumen. Para el PDF completo, elige Guardar como PDF en la ventana de impresión y adjúntalo a mano.</p></section>`}
+function render(){const V={dash,sup,pro,seg:segv,obl,rie,cam:camv,inf};
+$("m").innerHTML=V[tab]();$("nav").innerHTML=T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]==tab}">${t[1]}</button>`).join("");
+$("sub").textContent=`${S.emp} | RIF ${S.rif} | Escenario ${S.esc}`}
+function $(i){return document.getElementById(i)}
+document.addEventListener("click",e=>{const t=e.target;if(t.dataset.t){tab=t.dataset.t;render()}else if(t.dataset.f){fq=t.dataset.f;render()}else if(t.id=="rs"){try{localStorage.removeItem("spe27")}catch(x){}S=D0();S.emp=EMPRESA.nombre;S.rif=EMPRESA.rif;render()}});
+document.addEventListener("change",e=>{const t=e.target,p=t.dataset.p;if(!p)return;const x=+t.dataset.x||1;
+const v=t.type=="number"?(t.value===""?null:parseFloat(t.value)/x):t.value;
+const k=p.split(".");let o=S;for(let i=0;i<k.length-1;i++)o=o[k[i]]??(o[k[i]]={});o[k[k.length-1]]=v;save();render()});
+render();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:0};window.UXMODID='plan';window.UX={status:function(){var d=D0();d.emp=S.emp;d.rif=S.rif;if(JSON.stringify(d)===JSON.stringify(S))return{est:'sin',det:'Con cifras de ejemplo'};
+ var ch=JSON.stringify(S.real)!==JSON.stringify(D0().real),m=S.real[0].filter(function(x){return x!==null&&x!==''&&x!==undefined}).length;
+ return ch?{est:'ok',det:'Seguimiento con cifras reales ('+m+' meses)'}:{est:'proc',det:'Supuestos cargados; falta el seguimiento real'}},cur:function(){return tab},after:function(){save();render()},clear:{
+sup:{l:"Limpiar las cifras del ejercicio",f:function(){S.ing=0;S.cos=0;S.gas=0;S.nom=0}},
+seg:{l:"Limpiar las cifras reales del año",f:function(){S.real=[rl([]),rl([]),rl([]),rl([])]}},
+obl:{l:"Limpiar fechas y estados de las obligaciones",f:function(){S.ob={}}},
+cam:{l:"Limpiar los saldos cambiarios",f:function(){["caja","cxc","prov","deu","lim"].forEach(function(k){S.cam[k]=0})}},
+inf:{l:"Limpiar los destinatarios",f:function(){S.mail="";S.wa=""}}}};/*UX_END*/
+</script>
+<script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body>
+</html>

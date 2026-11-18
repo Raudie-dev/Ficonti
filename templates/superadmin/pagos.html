@@ -1,0 +1,532 @@
+{% extends 'layouts/admin.html' %}
+{% load humanize %}
+
+{% block title %}Auditoría & Registro de Pagos · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2">
+
+  <!-- Encabezado Superior -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold mb-0 text-white" style="letter-spacing: -0.02em;">Auditoría & Registro de Pagos de Suscripciones</h3>
+        <span class="badge" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); font-size: 0.7rem; font-weight: 700; border-radius: 999px;">
+          CONCILIACIÓN
+        </span>
+      </div>
+      <p class="text-dim small mb-0">Audite, apruebe o rechace pagos reportados por los contadores y asiente pagos manuales.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm d-inline-flex align-items-center gap-2 px-3 py-2.5 fw-bold text-white"
+              data-bs-toggle="modal" data-bs-target="#modalNuevoPago"
+              style="background: #800020; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; box-shadow: 0 4px 14px rgba(128, 0, 32, 0.35);">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>+ Registrar Pago Manual</span>
+      </button>
+      <a href="{% url 'superadmin:planes' %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2" style="border-radius: 10px; font-size: 0.82rem;">
+        <i class="bi bi-sliders"></i>
+        <span>Planes SaaS</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Cards Superiores (Exactas a la Imagen de Referencia) -->
+  <div class="row g-3 mb-4">
+    <!-- Pendientes de Revisión -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card card-custom p-4 h-100" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 18px;">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="text-dim fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+              Pendientes de Revisión
+            </span>
+            <h2 class="fw-bolder mb-1 text-white" style="font-size: 2rem; letter-spacing: -0.03em;">
+              {{ kpis_pagos.pendientes }}
+            </h2>
+            <small class="text-dim" style="font-size: 0.76rem;">Requieren acción directa</small>
+          </div>
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+               style="width: 44px; height: 44px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25);">
+            <i class="bi bi-clock-history fs-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagos Aprobados -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card card-custom p-4 h-100" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 18px;">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="text-dim fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+              Pagos Aprobados
+            </span>
+            <h2 class="fw-bolder mb-1 text-white" style="font-size: 2rem; letter-spacing: -0.03em;">
+              {{ kpis_pagos.aprobados }}
+            </h2>
+            <small class="text-dim" style="font-size: 0.76rem;">Licencias activas extendidas</small>
+          </div>
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+               style="width: 44px; height: 44px; background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25);">
+            <i class="bi bi-check-circle fs-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagos Rechazados -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card card-custom p-4 h-100" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 18px;">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="text-dim fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+              Pagos Rechazados
+            </span>
+            <h2 class="fw-bolder mb-1" style="font-size: 2rem; letter-spacing: -0.03em; color: #f43f5e;">
+              {{ kpis_pagos.rechazados }}
+            </h2>
+            <small class="text-dim" style="font-size: 0.76rem;">Comprobantes no válidos</small>
+          </div>
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+               style="width: 44px; height: 44px; background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25);">
+            <i class="bi bi-x-circle fs-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Recaudado -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card card-custom p-4 h-100" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 18px;">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="text-dim fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+              Total Recaudado
+            </span>
+            <h2 class="fw-bolder mb-1 text-white" style="font-size: 2rem; letter-spacing: -0.03em;">
+              ${{ kpis_pagos.total_recaudado|floatformat:2 }}
+            </h2>
+            <small class="text-dim" style="font-size: 0.76rem;">Volumen histórico de suscripciones</small>
+          </div>
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+               style="width: 44px; height: 44px; background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25);">
+            <i class="bi bi-wallet2 fs-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal: Listado Maestro de Pagos de Suscripción (Exacto a la Imagen) -->
+  <div class="card card-custom mb-4" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 20px; overflow: hidden;">
+
+    <!-- Encabezado de la Tarjeta y Píldoras de Filtro -->
+    <div class="p-4 border-bottom" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+        <div>
+          <h4 class="fw-bold mb-1 text-white" style="letter-spacing: -0.01em;">Listado Maestro de Pagos de Suscripción</h4>
+          <p class="text-dim small mb-0">Aprueba o rechaza pagos directamente aquí sin tener que abrir la ficha de cada contador.</p>
+        </div>
+
+        <!-- Píldoras de Filtro de Estado (Todos, Pendientes, Aprobados, Rechazados) -->
+        <div class="d-flex align-items-center gap-1 p-1 rounded-pill" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--tv-border);">
+          <a href="?estado={% if q %}&q={{ q }}{% endif %}"
+             class="btn btn-sm px-3 py-1 rounded-pill fw-semibold {% if not estado_filtro %}text-white bg-dark border{% else %}text-dim{% endif %}"
+             style="font-size: 0.78rem; {% if not estado_filtro %}background: #1e293b !important; border-color: rgba(255,255,255,0.15) !important;{% endif %}">
+            Todos
+          </a>
+          <a href="?estado=pendiente{% if q %}&q={{ q }}{% endif %}"
+             class="btn btn-sm px-3 py-1 rounded-pill fw-semibold {% if estado_filtro == 'pendiente' %}text-white bg-dark border{% else %}text-dim{% endif %}"
+             style="font-size: 0.78rem; {% if estado_filtro == 'pendiente' %}background: #1e293b !important; border-color: rgba(255,255,255,0.15) !important;{% endif %}">
+            Pendientes
+          </a>
+          <a href="?estado=aprobado{% if q %}&q={{ q }}{% endif %}"
+             class="btn btn-sm px-3 py-1 rounded-pill fw-semibold {% if estado_filtro == 'aprobado' %}text-white bg-dark border{% else %}text-dim{% endif %}"
+             style="font-size: 0.78rem; {% if estado_filtro == 'aprobado' %}background: #1e293b !important; border-color: rgba(255,255,255,0.15) !important;{% endif %}">
+            Aprobados
+          </a>
+          <a href="?estado=rechazado{% if q %}&q={{ q }}{% endif %}"
+             class="btn btn-sm px-3 py-1 rounded-pill fw-semibold {% if estado_filtro == 'rechazado' %}text-white bg-dark border{% else %}text-dim{% endif %}"
+             style="font-size: 0.78rem; {% if estado_filtro == 'rechazado' %}background: #1e293b !important; border-color: rgba(255,255,255,0.15) !important;{% endif %}">
+            Rechazados
+          </a>
+        </div>
+      </div>
+
+      <!-- Barra de Búsqueda Exacta -->
+      <form method="get" class="d-flex gap-2">
+        {% if estado_filtro %}<input type="hidden" name="estado" value="{{ estado_filtro }}">{% endif %}
+        <div class="input-group flex-grow-1">
+          <span class="input-group-text border-0 ps-3" style="background: rgba(0, 0, 0, 0.25); color: var(--tv-text-dim);">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" name="q" class="form-control form-control-sm border-0 py-2.5 text-white"
+                 placeholder="Buscar por nombre de contador, N° de referencia, ID de comprobante o plan..."
+                 value="{{ q }}"
+                 style="background: rgba(0, 0, 0, 0.25); font-size: 0.85rem;">
+        </div>
+        <button type="submit" class="btn btn-sm px-4 fw-bold text-white d-inline-flex align-items-center"
+                style="background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; font-size: 0.85rem;">
+          Buscar
+        </button>
+        {% if q or estado_filtro %}
+          <a href="{% url 'superadmin:pagos' %}" class="btn btn-outline-custom btn-sm px-3 d-inline-flex align-items-center" style="border-radius: 12px;" title="Limpiar búsqueda">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Tabla Maestra de Pagos (Estructura Exacta a la Imagen) -->
+    <div class="table-responsive">
+      <table class="table table-hover table-custom align-middle mb-0">
+        <thead>
+          <tr style="background: #000000 !important;">
+            <th style="padding: 1rem 1.25rem;">FECHA</th>
+            <th>AGENCIA / NEGOCIO</th>
+            <th>PLAN & CICLO</th>
+            <th>MONTO</th>
+            <th>MÉTODO & COMPROBANTE</th>
+            <th>ESTADO</th>
+            <th class="text-end" style="padding-right: 1.25rem;">ACCIONES DIRECTAS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pago in pagos %}
+          <tr>
+            <!-- Fecha -->
+            <td style="padding: 1rem 1.25rem;">
+              <strong class="text-white d-block" style="font-size: 0.85rem;">{{ pago.fecha|date:"Y-m-d" }}</strong>
+              <span class="text-dim" style="font-size: 0.72rem;">{{ pago.creado|date:"H:i" }} hs</span>
+            </td>
+
+            <!-- Agencia / Contador -->
+            <td>
+              <div class="d-flex align-items-center gap-1.5">
+                <a href="{% url 'superadmin:contador_detalle' pago.suscripcion.usuario.pk %}"
+                   class="fw-bold text-white text-decoration-none hover-lime" style="font-size: 0.88rem;">
+                  {{ pago.suscripcion.usuario.nombre }}
+                </a>
+                <a href="{% url 'superadmin:contador_detalle' pago.suscripcion.usuario.pk %}" class="text-dim" title="Abrir ficha del contador">
+                  <i class="bi bi-box-arrow-up-right" style="font-size: 0.72rem;"></i>
+                </a>
+              </div>
+              <div class="text-dim" style="font-size: 0.74rem;">
+                {{ pago.suscripcion.usuario.email|default:pago.suscripcion.usuario.telefono|default:'Sin correo' }}
+              </div>
+            </td>
+
+            <!-- Plan & Ciclo -->
+            <td>
+              <div class="d-flex align-items-center gap-1.5">
+                <span class="badge" style="background: rgba(244, 63, 94, 0.12); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.25); font-size: 0.72rem; border-radius: 6px; padding: 4px 8px;">
+                  {{ pago.plan.nombre|default:'Plan Inicial' }}
+                </span>
+                <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #d1d5db; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.7rem; border-radius: 6px; padding: 4px 6px;">
+                  {{ pago.get_ciclo_display }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Monto -->
+            <td>
+              <strong class="text-white" style="font-size: 1rem; letter-spacing: -0.01em;">
+                ${{ pago.monto|floatformat:2 }}
+              </strong>
+              {% if pago.moneda != 'USD' %}
+                <span class="text-dim small ms-1">{{ pago.moneda }}</span>
+              {% endif %}
+            </td>
+
+            <!-- Método & Comprobante -->
+            <td>
+              <span class="text-white d-block" style="font-size: 0.84rem;">
+                {{ pago.get_metodo_display }}
+              </span>
+              <span class="text-dim font-monospace" style="font-size: 0.74rem;">
+                Ref: {{ pago.referencia|default:'ORD-20261026-495DEB' }}
+              </span>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              {% if pago.estado == 'aprobado' %}
+                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1"
+                      style="background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 999px; font-size: 0.74rem;">
+                  <i class="bi bi-check-circle-fill"></i> Aprobado
+                </span>
+              {% elif pago.estado == 'rechazado' %}
+                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1"
+                      style="background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 999px; font-size: 0.74rem;">
+                  <i class="bi bi-x-circle-fill"></i> Rechazado
+                </span>
+              {% else %}
+                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1"
+                      style="background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 999px; font-size: 0.74rem;">
+                  <i class="bi bi-hourglass-split"></i> Pendiente
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Acciones Directas -->
+            <td class="text-end" style="padding-right: 1.25rem;">
+              <div class="d-inline-flex align-items-center gap-1.5">
+
+                <!-- Botón Recibo Exacto a la Imagen -->
+                <button type="button" class="btn btn-sm btn-outline-custom d-inline-flex align-items-center gap-1 py-1 px-2.5"
+                        onclick="abrirRecibo('{{ pago.fecha|date:'d/m/Y' }}', '{{ pago.suscripcion.usuario.nombre|escapejs }}', '{{ pago.suscripcion.usuario.usuario|escapejs }}', '{{ pago.plan.nombre|default:'Plan Inicial'|escapejs }}', '{{ pago.monto }}', '{{ pago.moneda }}', '{{ pago.get_metodo_display|escapejs }}', '{{ pago.referencia|default:'S/R'|escapejs }}', '{{ pago.estado|escapejs }}', '{{ pago.dias }}', '{{ pago.nota|default:''|escapejs }}')"
+                        style="border-radius: 8px; font-size: 0.76rem; font-weight: 600;">
+                  <i class="bi bi-receipt"></i>
+                  <span>Recibo</span>
+                </button>
+
+                <!-- Acciones Rápidas si está pendiente o para alternar -->
+                {% if pago.estado == 'pendiente' %}
+                  <form method="post" action="{% url 'superadmin:pago_aprobar' pago.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success p-1" title="Aprobar pago y extender suscripción" style="border-radius: 8px;">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                  </form>
+                  <form method="post" action="{% url 'superadmin:pago_rechazar' pago.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Rechazar pago" style="border-radius: 8px;">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </form>
+                {% endif %}
+
+                <!-- Eliminar Registro -->
+                <form method="post" action="{% url 'superadmin:pago_eliminar' pago.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este comprobante del historial?');">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Eliminar registro" style="border-radius: 8px;">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-dim">
+              <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+              <span>No se encontraron pagos registrados con los criterios seleccionados.</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================
+     MODAL DE RECIBO / COMPROBANTE DIGITAL
+     ======================================================================== -->
+<div class="modal fade" id="modalRecibo" tabindex="-1" aria-labelledby="modalReciboLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+
+      <div class="p-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white"
+               style="width: 38px; height: 38px; background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.3);">
+            <i class="bi bi-receipt"></i>
+          </div>
+          <h5 class="modal-title fw-bold text-white mb-0" id="modalReciboLabel">Comprobante de Pago</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Tarjeta de Recibo Estilo Fintech -->
+        <div class="p-4 rounded-3 text-center mb-3" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--tv-border);">
+          <span class="text-dim text-uppercase small fw-bold d-block mb-1">Monto de la Transacción</span>
+          <h2 class="fw-bolder mb-2" id="reciboMonto" style="color: #4ade80; font-size: 2.2rem; letter-spacing: -0.02em;">$0.00</h2>
+          <span class="badge px-3 py-1" id="reciboEstadoBadge" style="border-radius: 999px; font-size: 0.75rem;">Aprobado</span>
+        </div>
+
+        <div class="d-flex flex-column gap-2.5 small">
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">Contador / Suscriptor:</span>
+            <strong class="text-white" id="reciboContador">-</strong>
+          </div>
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">Plan de Suscripción:</span>
+            <strong class="text-white" id="reciboPlan">-</strong>
+          </div>
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">Fecha de Pago:</span>
+            <strong class="text-white" id="reciboFecha">-</strong>
+          </div>
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">Canal / Método:</span>
+            <strong class="text-white" id="reciboMetodo">-</strong>
+          </div>
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">N° de Referencia:</span>
+            <strong class="text-white font-monospace" id="reciboRef">-</strong>
+          </div>
+          <div class="d-flex justify-content-between border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">
+            <span class="text-dim">Días de Licencia Otorgados:</span>
+            <strong class="text-white" id="reciboDias">+30 días</strong>
+          </div>
+          <div class="d-flex justify-content-between" id="reciboNotaRow">
+            <span class="text-dim">Observaciones:</span>
+            <span class="text-dim text-end" id="reciboNota">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer p-3 border-top" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+        <button type="button" class="btn btn-outline-custom w-100" data-bs-dismiss="modal" style="border-radius: 10px;">
+          Cerrar Comprobante
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================
+     MODAL PARA REGISTRAR PAGO MANUALMENTE
+     ======================================================================== -->
+<div class="modal fade" id="modalNuevoPago" tabindex="-1" aria-labelledby="modalNuevoPagoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 22px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+
+      <div class="p-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white"
+               style="width: 42px; height: 42px; background: rgba(128, 0, 32, 0.25); color: #f87171; border: 1px solid rgba(128, 0, 32, 0.4);">
+            <i class="bi bi-wallet2 fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-white mb-0" id="modalNuevoPagoLabel">Registrar Pago de Suscripción</h5>
+            <p class="text-dim small mb-0 mt-0.5">Asiente un pago recibido para activar o extender la licencia del contador.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="conciliar_pago" value="1">
+
+        <div class="modal-body p-4">
+          <!-- Contador -->
+          <div class="mb-3">
+            <label for="{{ pago_form.contador.id_for_label }}" class="form-label small fw-bold text-dim">Contador / Usuario *</label>
+            {{ pago_form.contador }}
+          </div>
+
+          <!-- Plan y Ciclo -->
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label for="{{ pago_form.plan.id_for_label }}" class="form-label small fw-bold text-dim">Plan de Suscripción</label>
+              {{ pago_form.plan }}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ pago_form.ciclo.id_for_label }}" class="form-label small fw-bold text-dim">Ciclo de Facturación</label>
+              {{ pago_form.ciclo }}
+            </div>
+          </div>
+
+          <!-- Monto y Moneda -->
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label for="{{ pago_form.monto.id_for_label }}" class="form-label small fw-bold text-dim">Monto Recibido *</label>
+              {{ pago_form.monto }}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ pago_form.moneda.id_for_label }}" class="form-label small fw-bold text-dim">Moneda</label>
+              {{ pago_form.moneda }}
+            </div>
+          </div>
+
+          <!-- Método y Días -->
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label for="{{ pago_form.metodo.id_for_label }}" class="form-label small fw-bold text-dim">Canal / Método de Pago</label>
+              {{ pago_form.metodo }}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ pago_form.dias.id_for_label }}" class="form-label small fw-bold text-dim">Días a Extender</label>
+              {{ pago_form.dias }}
+            </div>
+          </div>
+
+          <!-- Referencia y Nota -->
+          <div class="row g-3 mb-2">
+            <div class="col-sm-6">
+              <label for="{{ pago_form.referencia.id_for_label }}" class="form-label small fw-bold text-dim">N° Referencia / Comprobante</label>
+              {{ pago_form.referencia }}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ pago_form.nota.id_for_label }}" class="form-label small fw-bold text-dim">Nota Interna</label>
+              {{ pago_form.nota }}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer p-3 border-top d-flex justify-content-end gap-2" style="border-color: var(--tv-border) !important; background: var(--tv-surface-subtle);">
+          <button type="button" class="btn btn-outline-custom px-4" data-bs-dismiss="modal" style="border-radius: 10px;">Cancelar</button>
+          <button type="submit" class="btn fw-bold px-4 text-white d-inline-flex align-items-center gap-1.5"
+                  style="background: #800020; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; box-shadow: 0 4px 14px rgba(128, 0, 32, 0.35);">
+            <i class="bi bi-check-lg"></i>
+            <span>Asentar y Aprobar Pago</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirRecibo(fecha, nombre, usuario, plan, monto, moneda, metodo, ref, estado, dias, nota) {
+    const modalEl = document.getElementById('modalRecibo');
+    const modal = new bootstrap.Modal(modalEl);
+
+    document.getElementById('reciboMonto').innerText = `${moneda === 'USD' ? '$' : ''}${parseFloat(monto).toFixed(2)} ${moneda !== 'USD' ? moneda : ''}`;
+    document.getElementById('reciboContador').innerText = `${nombre} (@${usuario})`;
+    document.getElementById('reciboPlan').innerText = plan;
+    document.getElementById('reciboFecha').innerText = fecha;
+    document.getElementById('reciboMetodo').innerText = metodo;
+    document.getElementById('reciboRef').innerText = ref;
+    document.getElementById('reciboDias').innerText = `+${dias} días`;
+
+    const badge = document.getElementById('reciboEstadoBadge');
+    if (estado === 'aprobado') {
+      badge.innerText = 'Aprobado';
+      badge.style.background = 'rgba(34, 197, 94, 0.15)';
+      badge.style.color = '#4ade80';
+      badge.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+    } else if (estado === 'rechazado') {
+      badge.innerText = 'Rechazado';
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.color = '#f87171';
+      badge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+    } else {
+      badge.innerText = 'Pendiente';
+      badge.style.background = 'rgba(245, 158, 11, 0.15)';
+      badge.style.color = '#fbbf24';
+      badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+    }
+
+    const notaRow = document.getElementById('reciboNotaRow');
+    if (nota && nota.trim().length > 0) {
+      document.getElementById('reciboNota').innerText = nota;
+      notaRow.style.display = 'flex';
+    } else {
+      notaRow.style.display = 'none';
+    }
+
+    modal.show();
+  }
+</script>
+{% endblock %}

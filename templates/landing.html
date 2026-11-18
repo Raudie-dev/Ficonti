@@ -1,0 +1,1011 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}TributoVE · Plataforma Inteligente de Gestión Fiscal y Tributaria para Venezuela{% endblock %}
+
+{% block layout_content %}
+<!-- Contenedor Principal de la Landing Page con Estilo Fintech Oscuro -->
+<div class="landing-wrapper">
+
+  <!-- ========================================================================
+       BARRA DE NAVEGACIÓN SUPERIOR
+       ======================================================================== -->
+  <header class="landing-header">
+    <div class="container d-flex align-items-center justify-content-between py-3">
+      <!-- Logo de la marca -->
+      <a href="{% url 'core:landing' %}" class="d-flex align-items-center gap-2 text-decoration-none">
+        <div class="brand-logo-icon">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <span class="landing-brand-name">TRIBUTOVE<span class="text-lime">.</span></span>
+      </a>
+
+      <!-- Menú Central -->
+      <nav class="d-none d-lg-flex align-items-center gap-4 landing-nav-links">
+        <a href="#hero" class="landing-nav-link active">Inicio</a>
+        <a href="#solucion" class="landing-nav-link">Servicios</a>
+        <a href="#modulos" class="landing-nav-link">Módulos Fiscales</a>
+        <a href="#garantia" class="landing-nav-link">Garantía SENIAT</a>
+        <a href="#planes" class="landing-nav-link">Planes</a>
+      </nav>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex align-items-center gap-2.5">
+        {% if user.is_authenticated %}
+          <a href="{% url 'empresas:resumen' %}" class="btn btn-landing-explore">
+            <i class="bi bi-speedometer2 me-1"></i>
+            <span>Ir a Mi Panel</span>
+            <i class="bi bi-arrow-right-short fs-5"></i>
+          </a>
+        {% elif superadmin_actual %}
+          <a href="{% url 'superadmin:panel' %}" class="btn btn-landing-explore">
+            <i class="bi bi-shield-check me-1"></i>
+            <span>Panel Admin</span>
+            <i class="bi bi-arrow-right-short fs-5"></i>
+          </a>
+        {% else %}
+          <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore">
+            <span>Ingresar al Sistema</span>
+            <i class="bi bi-arrow-right-short fs-5"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       SECCIÓN 1: HERO PRINCIPAL (ESTILO EXACTO A LA IMAGEN)
+       ======================================================================== -->
+  <section class="landing-hero-section" id="hero">
+    <div class="container position-relative">
+      <div class="row align-items-center g-5 py-4 py-lg-5">
+
+        <!-- Columna Izquierda: Copywriting, Avatares y Llamado a la Acción -->
+        <div class="col-lg-6 z-2">
+          <!-- Pre-título tipo píldora -->
+          <div class="hero-tag-pill mb-3">
+            <span class="pulse-dot"></span>
+            <span>CONTROL FISCAL Y CONTABLE 2026/27 ⚡</span>
+          </div>
+
+          <!-- Título Principal Exacto al Estilo de la Referencia -->
+          <h1 class="hero-heading mb-4">
+            La plataforma fiscal <span class="text-lime">definitiva</span> para tu futuro contable.
+          </h1>
+
+          <!-- Social Proof: Avatares Superpuestos y Usuarios en Vivo -->
+          <div class="d-flex align-items-center gap-3 mb-4 pb-2">
+            <div class="avatar-group">
+              <span class="avatar-circle av-1">JP</span>
+              <span class="avatar-circle av-2">MR</span>
+              <span class="avatar-circle av-3">CR</span>
+              <span class="avatar-circle av-4">LG</span>
+              <span class="avatar-circle av-5"><i class="bi bi-check-lg"></i></span>
+            </div>
+            <div>
+              <div class="fw-bold text-white fs-5 lh-1">168K+</div>
+              <small class="text-dim" style="font-size: 0.76rem;">Operaciones Conciliadas en Venezuela</small>
+            </div>
+          </div>
+
+          <!-- CTA Inferior con Botón Circular de Flecha Diagonal (Exacto a la Imagen) -->
+          <div class="d-flex align-items-center gap-3 mt-4 pt-2">
+            <a href="#planes" class="hero-arrow-btn" title="Explorar Planes y Módulos">
+              <i class="bi bi-arrow-up-right"></i>
+            </a>
+            <p class="hero-subtext mb-0">
+              TributoVE unifica retenciones ISLR por Decreto 1.808, retenciones IVA, Sujetos Pasivos Especiales, Ajuste por Inflación y Conciliación Bancaria bajo la normativa del SENIAT.
+            </p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-3 mt-4 pt-1">
+            {% if user.is_authenticated %}
+              <a href="{% url 'empresas:resumen' %}" class="btn btn-landing-explore px-4 py-2.5">
+                <span>Ir al Panel de Trabajo</span>
+                <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            {% elif superadmin_actual %}
+              <a href="{% url 'superadmin:panel' %}" class="btn btn-landing-explore px-4 py-2.5">
+                <span>Ir al Panel SuperAdmin</span>
+                <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            {% else %}
+              <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2.5">
+                <span>Comenzar Ahora</span>
+                <i class="bi bi-chevron-right ms-1"></i>
+              </a>
+            {% endif %}
+            <a href="#modulos" class="btn btn-outline-custom px-4 py-2.5" style="border-radius: 999px;">
+              <span>Ver 9 Módulos Fiscales</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Mockup Visual con Gráficos Neón y Tarjetas Flotantes -->
+        <div class="col-lg-6 position-relative text-center">
+          <div class="hero-visual-container mx-auto">
+
+            <!-- Fondo de Líneas de Grilla Ambientales -->
+            <div class="hero-ambient-glow"></div>
+
+            <!-- Teléfono / Tarjeta Flotante 1: Balance y Gráfico de Línea Neón -->
+            <div class="fintech-phone-card card-phone-main">
+              <div class="phone-notch"></div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); font-size: 0.7rem; font-weight: 700;">
+                  SENIAT · SPE 2026/27
+                </span>
+                <span class="text-dim small font-monospace"><i class="bi bi-shield-check text-success me-1"></i>Al Día</span>
+              </div>
+
+              <div class="text-start mb-3">
+                <span class="text-dim small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">Base Imponible Conciliada</span>
+                <div class="fw-bolder text-white mt-1" style="font-size: 1.85rem; letter-spacing: -0.02em;">
+                  Bs. 1.845.200,00
+                </div>
+              </div>
+
+              <!-- Gráfico de Línea Verde Neón SVG -->
+              <div class="svg-chart-wrapper mb-3">
+                <svg viewBox="0 0 300 90" class="neon-line-chart">
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="rgba(210, 248, 101, 0.45)" />
+                      <stop offset="100%" stop-color="rgba(210, 248, 101, 0.0)" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10 L 300,90 L 0,90 Z" fill="url(#chartGrad)"></path>
+                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10" fill="none" stroke="#D2F865" stroke-width="3" stroke-linecap="round"></path>
+                  <!-- Nodos brillantes -->
+                  <circle cx="80" cy="45" r="4.5" fill="#D2F865" class="chart-node"></circle>
+                  <circle cx="160" cy="55" r="4.5" fill="#D2F865" class="chart-node"></circle>
+                  <circle cx="220" cy="20" r="4.5" fill="#D2F865" class="chart-node"></circle>
+                  <circle cx="300" cy="10" r="5" fill="#D2F865" class="chart-node"></circle>
+                </svg>
+              </div>
+
+              <!-- Píldoras de Estatus Rápido -->
+              <div class="row g-2 text-start">
+                <div class="col-6">
+                  <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="text-dim" style="font-size: 0.68rem;">Retenciones ISLR</div>
+                    <strong class="text-white small">100% Declarado</strong>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="text-dim" style="font-size: 0.68rem;">Retenciones IVA</div>
+                    <strong class="text-white small">Sin Contingencias</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Teléfono / Tarjeta Flotante 2 (Superpuesta en perspectiva como en la imagen) -->
+            <div class="fintech-phone-card card-phone-secondary">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-dark"
+                     style="width: 26px; height: 26px; background: var(--tv-primary); font-size: 0.8rem; font-weight: bold;">
+                  <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <span class="text-white fw-bold small">Únete al Futuro Fiscal</span>
+              </div>
+              <p class="text-dim small mb-3 text-start" style="font-size: 0.74rem;">
+                Administra múltiples empresas de forma simultánea con auditoría continua y PWA móvil.
+              </p>
+              <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore w-100 py-1.5" style="font-size: 0.78rem;">
+                Explorar Ahora
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECCIÓN 2: PROPUESTA DE VALOR & 3 TARJETAS (EXACTA A LA IMAGEN)
+       ======================================================================== -->
+  <section class="py-5 my-3 position-relative" id="solucion">
+    <div class="container">
+
+      <!-- Título de la sección en 2 columnas -->
+      <div class="row align-items-end g-4 mb-5">
+        <div class="col-lg-7">
+          <h2 class="section-title mb-0">
+            Tu aliado de confianza en <span class="text-lime">gestión tributaria y fiscal</span>.
+          </h2>
+        </div>
+        <div class="col-lg-5">
+          <p class="section-desc mb-0">
+            TributoVE centraliza la normativa venezolana, automatiza cálculos complejos de retención y asegura cumplimiento sin estrés frente al SENIAT y entes recaudadores.
+          </p>
+        </div>
+      </div>
+
+      <!-- Fila de 3 Tarjetas: La del medio es VERDE LIMA brillante como en la referencia -->
+      <div class="row g-4 align-items-stretch">
+
+        <!-- Tarjeta 01: Oscura -->
+        <div class="col-md-4">
+          <div class="feature-card-dark h-100">
+            <span class="card-step-num">01.</span>
+            <h4 class="card-step-title">Servicio para cualquier nivel de empresa.</h4>
+            <p class="card-step-text">
+              Desde personas naturales residentes y firmas contables independientes, hasta corporaciones catalogadas como Sujetos Pasivos Especiales.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tarjeta 02: VERDE LIMA DESTACADA (Exacta al centro de la imagen) -->
+        <div class="col-md-4">
+          <div class="feature-card-lime h-100">
+            <span class="card-step-num-dark">02.</span>
+            <h4 class="card-step-title-dark">Mejores prácticas de la industria.</h4>
+            <p class="card-step-text-dark">
+              Algoritmos actualizados con la Gaceta Oficial N.° 43.140, factores del Decreto 1.808, Unidad Tributaria oficial y cronograma fiscal 2026/27.
+            </p>
+            <div class="mt-4 pt-2">
+              <a href="#modulos" class="lime-card-link">
+                <span>Ver Módulos</span>
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 03: Oscura -->
+        <div class="col-md-4">
+          <div class="feature-card-dark h-100">
+            <span class="card-step-num">03.</span>
+            <h4 class="card-step-title">Protección y blindaje fiscal.</h4>
+            <p class="card-step-text">
+              Validación y conciliación de extractos bancarios contra libros tributarios para generar cédulas de trabajo transparentes y 100% auditables.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECCIÓN 3: SHOWCASE CON GRÁFICA NEÓN & "TRUSTED PLATFORM" (EXACTA A LA IMAGEN)
+       ======================================================================== -->
+  <section class="py-5 my-4 position-relative" id="garantia">
+    <div class="container">
+      <div class="row align-items-center g-5">
+
+        <!-- Columna Izquierda: Gráfico de Ondas con Nodos L, B, P y Tarjetas Flotantes -->
+        <div class="col-lg-6">
+          <div class="interactive-chart-box p-4 p-md-5">
+
+            <!-- Badge Superior -->
+            <div class="d-inline-flex flex-column mb-4 p-2.5 rounded-3" style="background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--tv-primary);">
+              <span class="text-white fw-bold" style="font-size: 0.95rem;">Bs. 45.200,00</span>
+              <small class="text-dim" style="font-size: 0.72rem;">Retenciones ISLR declaradas al día</small>
+            </div>
+
+            <!-- Gráfico con Nodos Circulares -->
+            <div class="chart-wave-container position-relative my-4">
+              <svg viewBox="0 0 400 120" class="w-100" style="overflow: visible;">
+                <!-- Línea de Onda Verde Neón -->
+                <path d="M 0,90 Q 60,110 120,70 T 240,40 T 360,85 T 400,20" fill="none" stroke="#D2F865" stroke-width="3" stroke-linecap="round"></path>
+              </svg>
+
+              <!-- Nodos Flotantes con Letras como en la Imagen -->
+              <div class="chart-float-node node-1" title="Retenciones ISLR">
+                <span>B</span>
+              </div>
+              <div class="chart-float-node node-2" title="Retenciones IVA">
+                <span>L</span>
+              </div>
+              <div class="chart-float-node node-3" title="Planificación Fiscal">
+                <span>P</span>
+              </div>
+            </div>
+
+            <!-- Badges Inferiores -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 pt-2">
+              <div class="p-2.5 rounded-3" style="background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--tv-primary);">
+                <span class="text-white fw-bold d-block" style="font-size: 0.95rem;">100% Cuadrado</span>
+                <small class="text-dim" style="font-size: 0.72rem;">Conciliación bancaria contra extractos</small>
+              </div>
+
+              <div class="p-2.5 rounded-3 d-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div>
+                  <span class="text-dim d-block" style="font-size: 0.68rem;">Eficiencia Fiscal</span>
+                  <strong class="text-white small">+45.66%</strong>
+                </div>
+                <span class="badge" style="background: rgba(210, 248, 101, 0.2); color: var(--tv-primary); font-size: 0.65rem;">SENIAT OK</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Copy "Trusted platform anytime & anywhere." -->
+        <div class="col-lg-6 ps-lg-5">
+          <div class="rating-stars mb-2">
+            <i class="bi bi-star-fill text-lime"></i>
+            <i class="bi bi-star-fill text-lime"></i>
+            <i class="bi bi-star-fill text-lime"></i>
+            <i class="bi bi-star-fill text-lime"></i>
+            <i class="bi bi-star-fill text-lime"></i>
+            <span class="text-dim small ms-2">Precisión de cálculo 100%</span>
+          </div>
+
+          <h2 class="section-title mb-4">
+            Plataforma confiable <span class="text-lime">en cualquier momento</span> y lugar.
+          </h2>
+
+          <p class="section-desc mb-4">
+            TributoVE fue diseñado desde cero para la realidad venezolana. Funciona en la nube y como aplicación web progresiva (PWA) instalable en tu teléfono, tablet o computadora, permitiéndote consultar retenciones y plazos incluso sin internet.
+          </p>
+
+          <p class="text-dim small mb-4">
+            Gestiona carteras completas de clientes, exporta cédulas de auditoría y comparte comprobantes por WhatsApp o correo en un par de clics.
+          </p>
+
+          <div class="d-flex flex-wrap align-items-center gap-3 pt-2">
+            <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2.5">
+              <span>Comenzar Ahora</span>
+              <i class="bi bi-arrow-right-short fs-5"></i>
+            </a>
+            <a href="https://wa.me/{{ config_pago.contacto|default:'' }}" target="_blank" class="landing-text-link">
+              <span>¿Tienes preguntas? WhatsApp</span>
+              <i class="bi bi-question-circle ms-1"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECCIÓN 4: LOS 9 MÓDULOS FISCALES DEL PROYECTO TRIBUTOVE
+       ======================================================================== -->
+  <section class="py-5 my-4" id="modulos">
+    <div class="container">
+      <div class="text-center max-w-700 mx-auto mb-5">
+        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); border-radius: 999px;">
+          SUITE CONTABLE INTEGRAL
+        </span>
+        <h2 class="section-title text-white">9 Módulos diseñados para la normativa venezolana</h2>
+        <p class="text-dim">Todo lo que tu despacho necesita para blindar la contabilidad de tus empresas cliente.</p>
+      </div>
+
+      <div class="row g-4">
+        <!-- 1. Planificación Fiscal SPE -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-graph-up-arrow"></i></div>
+            <h5 class="text-white fw-bold mb-2">Planificación Fiscal SPE</h5>
+            <p class="text-dim small mb-0">Anticipa compromisos fiscales para Contribuyentes Especiales con simulación en tiempo real.</p>
+          </div>
+        </div>
+
+        <!-- 2. Retenciones ISLR -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-percent"></i></div>
+            <h5 class="text-white fw-bold mb-2">Retenciones ISLR</h5>
+            <p class="text-dim small mb-0">Consultor completo de tarifas y sustraendos conforme al Decreto 1.808 para personas y empresas.</p>
+          </div>
+        </div>
+
+        <!-- 3. Retenciones IVA -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-receipt"></i></div>
+            <h5 class="text-white fw-bold mb-2">Retenciones IVA</h5>
+            <p class="text-dim small mb-0">Cálculo de alícuotas del 75% o 100% para compras, servicios y emisión de comprobantes digitales.</p>
+          </div>
+        </div>
+
+        <!-- 4. Calendario Fiscal -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-calendar-check"></i></div>
+            <h5 class="text-white fw-bold mb-2">Calendario Fiscal SENIAT</h5>
+            <p class="text-dim small mb-0">Cronograma oficial por terminal de RIF para quincenas de IVA, anticipos e impuestos municipales.</p>
+          </div>
+        </div>
+
+        <!-- 5. Impuesto Diferido -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-hourglass-split"></i></div>
+            <h5 class="text-white fw-bold mb-2">Impuesto Diferido (NIC 12)</h5>
+            <p class="text-dim small mb-0">Conciliación de diferencias temporales entre normas financieras VEN-NIF y leyes fiscales.</p>
+          </div>
+        </div>
+
+        <!-- 6. Grandes Patrimonios -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-bank2"></i></div>
+            <h5 class="text-white fw-bold mb-2">Grandes Patrimonios (INP)</h5>
+            <p class="text-dim small mb-0">Determinación de base gravable y alícuota sobre activos netos de contribuyentes calificados.</p>
+          </div>
+        </div>
+
+        <!-- 7. Conciliación Bancaria -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-arrow-left-right"></i></div>
+            <h5 class="text-white fw-bold mb-2">Conciliación Bancaria</h5>
+            <p class="text-dim small mb-0">Cruce inteligente de movimientos de banco contra libros contables en Bs y divisas.</p>
+          </div>
+        </div>
+
+        <!-- 8. Ajuste Inicial Fiscal -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-calculator"></i></div>
+            <h5 class="text-white fw-bold mb-2">Ajuste Inicial por Inflación</h5>
+            <p class="text-dim small mb-0">Actualización del costo de activos fijos según índices INPC del BCV y registro tributario 3%.</p>
+          </div>
+        </div>
+
+        <!-- 9. Cédula Fiscal ISLR -->
+        <div class="col-md-6 col-lg-4">
+          <div class="module-feature-card h-100">
+            <div class="module-icon-box"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+            <h5 class="text-white fw-bold mb-2">Cédula Fiscal ISLR</h5>
+            <p class="text-dim small mb-0">Papel de trabajo definitivo con conciliación de renta neta y rebajas de ley para la declaración final.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECCIÓN 5: PLANES DE SUSCRIPCIÓN SAAS (DINÁMICOS DE LA BASE DE DATOS)
+       ======================================================================== -->
+  <section class="py-5 my-4" id="planes">
+    <div class="container">
+      <div class="text-center max-w-700 mx-auto mb-5">
+        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); border-radius: 999px;">
+          PRECIOS TRANSPARENTES
+        </span>
+        <h2 class="section-title text-white">Elige el plan ideal para tu cartera contable</h2>
+        <p class="text-dim">Actualizaciones automáticas ante cambios de ley del SENIAT incluidas en todas las suscripciones.</p>
+      </div>
+
+      <div class="row g-4 justify-content-center">
+        {% for plan in planes %}
+        <div class="col-md-6 col-lg-4">
+          <div class="landing-pricing-card h-100 d-flex flex-column justify-content-between p-4"
+               style="{% if plan.codigo == 'PRO' %}border-color: rgba(210, 248, 101, 0.4) !important; box-shadow: 0 10px 30px -5px rgba(210, 248, 101, 0.15);{% endif %}">
+            <div>
+              <!-- Badge de categoría -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge fw-bold px-2.5 py-1"
+                      style="font-size: 0.72rem; border-radius: 8px;
+                             {% if plan.etiqueta_badge == 'STARTER' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
+                             {% elif plan.etiqueta_badge == 'PRO' %}background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.3);
+                             {% else %}background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);{% endif %}">
+                  {{ plan.etiqueta_badge }}
+                </span>
+                {% if plan.codigo == 'PRO' %}
+                  <span class="badge" style="background: var(--tv-primary); color: #000; font-size: 0.68rem; font-weight: 800;">MÁS POPULAR</span>
+                {% endif %}
+              </div>
+
+              <!-- Nombre del plan -->
+              <h4 class="fw-bold text-white mb-3">{{ plan.nombre }}</h4>
+
+              <!-- Precios -->
+              <div class="mb-4">
+                <span class="fw-bolder" style="font-size: 2.2rem; color: #FFFFFF; letter-spacing: -0.03em;">
+                  ${{ plan.precio_mensual|floatformat:2 }}
+                </span>
+                <span class="text-dim small ms-1">{{ plan.moneda }} / mes</span>
+                <div class="text-dim small mt-1">O ${{ plan.precio_anual|floatformat:2 }} facturado anualmente</div>
+              </div>
+
+              <!-- Características y Límites -->
+              <ul class="list-unstyled d-flex flex-column gap-2.5 small mb-4">
+                <li class="d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-check2-circle text-lime"></i>
+                  <span>{% if plan.limite_usuarios == 0 %}Usuarios Ilimitados{% else %}{{ plan.limite_usuarios }} Usuario(s) con acceso{% endif %}</span>
+                </li>
+                <li class="d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-check2-circle text-lime"></i>
+                  <span>{% if plan.limite_empresas == 0 %}Empresas Ilimitadas en cartera{% else %}{{ plan.limite_empresas }} Empresa(s) simultáneas{% endif %}</span>
+                </li>
+                <li class="d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-check2-circle text-lime"></i>
+                  <span>Acceso a <strong>{{ plan.total_modulos }}</strong> módulos tributarios</span>
+                </li>
+                {% if plan.incluye_ia %}
+                <li class="d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-stars text-lime"></i>
+                  <span>Motor inteligente y soporte prioritario</span>
+                </li>
+                {% endif %}
+              </ul>
+
+              <!-- Módulos Incluidos Chips -->
+              <div class="mb-4">
+                <span class="text-dim fw-bold text-uppercase d-block mb-2" style="font-size: 0.68rem;">Módulos incluidos:</span>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for mod in plan.modulos_nombres %}
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #d1d5db; font-size: 0.65rem; border-radius: 6px; padding: 3px 6px;">
+                      {{ mod }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de Suscripción -->
+            <a href="{% url 'usuarios:login' %}" class="btn {% if plan.codigo == 'PRO' %}btn-landing-explore{% else %}btn-outline-custom{% endif %} w-100 py-2.5 fw-bold" style="border-radius: 12px;">
+              <span>Comenzar con {{ plan.nombre }}</span>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FOOTER INFERIOR
+       ======================================================================== -->
+  <footer class="landing-footer py-5 mt-5">
+    <div class="container">
+      <div class="row g-4 align-items-center justify-content-between mb-4 pb-4 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+        <div class="col-md-6">
+          <a href="{% url 'core:landing' %}" class="d-inline-flex align-items-center gap-2 text-decoration-none mb-2">
+            <div class="brand-logo-icon">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <span class="landing-brand-name">TRIBUTOVE<span class="text-lime">.</span></span>
+          </a>
+          <p class="text-dim small mb-0" style="max-width: 420px;">
+            Plataforma integral de control tributario, retenciones ISLR/IVA y contabilidad fiscal para profesionales y empresas en Venezuela.
+          </p>
+        </div>
+
+        <div class="col-md-6 text-md-end">
+          <div class="d-flex flex-wrap justify-content-md-end gap-3 small">
+            <a href="{% url 'usuarios:login' %}" class="text-dim text-decoration-none hover-lime">Portal Contadores</a>
+            <a href="{% url 'superadmin:login' %}" class="text-dim text-decoration-none hover-lime">Panel SuperAdmin</a>
+            <a href="#modulos" class="text-dim text-decoration-none hover-lime">Módulos</a>
+            <a href="#planes" class="text-dim text-decoration-none hover-lime">Precios</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 text-dim small">
+        <div>© 2026/27 TributoVE. Todos los derechos reservados.</div>
+        <div class="d-flex align-items-center gap-2">
+          <span>Actualizado con la normativa SENIAT 2026</span>
+          <span style="color: var(--tv-primary);">●</span>
+          <span>Venezuela</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ========================================================================
+     ESTILOS ESPECÍFICOS DE LA LANDING FINTECH OSCURA
+     ======================================================================== -->
+<style>
+  :root {
+    --tv-landing-bg: #070A08;
+    --tv-landing-surface: #101512;
+    --tv-landing-lime: #D2F865;
+  }
+
+  body {
+    background-color: var(--tv-landing-bg) !important;
+    color: #FFFFFF !important;
+    overflow-x: hidden;
+  }
+
+  .landing-wrapper {
+    background-color: var(--tv-landing-bg);
+    background-image: 
+      radial-gradient(circle at 85% 15%, rgba(210, 248, 101, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 15% 55%, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .landing-header {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background: rgba(7, 10, 8, 0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .brand-logo-icon {
+    width: 38px;
+    height: 38px;
+    background: rgba(210, 248, 101, 0.15);
+    border: 1px solid rgba(210, 248, 101, 0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tv-landing-lime);
+    font-size: 1.15rem;
+  }
+  .landing-brand-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+  }
+  .text-lime {
+    color: var(--tv-landing-lime) !important;
+  }
+
+  .landing-nav-links .landing-nav-link {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+  .landing-nav-links .landing-nav-link:hover,
+  .landing-nav-links .landing-nav-link.active {
+    color: #FFFFFF;
+  }
+
+  /* Botón Explore Now (Estilo Exacto al botón superior de la imagen) */
+  .btn-landing-explore {
+    background: var(--tv-landing-lime) !important;
+    color: #050706 !important;
+    font-weight: 700 !important;
+    font-size: 0.86rem !important;
+    border-radius: 999px !important;
+    padding: 0.55rem 1.35rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    text-decoration: none !important;
+    border: none !important;
+    box-shadow: 0 4px 18px rgba(210, 248, 101, 0.35) !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-landing-explore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(210, 248, 101, 0.5) !important;
+    color: #000000 !important;
+  }
+
+  /* Hero Section */
+  .landing-hero-section {
+    padding-top: 3.5rem;
+    padding-bottom: 4rem;
+  }
+  .hero-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #e2e8f0;
+  }
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--tv-landing-lime);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--tv-landing-lime);
+  }
+  .hero-heading {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+  }
+
+  /* Social proof avatars */
+  .avatar-group {
+    display: flex;
+    align-items: center;
+  }
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #fff;
+    margin-right: -10px;
+    border: 2px solid var(--tv-landing-bg);
+  }
+  .av-1 { background: #3b82f6; }
+  .av-2 { background: #ec4899; }
+  .av-3 { background: #10b981; }
+  .av-4 { background: #f59e0b; }
+  .av-5 { background: var(--tv-landing-lime); color: #000; font-size: 0.85rem; }
+
+  /* Botón flecha diagonal */
+  .hero-arrow-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--tv-landing-lime);
+    color: #000 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 20px rgba(210, 248, 101, 0.4);
+  }
+  .hero-arrow-btn:hover {
+    transform: scale(1.1) rotate(45deg);
+  }
+  .hero-subtext {
+    color: #94a3b8;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Mockups Visuales Hero */
+  .hero-visual-container {
+    position: relative;
+    max-width: 480px;
+    height: 480px;
+  }
+  .hero-ambient-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(210, 248, 101, 0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .fintech-phone-card {
+    background: rgba(16, 21, 18, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(16px);
+    position: absolute;
+    transition: transform 0.3s ease;
+  }
+  .card-phone-main {
+    width: 310px;
+    padding: 1.75rem 1.5rem;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+    transform: rotate(-3deg);
+  }
+  .card-phone-main:hover {
+    transform: rotate(0deg) scale(1.02);
+  }
+  .card-phone-secondary {
+    width: 250px;
+    padding: 1.25rem;
+    bottom: 20px;
+    right: 10px;
+    z-index: 3;
+    transform: rotate(5deg);
+    border-color: rgba(210, 248, 101, 0.3);
+  }
+  .card-phone-secondary:hover {
+    transform: rotate(0deg) scale(1.04);
+  }
+  .phone-notch {
+    width: 60px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    margin: 0 auto 1.25rem;
+  }
+  .neon-line-chart {
+    width: 100%;
+    height: 90px;
+    filter: drop-shadow(0 0 6px rgba(210, 248, 101, 0.6));
+  }
+
+  /* Sección 2: 3 Tarjetas (Exacta a la imagen) */
+  .section-title {
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #FFFFFF;
+  }
+  .section-desc {
+    color: #94a3b8;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  .feature-card-dark {
+    background: #111613;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 2.25rem 2rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .feature-card-dark:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+  }
+  .card-step-num {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+  .card-step-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 0.85rem;
+    line-height: 1.3;
+  }
+  .card-step-text {
+    color: #94a3b8;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
+  /* Tarjeta Centro LIMA (Exacta al centro de la imagen) */
+  .feature-card-lime {
+    background: var(--tv-landing-lime);
+    border: none;
+    border-radius: 24px;
+    padding: 2.25rem 2rem;
+    box-shadow: 0 15px 40px -10px rgba(210, 248, 101, 0.4);
+    transform: translateY(-8px);
+    transition: transform 0.2s ease;
+  }
+  .feature-card-lime:hover {
+    transform: translateY(-12px);
+  }
+  .card-step-num-dark {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #050706;
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+  .card-step-title-dark {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #050706;
+    margin-bottom: 0.85rem;
+    line-height: 1.3;
+  }
+  .card-step-text-dark {
+    color: #1a241c;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    font-weight: 500;
+  }
+  .lime-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #050706 !important;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: gap 0.15s ease;
+  }
+  .lime-card-link:hover {
+    gap: 0.7rem;
+  }
+
+  /* Sección 3: Gráfica interactiva */
+  .interactive-chart-box {
+    background: rgba(16, 21, 18, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    backdrop-filter: blur(12px);
+  }
+  .chart-float-node {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: var(--tv-landing-lime);
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.8rem;
+    box-shadow: 0 0 15px rgba(210, 248, 101, 0.6);
+  }
+  .node-1 { top: 55%; left: 28%; }
+  .node-2 { top: 30%; left: 55%; }
+  .node-3 { top: 15%; left: 88%; }
+
+  .landing-text-link {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.15s ease;
+  }
+  .landing-text-link:hover {
+    color: var(--tv-landing-lime);
+  }
+
+  /* Módulos Cards */
+  .module-feature-card {
+    background: #111613;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    padding: 1.75rem 1.5rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .module-feature-card:hover {
+    border-color: rgba(210, 248, 101, 0.35);
+    transform: translateY(-4px);
+  }
+  .module-icon-box {
+    width: 44px;
+    height: 44px;
+    background: rgba(210, 248, 101, 0.12);
+    border: 1px solid rgba(210, 248, 101, 0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tv-landing-lime);
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Pricing Cards */
+  .landing-pricing-card {
+    background: #111613;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    transition: transform 0.2s ease;
+  }
+  .landing-pricing-card:hover {
+    transform: translateY(-6px);
+  }
+
+  /* Helpers */
+  .hover-lime:hover {
+    color: var(--tv-landing-lime) !important;
+  }
+  .max-w-700 {
+    max-width: 700px;
+  }
+</style>
+{% endblock %}

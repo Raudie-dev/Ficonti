@@ -1,0 +1,168 @@
+{% extends 'layouts/app.html' %}
+
+{% block title %}Mis Empresas · TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Cartera de Empresas</h2>
+      <p class="text-muted small mb-0">Gestione los clientes sobre los cuales liquida tributos y elabora libros fiscales.</p>
+    </div>
+    <div>
+      <button class="btn btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresa">
+        <i class="bi bi-plus-lg me-1"></i> Registrar Empresa
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista de Empresas estilo "Customer List" del Dashboard -->
+  <div class="card-dashboard p-0">
+    <div class="table-responsive">
+      <table class="table-dashboard align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-4">Empresa</th>
+            <th>RIF</th>
+            <th>Condición</th>
+            <th>Moneda</th>
+            <th>Última Actividad</th>
+            <th class="text-center">Estado Obligaciones</th>
+            <th class="text-end pe-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emp in empresas %}
+          <tr>
+            <td class="ps-4">
+              <div class="d-flex align-items-center gap-3">
+                <span class="table-avatar">{{ emp.nombre|slice:":1"|upper }}</span>
+                <div>
+                  <div class="fw-bold text-white">{{ emp.nombre }}</div>
+                  {% if activa and activa.pk == emp.pk %}
+                    <span class="badge badge-dash-lime" style="font-size: 0.65rem;"><i class="bi bi-check-circle-fill me-1"></i> Empresa Activa</span>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td><code class="text-white-50">{{ emp.rif }}</code></td>
+            <td>
+              {% if emp.es_sujeto_pasivo_especial %}
+                <span class="badge badge-dash-lime">Sujeto Pasivo Especial</span>
+              {% else %}
+                <span class="badge badge-dash-dim">Contribuyente Ordinario</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-body-tertiary text-white border" style="border-radius: 6px;">
+                {{ emp.moneda_simbolo }}
+                {% if not emp.es_bolivares and emp.tasa %}
+                  <small class="text-muted">({{ emp.tasa }} Bs)</small>
+                {% endif %}
+              </span>
+            </td>
+            <td class="small text-muted">{{ emp.actualizada|date:"d/m/Y H:i" }}</td>
+            <td class="text-center">
+              {% with st=emp.resumen_estatus %}
+                <span class="badge {% if st.realizados == st.aplican and st.aplican > 0 %}badge-dash-ok{% elif st.realizados > 0 %}badge-dash-prog{% else %}badge-dash-dim{% endif %}">
+                  {{ st.realizados }}/{{ st.aplican }} oblig.
+                </span>
+              {% endwith %}
+            </td>
+            <td class="text-end pe-4">
+              <div class="d-inline-flex gap-1">
+                {% if not activa or activa.pk != emp.pk %}
+                <form method="post" action="{% url 'empresas:activar' emp.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-dash-secondary py-1 px-2" title="Activar esta empresa">
+                    <i class="bi bi-play-fill text-lime"></i> Activar
+                  </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'empresas:editar' emp.pk %}" class="btn btn-sm btn-dash-secondary py-1 px-2" title="Editar datos">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'empresas:eliminar' emp.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar «{{ emp.nombre }}» y todos sus cálculos fiscales guardados?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Eliminar empresa">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-buildings fs-1 d-block mb-2 text-muted"></i>
+              <p class="mb-2">Aún no tiene empresas registradas en su cartera tributaria.</p>
+              <button class="btn btn-sm btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresa">
+                <i class="bi bi-plus"></i> Registrar la primera empresa
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Nueva Empresa con estilo Dashboard -->
+<div class="modal fade" id="modalNuevaEmpresa" tabindex="-1" aria-labelledby="modalNuevaEmpresaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 20px;">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="modal-header border-bottom" style="border-color: var(--tv-border-subtle) !important;">
+          <h5 class="modal-title fw-bold" id="modalNuevaEmpresaLabel">Registrar Nueva Empresa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-4">
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small mb-3">
+              {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="{{ form.nombre.id_for_label }}" class="form-label small fw-bold">Razón Social</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}<div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label for="{{ form.rif.id_for_label }}" class="form-label small fw-bold">RIF (Ej. J-12345678-9)</label>
+              {{ form.rif }}
+              {% if form.rif.errors %}<div class="text-danger small mt-1">{{ form.rif.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ form.condicion.id_for_label }}" class="form-label small fw-bold">Condición Fiscal</label>
+              {{ form.condicion }}
+              {% if form.condicion.errors %}<div class="text-danger small mt-1">{{ form.condicion.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label for="{{ form.moneda.id_for_label }}" class="form-label small fw-bold">Moneda de Cálculo</label>
+              {{ form.moneda }}
+              {% if form.moneda.errors %}<div class="text-danger small mt-1">{{ form.moneda.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6" id="wrap_tasa_modal">
+              <label for="{{ form.tasa.id_for_label }}" class="form-label small fw-bold">Tasa de cambio (Bs)</label>
+              {{ form.tasa }}
+              {% if form.tasa.errors %}<div class="text-danger small mt-1">{{ form.tasa.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top" style="border-color: var(--tv-border-subtle) !important;">
+          <button type="button" class="btn btn-dash-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-dash-primary px-4"><i class="bi bi-check-lg me-1"></i> Guardar Empresa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

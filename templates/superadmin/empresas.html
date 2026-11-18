@@ -1,0 +1,94 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}Empresas Globales · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Empresas en la Plataforma</h3>
+      <p class="text-muted small mb-0">Totalidad de empresas registradas por los contadores en el sistema.</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card card-custom p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Buscar por razón social, RIF o contador..." value="{{ q }}">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select name="condicion" class="form-select" onchange="this.form.submit()">
+          <option value="">Todas las condiciones</option>
+          <option value="Sujeto pasivo especial" {% if condicion == 'Sujeto pasivo especial' %}selected{% endif %}>Sujeto Pasivo Especial</option>
+          <option value="Contribuyente ordinario" {% if condicion == 'Contribuyente ordinario' %}selected{% endif %}>Contribuyente Ordinario</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        {% if q or condicion %}
+          <a href="{% url 'superadmin:empresas' %}" class="btn btn-outline-secondary">Limpiar</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card card-custom shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover table-custom align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>RIF</th>
+            <th>Condición</th>
+            <th>Moneda</th>
+            <th>Contador Asignado</th>
+            <th>Progreso</th>
+            <th>Última Actividad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emp in empresas %}
+          <tr>
+            <td><strong class="text-dark">{{ emp.nombre }}</strong></td>
+            <td><code>{{ emp.rif }}</code></td>
+            <td>
+              {% if emp.es_sujeto_pasivo_especial %}
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">SPE</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border">Ordinario</span>
+              {% endif %}
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ emp.moneda_simbolo }}</span></td>
+            <td>
+              <a href="{% url 'superadmin:contador_detalle' emp.usuario.pk %}" class="fw-bold text-dark text-decoration-none">
+                {{ emp.usuario.nombre }}
+              </a>
+              <div class="text-muted small">@{{ emp.usuario.usuario }}</div>
+            </td>
+            <td>
+              {% with st=emp.resumen_estatus %}
+                <span class="badge {% if st.realizados == st.aplican and st.aplican > 0 %}badge-status-ok{% elif st.realizados > 0 %}badge-status-prog{% else %}badge-status-sin{% endif %}">
+                  {{ st.realizados }}/{{ st.aplican }}
+                </span>
+              {% endwith %}
+            </td>
+            <td class="small text-muted">{{ emp.actualizada|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              No se encontraron empresas con los criterios indicados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

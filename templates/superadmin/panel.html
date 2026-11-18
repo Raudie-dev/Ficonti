@@ -1,0 +1,242 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}Panel de Control · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2">
+  <!-- Encabezado del Panel -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold mb-0 text-white">Panel de Control General</h3>
+        <span class="badge" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); font-size: 0.7rem; font-weight: 700; border-radius: 999px;">
+          SUPERADMIN
+        </span>
+      </div>
+      <p class="text-dim small mb-0">Supervisión de contadores, estados de suscripción y conciliación financiera en tiempo real.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'superadmin:contador_crear' %}" class="btn btn-dash-primary btn-sm d-inline-flex align-items-center gap-2 px-3 py-2">
+        <i class="bi bi-person-plus-fill"></i>
+        <span>Registrar Contador</span>
+      </a>
+      <a href="{% url 'superadmin:pagos' %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2">
+        <i class="bi bi-receipt-cutoff"></i>
+        <span>Conciliar Pago</span>
+      </a>
+      <a href="{% url 'superadmin:planes' %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2">
+        <i class="bi bi-sliders"></i>
+        <span>Planes & Cobro</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Contadores -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="kpi-label mb-0 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Contadores Registrados</span>
+          <div class="rounded-3 p-2" style="background: rgba(210, 248, 101, 0.1); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.2);">
+            <i class="bi bi-people-fill fs-5"></i>
+          </div>
+        </div>
+        <div class="kpi-value my-1 text-white">{{ kpis.contadores }}</div>
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); font-size: 0.72rem;">
+            {{ kpis.activos }} activos
+          </span>
+          {% if kpis.inactivos > 0 %}
+          <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); font-size: 0.72rem;">
+            {{ kpis.inactivos }} inactivos
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Suscripciones Activas -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="kpi-label mb-0 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Suscripciones Activas</span>
+          <div class="rounded-3 p-2" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2);">
+            <i class="bi bi-shield-check fs-5"></i>
+          </div>
+        </div>
+        <div class="kpi-value my-1" style="color: var(--tv-primary);">{{ kpis.activos }}</div>
+        <div class="kpi-trend trend-up mt-2" style="font-size: 0.76rem;">
+          <i class="bi bi-check-circle-fill"></i> Con acceso habilitado a módulos
+        </div>
+      </div>
+    </div>
+
+    <!-- Empresas en la plataforma -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="kpi-label mb-0 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Empresas Gestionadas</span>
+          <div class="rounded-3 p-2" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2);">
+            <i class="bi bi-buildings-fill fs-5"></i>
+          </div>
+        </div>
+        <div class="kpi-value my-1 text-white">{{ kpis.empresas }}</div>
+        <div class="kpi-trend text-dim mt-2" style="font-size: 0.76rem;">
+          <i class="bi bi-briefcase"></i> Total en carteras de clientes
+        </div>
+      </div>
+    </div>
+
+    <!-- Recaudación del Mes -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="kpi-label mb-0 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Cobrado este Mes</span>
+          <div class="rounded-3 p-2" style="background: rgba(210, 248, 101, 0.1); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.2);">
+            <i class="bi bi-cash-stack fs-5"></i>
+          </div>
+        </div>
+        <div class="kpi-value my-1 text-white">
+          {% for cobro in kpis.cobrado_mes %}
+            <div>{{ cobro.total|floatformat:2 }} <small class="fs-6 text-dim">{{ cobro.moneda }}</small></div>
+          {% empty %}
+            <div>0.00 <small class="fs-6 text-dim">USD</small></div>
+          {% endfor %}
+        </div>
+        <div class="kpi-trend trend-up mt-2" style="font-size: 0.76rem;">
+          <i class="bi bi-graph-up-arrow"></i> Recaudación conciliada del ciclo
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tablas Operativas Principales -->
+  <div class="row g-4">
+    <!-- Suscripciones por Vencer -->
+    <div class="col-lg-6">
+      <div class="card card-custom h-100">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+              <i class="bi bi-hourglass-split"></i>
+            </span>
+            <div>
+              <h6 class="fw-bold mb-0 text-white" style="font-size: 0.92rem;">Suscripciones por Vencer</h6>
+              <span class="text-dim" style="font-size: 0.72rem;">Vencimientos en los próximos 7 días</span>
+            </div>
+          </div>
+          <a href="{% url 'superadmin:contadores' %}?estado=activo" class="small fw-semibold text-decoration-none" style="color: var(--tv-primary); font-size: 0.78rem;">
+            Ver todos <i class="bi bi-chevron-right ms-0.5"></i>
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Contador</th>
+                <th>Contacto</th>
+                <th>Vence</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sus in por_vencer %}
+              <tr>
+                <td>
+                  <a href="{% url 'superadmin:contador_detalle' sus.usuario.pk %}" class="fw-bold text-white text-decoration-none hover-lime">
+                    {{ sus.usuario.nombre }}
+                  </a>
+                  <div class="text-dim small">@{{ sus.usuario.usuario }}</div>
+                </td>
+                <td class="small text-dim">
+                  <i class="bi bi-phone me-1"></i>{{ sus.usuario.telefono|default:'-' }}
+                </td>
+                <td>
+                  <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.74rem;">
+                    {{ sus.vence|date:"d/m/Y" }} · {{ sus.dias_restantes }}d
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'superadmin:contador_detalle' sus.usuario.pk %}" class="btn btn-sm btn-outline-custom py-1 px-2.5" style="border-radius: 8px; font-size: 0.75rem; font-weight: 600;">
+                    <i class="bi bi-wallet2 me-1"></i> Conciliar
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-5 text-dim">
+                  <i class="bi bi-check2-circle fs-2 d-block mb-2 text-success opacity-75"></i>
+                  <span>No hay suscripciones con vencimiento en los próximos 7 días.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimos Pagos Registrados -->
+    <div class="col-lg-6">
+      <div class="card card-custom h-100">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: rgba(34, 197, 94, 0.15); color: #4ade80;">
+              <i class="bi bi-receipt-cutoff"></i>
+            </span>
+            <div>
+              <h6 class="fw-bold mb-0 text-white" style="font-size: 0.92rem;">Últimas Conciliaciones</h6>
+              <span class="text-dim" style="font-size: 0.72rem;">Pagos registrados recientemente</span>
+            </div>
+          </div>
+          <a href="{% url 'superadmin:pagos' %}" class="small fw-semibold text-decoration-none" style="color: var(--tv-primary); font-size: 0.78rem;">
+            Ver historial <i class="bi bi-chevron-right ms-0.5"></i>
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Contador</th>
+                <th>Monto</th>
+                <th>Referencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pago in ultimos_pagos %}
+              <tr>
+                <td class="text-dim small">{{ pago.fecha|date:"d/m/Y" }}</td>
+                <td>
+                  <a href="{% url 'superadmin:contador_detalle' pago.suscripcion.usuario.pk %}" class="fw-bold text-white text-decoration-none hover-lime">
+                    {{ pago.suscripcion.usuario.nombre }}
+                  </a>
+                  <div class="text-dim" style="font-size: 0.72rem;">@{{ pago.suscripcion.usuario.usuario }}</div>
+                </td>
+                <td>
+                  <span class="fw-bold" style="color: #4ade80;">{{ pago.monto|floatformat:2 }}</span>
+                  <span class="badge ms-1" style="background: rgba(255, 255, 255, 0.06); color: var(--tv-text-muted); font-size: 0.68rem;">{{ pago.moneda }}</span>
+                </td>
+                <td>
+                  <span class="badge font-monospace" style="background: rgba(255, 255, 255, 0.05); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem;">
+                    {{ pago.referencia|default:'S/R' }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-5 text-dim">
+                  <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                  <span>No hay pagos registrados recientemente.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends 'layouts/app.html' %}
+
+{% block title %}Mi Cuenta y Configuraciones · TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Mi Cuenta &amp; Configuraciones</h3>
+      <p class="text-muted small mb-0">Gestione su perfil, preferencias de interfaz (modo claro/oscuro) y consulte su suscripción.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Columna Izquierda: Perfil, Tema y Clave -->
+    <div class="col-lg-7">
+      <!-- Tarjeta: Preferencias de Interfaz / Modo Claro y Oscuro -->
+      <div class="card card-custom mb-4 shadow-sm">
+        <div class="card-header bg-transparent border-bottom py-3">
+          <h5 class="fw-bold mb-0 text-mindaro"><i class="bi bi-palette me-2"></i>Apariencia del Sistema</h5>
+        </div>
+        <div class="card-body p-4">
+          <p class="text-muted small mb-3">
+            Seleccione el esquema de color visual para la interfaz del sistema y todos los módulos de cálculo tributario.
+          </p>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="p-3 border rounded-3 cursor-pointer d-flex align-items-center gap-3 theme-card"
+                   onclick="window.aplicarTema('dark'); document.getElementById('theme_dark').checked = true;"
+                   style="cursor: pointer; background: #152218; border-color: #25392a !important;">
+                <input class="form-check-input mt-0" type="radio" name="theme_select" id="theme_dark" value="dark">
+                <div>
+                  <div class="fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-moon-stars-fill text-warning"></i> Modo Oscuro
+                  </div>
+                  <small class="text-muted" style="font-size: 0.75rem;">Estilo Dashboard Fintech (Recomendado)</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="p-3 border rounded-3 cursor-pointer d-flex align-items-center gap-3 theme-card"
+                   onclick="window.aplicarTema('light'); document.getElementById('theme_light').checked = true;"
+                   style="cursor: pointer; background: #ffffff; border-color: #d4e2cd !important;">
+                <input class="form-check-input mt-0" type="radio" name="theme_select" id="theme_light" value="light">
+                <div>
+                  <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-sun-fill text-warning"></i> Modo Claro
+                  </div>
+                  <small class="text-muted" style="font-size: 0.75rem;">Contraste alto para ambientes iluminados</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Datos personales -->
+      <div class="card card-custom mb-4 shadow-sm">
+        <div class="card-header bg-transparent border-bottom py-3">
+          <h5 class="fw-bold mb-0 text-primary-custom"><i class="bi bi-person me-2"></i>Datos de Perfil</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="perfil">
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-muted">Usuario (identificador permanente)</label>
+              <input type="text" class="form-control" value="{{ user.usuario }}" disabled>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ perfil_form.nombre.id_for_label }}" class="form-label small fw-bold">Nombre completo</label>
+              {{ perfil_form.nombre }}
+              {% if perfil_form.nombre.errors %}
+                <div class="text-danger small mt-1">{{ perfil_form.nombre.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ perfil_form.telefono.id_for_label }}" class="form-label small fw-bold">Teléfono móvil</label>
+                {{ perfil_form.telefono }}
+                {% if perfil_form.telefono.errors %}
+                  <div class="text-danger small mt-1">{{ perfil_form.telefono.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ perfil_form.email.id_for_label }}" class="form-label small fw-bold">Correo electrónico</label>
+                {{ perfil_form.email }}
+                {% if perfil_form.email.errors %}
+                  <div class="text-danger small mt-1">{{ perfil_form.email.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-save me-1"></i> Guardar Cambios
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Cambio de Clave -->
+      <div class="card card-custom shadow-sm">
+        <div class="card-header bg-transparent border-bottom py-3">
+          <h5 class="fw-bold mb-0 text-muted"><i class="bi bi-shield-lock me-2"></i>Seguridad: Cambiar Contraseña</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="clave">
+
+            {% if clave_form.non_field_errors %}
+              <div class="alert alert-danger py-2 small mb-3">
+                {% for err in clave_form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ clave_form.old_password.id_for_label }}" class="form-label small fw-bold">Contraseña actual</label>
+              {{ clave_form.old_password }}
+              {% if clave_form.old_password.errors %}
+                <div class="text-danger small mt-1">{{ clave_form.old_password.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ clave_form.new_password1.id_for_label }}" class="form-label small fw-bold">Nueva contraseña</label>
+                {{ clave_form.new_password1 }}
+                {% if clave_form.new_password1.errors %}
+                  <div class="text-danger small mt-1">{{ clave_form.new_password1.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ clave_form.new_password2.id_for_label }}" class="form-label small fw-bold">Confirmar nueva contraseña</label>
+                {{ clave_form.new_password2 }}
+                {% if clave_form.new_password2.errors %}
+                  <div class="text-danger small mt-1">{{ clave_form.new_password2.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-outline-custom px-4">
+              <i class="bi bi-key me-1"></i> Actualizar Contraseña
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Estado de la Suscripción y Datos de Pago -->
+    <div class="col-lg-5">
+      <!-- Tarjeta Suscripción -->
+      <div class="card card-custom mb-4 shadow-sm">
+        <div class="card-header bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-mindaro"><i class="bi bi-gem me-2"></i>Suscripción TributoVE</h5>
+          {% if suscripcion.esta_activa %}
+            <span class="badge badge-status-ok">Activa</span>
+          {% else %}
+            <span class="badge badge-status-sin">Inactiva</span>
+          {% endif %}
+        </div>
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <span class="text-muted small d-block">Estado de la cuenta:</span>
+            <span class="fw-bold fs-6">{{ suscripcion.get_estado_display }}</span>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="border rounded-3 p-3 bg-body-tertiary">
+                <small class="text-muted d-block">Vigente hasta:</small>
+                <strong>{{ suscripcion.fecha_fin|date:"d/m/Y"|default:"Indefinido" }}</strong>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border rounded-3 p-3 bg-body-tertiary">
+                <small class="text-muted d-block">Días restantes:</small>
+                <strong class="{% if suscripcion.dias_restantes <= 5 %}text-danger{% else %}text-mindaro{% endif %}">
+                  {{ suscripcion.dias_restantes }} días
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          {% if not suscripcion.esta_activa %}
+            <div class="alert alert-danger py-2 small mb-0">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> Su suscripción requiere renovación para acceder a todos los módulos tributarios.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Tarjeta Métodos de Pago del Administrador -->
+      {% if config_pago %}
+      <div class="card card-custom shadow-sm">
+        <div class="card-header bg-transparent border-bottom py-3">
+          <h6 class="fw-bold mb-0 text-muted text-uppercase" style="font-size: 0.8rem;">
+            <i class="bi bi-credit-card me-2"></i>Datos para Renovación de Mensualidad
+          </h6>
+        </div>
+        <div class="card-body p-4 small">
+          {% if config_pago.pago_movil_banco %}
+          <div class="border rounded-3 p-3 mb-2 bg-body-tertiary">
+            <span class="fw-bold d-block text-mindaro mb-1"><i class="bi bi-phone me-1"></i> Pago Móvil</span>
+            <div>Banco: <strong>{{ config_pago.pago_movil_banco }}</strong></div>
+            <div>Teléfono: <strong>{{ config_pago.pago_movil_telefono }}</strong></div>
+            <div>RIF/Cédula: <strong>{{ config_pago.pago_movil_rif }}</strong></div>
+          </div>
+          {% endif %}
+
+          {% if config_pago.transferencia_cuenta %}
+          <div class="border rounded-3 p-3 mb-2 bg-body-tertiary">
+            <span class="fw-bold d-block text-mindaro mb-1"><i class="bi bi-bank me-1"></i> Transferencia Bancaria</span>
+            <div>Banco: <strong>{{ config_pago.transferencia_banco }}</strong></div>
+            <div>Cuenta: <strong>{{ config_pago.transferencia_cuenta }}</strong></div>
+            <div>Beneficiario: <strong>{{ config_pago.transferencia_beneficiario }}</strong></div>
+          </div>
+          {% endif %}
+
+          {% if config_pago.zelle_correo %}
+          <div class="border rounded-3 p-3 mb-3 bg-body-tertiary">
+            <span class="fw-bold d-block text-mindaro mb-1"><i class="bi bi-globe me-1"></i> Zelle</span>
+            <div>Correo: <strong>{{ config_pago.zelle_correo }}</strong></div>
+            <div>Titular: <strong>{{ config_pago.zelle_titular }}</strong></div>
+          </div>
+          {% endif %}
+
+          {% if config_pago.monto_mensualidad_usd %}
+          <div class="p-3 bg-mindaro rounded-3 mb-3 text-center fw-bold">
+            Tarifa mensual: ${{ config_pago.monto_mensualidad_usd }} USD (o en Bs al cambio oficial BCV)
+          </div>
+          {% endif %}
+
+          <p class="text-muted mb-0" style="font-size: 0.78rem;">
+            Una vez realizado el pago, envíe el comprobante al administrador vía WhatsApp al <strong>{{ config_pago.pago_movil_telefono|default:'número de soporte' }}</strong>.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Marcar radio button según tema activo
+  var actual = localStorage.getItem('tv-theme') || 'dark';
+  var r = document.getElementById('theme_' + actual);
+  if (r) r.checked = true;
+</script>
+{% endblock %}

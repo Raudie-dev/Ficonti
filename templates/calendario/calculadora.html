@@ -1,0 +1,1135 @@
+<!doctype html><html lang="es"><head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script><meta charset="utf-8"><title>Consultor de obligaciones fiscales SPE 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#f3f5fa;--card:#fff;--tx:#17202f;--mut:#667085;--navy:#14284b;--blue:#2f5597;--lt:#e3ecf8;--bd:#d5dce9;--zb:#f7f9fd;--ok:#c6efce;--okt:#0b5d1e;--wn:#ffeb9c;--wnt:#7a5b00;--rd:#ffc7ce;--rdt:#9c0006;--past:#9aa3b2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1523;--card:#182136;--tx:#e8edf7;--mut:#9aa7bf;--navy:#0b1630;--blue:#6f9be0;--lt:#22304d;--bd:#2c3a58;--zb:#1c2740;--ok:#17402a;--okt:#8ee6a8;--wn:#4a3d10;--wnt:#ffd866;--rd:#4d1f26;--rdt:#ffb3bb;--past:#6b778f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1523;--card:#182136;--tx:#e8edf7;--mut:#9aa7bf;--navy:#0b1630;--blue:#6f9be0;--lt:#22304d;--bd:#2c3a58;--zb:#1c2740;--ok:#17402a;--okt:#8ee6a8;--wn:#4a3d10;--wnt:#ffd866;--rd:#4d1f26;--rdt:#ffb3bb;--past:#6b778f;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:15px/1.45 "IBM Plex Sans",system-ui,Segoe UI,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px 40px}
+header{background:var(--navy);color:#fff;padding:14px 0 0}header .wrap{padding-bottom:0}
+.brand{font-size:13px;opacity:.8}h1{font-size:20px;margin:2px 0 12px;font-weight:600;letter-spacing:.2px}
+nav{display:flex;gap:4px;overflow-x:auto}nav button{background:transparent;color:#cfd9ee;border:0;padding:10px 16px;font:inherit;font-weight:500;cursor:pointer;border-radius:8px 8px 0 0;white-space:nowrap}
+nav button.on{background:var(--bg);color:var(--navy)}:root[data-theme="dark"] nav button.on,:root:not([data-theme="light"]) nav button.on{color:var(--tx)}
+.share{display:flex;flex-wrap:wrap;gap:8px;align-items:end;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:14px 0}
+.share label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:2px}.share input{min-width:190px}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+a.b,button.b{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;border:0;font:inherit;font-weight:600;color:#fff;text-decoration:none;cursor:pointer}
+.gm{background:#c5221f}.wa{background:#1a9d4a}.pr{background:var(--blue)}.sec{background:var(--lt);color:var(--tx)!important}
+.search{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:6px 0 12px}.search input#q{font-size:18px;padding:12px 14px;flex:1;min-width:240px;border:2px solid var(--blue);background:var(--card)}
+.who{display:flex;gap:14px;align-items:center;margin:6px 0 14px;flex-wrap:wrap}.dig{background:var(--blue);color:#fff;font-size:30px;font-weight:700;width:58px;height:58px;display:grid;place-items:center;border-radius:10px}
+.who b{font-size:19px}.msg{color:var(--mut);font-size:13px}
+.hero{background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--okt);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:1fr auto auto;gap:6px 28px;align-items:center;margin-bottom:14px}
+.hero small{color:var(--mut);display:block}.hero .big{font-size:26px;font-weight:700;color:var(--navy)}:root[data-theme="dark"] .hero .big,:root:not([data-theme="light"]) .hero .big{color:var(--tx)}
+.hero .n{font-size:34px;font-weight:700;text-align:center;line-height:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.pn{background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow:hidden}.pn h3{margin:0;padding:9px 12px;font-size:13px;background:var(--blue);color:#fff;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}th{background:var(--lt);text-align:left;padding:5px 10px;font-weight:600;font-size:12px}td{padding:5px 10px;border-top:1px solid var(--bd)}tbody tr:nth-child(even){background:var(--zb)}
+td.past{color:var(--past)}td.today{background:var(--rd);color:var(--rdt);font-weight:700}td.next{background:var(--ok);color:var(--okt);font-weight:700}td.soon{background:var(--wn);color:var(--wnt);font-weight:700}td.pub{font-style:italic;color:var(--mut)}
+.leg{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;margin:12px 0}.leg span{padding:3px 10px;border-radius:6px;border:1px solid var(--bd)}
+h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
+.x{background:transparent;border:0;color:var(--rdt);cursor:pointer;font-size:16px}.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 18px}.card li{margin:5px 0}
+.only{display:none}.foot{color:var(--mut);font-size:12px;margin-top:18px}
+@media(max-width:640px){.hero{grid-template-columns:1fr}.hero .n{text-align:left}}
+@media print{@page{size:A4 landscape;margin:8mm}body{background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11px}.noprint,nav{display:none!important}.only{display:block}header{background:#fff;color:#000;border-bottom:2px solid #14284b}.grid{grid-template-columns:repeat(3,1fr)}.pn{break-inside:avoid}td{padding:2px 8px}.hero{break-inside:avoid}}
+</style>
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head><body>
+<header><div class="wrap"><div class="brand">Numera Soluciones, C.A.</div><h1>Consultor de obligaciones fiscales para contribuyentes especiales 2026</h1>
+<nav class="noprint" id="nav"></nav></div></header>
+<div class="wrap"><div class="share noprint" id="share"></div><div id="app"></div>
+<p class="foot">Fechas según las tablas del calendario SPE 2026 (pensiones: Gaceta Oficial 470.333 / 02-12-2025). Verifique siempre con la normativa y el calendario oficial vigentes.</p></div>
+<script>
+const D={"iva1":[[28,20,25,23,20,29,27,31,29,20,27,16],[19,23,20,27,18,26,21,25,18,28,26,29],[21,18,24,21,29,16,30,24,24,29,17,21],[30,18,23,30,22,18,23,18,21,23,23,28],[23,25,26,20,21,19,28,19,30,22,20,22],[22,27,30,22,28,17,22,21,25,30,18,17],[20,19,27,24,19,30,20,28,28,21,25,18],[27,24,18,17,26,22,31,20,22,27,19,18],[26,26,31,29,27,23,17,26,17,26,24,30],[29,27,17,28,25,25,29,27,23,19,30,23]],"iva2":[[15,9,6,1,6,12,8,14,14,5,13,3],[6,10,3,14,4,11,3,13,3,14,12,15],[8,5,9,8,14,3,14,12,10,15,2,4],[16,12,4,16,7,10,7,5,2,7,9,11],[9,2,11,7,13,2,10,6,9,6,5,7],[5,13,12,9,15,8,6,3,15,8,4,10],[13,4,10,13,5,15,9,4,11,2,11,8],[12,11,2,6,11,4,15,10,4,13,3,2],[7,3,13,10,12,5,2,7,8,9,6,9],[14,6,5,15,8,9,13,11,7,1,10,14]],"pens":[[28,20,25,23,20,29,27,17,29,20,27,16],[19,23,20,27,18,26,21,25,18,28,26,29],[21,18,24,21,29,16,30,24,24,29,17,21],[30,12,23,30,22,18,23,18,21,23,23,28],[23,25,26,20,21,19,28,19,16,22,20,22],[22,13,30,22,28,17,22,21,25,16,18,17],[20,19,27,24,19,30,20,28,28,21,25,15],[27,24,18,17,26,22,16,20,22,27,19,18],[26,26,16,29,27,23,17,26,17,26,24,30],[29,27,17,28,25,25,29,27,23,19,16,23]],"islr":[[15,9,6,10,12,5,8,7,8,9,6,9],[9,10,11,7,13,11,10,6,9,6,5,7],[8,5,9,8,7,10,7,12,10,7,9,4],[8,5,9,8,7,10,7,12,10,7,9,4],[9,10,11,7,13,11,10,6,9,6,5,7],[14,6,5,9,8,9,6,11,7,8,10,10],[13,11,10,6,11,4,9,10,4,13,11,8],[13,11,10,6,11,4,9,10,4,13,11,8],[15,9,6,10,12,5,8,7,8,9,6,9],[14,6,5,9,8,9,6,11,7,8,10,10]],"gp":[[9,13],[14,12],[15,9],[15,9],[14,12],[8,10],[13,11],[13,11],[9,13],[8,10]],"aut":[[0,0,6],[0,0,11],[30,0,0],[30,0,0],[0,0,11],[0,27,0],[0,0,16],[0,0,16],[0,0,6],[0,27,0]],"plan":[[22,"ENE",19,"ENE",2,"FEB",31,"ENE"],[18,"FEB",15,"FEB",2,"MAR",27,"FEB"],[17,"MAR",14,"MAR",1,"ABR",30,"MAR"],[17,"ABR",14,"ABR",6,"MAY",3,"MAY"],[21,"MAY",18,"MAY",2,"JUN",30,"MAY"],[17,"JUN",14,"JUN",6,"JUL",3,"JUL"],[22,"JUL",19,"JUL",3,"AGO",31,"JUL"],[18,"AGO",15,"AGO",2,"SEP",30,"AGO"],[21,"SEP",18,"SEP",1,"OCT",29,"SEP"],[19,"OCT",16,"OCT",3,"NOV",31,"OCT"],[18,"NOV",15,"NOV",2,"DIC",30,"NOV"],[16,"DIC",13,"DIC",null,null,null,null]]};const Y=2026;
+const MES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+const DS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];const cap=s=>s[0]+s.slice(1).toLowerCase();
+const $=id=>document.getElementById(id);const enc=encodeURIComponent;
+let emps=[{n:"ALEXA INC",rif:"",d:0,em:"",wa:""},{n:"VLAD CONDE",rif:"",d:0,em:"",wa:""}];
+try{const s=localStorage.getItem("spe_emps");if(s)emps=JSON.parse(s)}catch(e){}emps=[Object.assign({d:"",em:"",wa:""},emps.filter(e=>e.rif===EMPRESA.rif)[0]||{},{n:EMPRESA.nombre,rif:EMPRESA.rif})];
+const save=()=>{try{localStorage.setItem("spe_emps",JSON.stringify(emps))}catch(e){}};
+const S={view:"consultor",q:EMPRESA.rif,sel:0,sim:"",to:"",wa:"",toDirty:false,waDirty:false};
+const VIEWS=[["consultor","Consultor"],["informe","Informe"],["empresas","Empresas"],["ayuda","Ayuda"]];
+const edig=e=>e.d!==""&&e.d!=null&&!isNaN(e.d)?+e.d:(/\d$/.test(e.rif||"")?+e.rif.slice(-1):null);
+const norm=s=>(s||"").toUpperCase().replace(/[-\s]/g,"");
+function hoy(){if(S.sim){const[a,b,c]=S.sim.split("-").map(Number);return new Date(a,b-1,c)}const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())}
+function resolve(){const t=S.q.trim();let mode="",dig=null,m=[];
+ if(!t)return{mode,dig,m,emp:null,msg:"Escriba un nombre, un RIF o el último dígito del RIF"};
+ if(/^\d$/.test(t)){mode="d";dig=+t}
+ else if(t.length>=9&&!/\s/.test(t)&&/\d$/.test(t)&&(t.includes("-")||/^[JVGEPC]/i.test(t))){mode="r";dig=+t.slice(-1);m=emps.filter(e=>e.rif&&norm(e.rif)==norm(t))}
+ else{mode="n";m=emps.filter(e=>(e.n+" "+(e.rif||"")).toLowerCase().includes(t.toLowerCase()))}
+ const i=Math.min(S.sel,Math.max(0,m.length-1));const emp=m[i]||null;if(mode!="d"&&emp)dig=edig(emp);if(emp&&dig==null)dig=null;
+ let msg=dig==null?"Sin resultados: revise el nombre o escriba solo el último dígito del RIF (0-9)":m.length>1?m.length+" coincidencias: se muestra la "+(i+1)+" de "+m.length:emp?"Empresa encontrada en la base de datos":mode=="r"?"RIF no registrado: se usa su último dígito":"Consulta por dígito de RIF";
+ return{mode,dig,m,emp,i,msg}}
+const dt=(m,d,y=Y)=>new Date(y,m,d);
+function calc(g){const L=(a,m)=>{const v=a[g][m];return v?dt(m,v):null};
+ const iva1=MES.map((x,m)=>({l:x,d:L(D.iva1,m)}));
+ const iva2=MES.map((x,m)=>m<11?{l:x,d:L(D.iva2,m+1)}:{l:x,d:null,pub:1});
+ const pens=MES.map((x,m)=>({l:m?MES[m-1]:"DICIEMBRE",d:L(D.pens,m)}));
+ const islr=MES.map((x,m)=>m<11?{l:x,d:L(D.islr,m+1)}:{l:x,d:null,pub:1});
+ const a=D.aut[g],ai=a.findIndex(v=>v),aut=ai>=0?dt(ai,a[ai]):null;
+ const gp=[9,10].map((mm,i)=>({l:MES[mm],d:D.gp[g][i]?dt(mm,D.gp[g][i]):null}));
+ const ev=[];iva1.forEach((r,m)=>ev.push({o:"IVA/Anticipos ISLR/IGTF/Ret. IVA",p:"1.ª quincena de "+cap(r.l),d:r.d}));
+ iva2.forEach(r=>ev.push({o:"IVA/Anticipos ISLR/IGTF/Ret. IVA",p:"2.ª quincena de "+cap(r.l),d:r.d}));
+ pens.forEach(r=>ev.push({o:"Protección de las Pensiones",p:cap(r.l),d:r.d}));islr.forEach(r=>ev.push({o:"Retenciones de ISLR",p:cap(r.l),d:r.d}));
+ ev.push({o:"Autoliquidación ISLR",p:"Ejercicio 2025",d:aut});gp.forEach(r=>ev.push({o:"Grandes Patrimonios",p:cap(r.l),d:r.d}));
+ return{iva1,iva2,pens,islr,aut,gp,ev}}
+const f2=n=>String(n).padStart(2,"0"),fmt=d=>DS[d.getDay()]+" "+f2(d.getDate())+"/"+f2(d.getMonth()+1)+"/"+d.getFullYear();
+const leg=d=>DS[d.getDay()]+" "+d.getDate()+" de "+MES[d.getMonth()].toLowerCase()+" de "+d.getFullYear();
+let H,NEXT;
+function cl(d){if(!d)return"";const t=d-H;if(t<0)return"past";if(t==0)return"today";if(NEXT&&+d==+NEXT)return"next";return t<=7*864e5?"soon":""}
+const cell=(r)=>r.d?`<td class="${cl(r.d)}">${fmt(r.d)}</td>`:`<td class="pub">${r.pub?"Por publicar":"—"}</td>`;
+const pn=(t,h,rows)=>`<section class="pn"><h3>${t}</h3><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></section>`;
+const lst=(a)=>a.map(r=>`<tr><td>${cap(r.l)}</td>${cell(r)}</tr>`).join("");
+function planHTML(){const f=(d,m)=>d?f2(d)+"-"+MES[MES.findIndex(x=>x.startsWith(m))].slice(0,3).toLowerCase():"—";
+ return pn("Plan de pagos",["Mes","QCNA I","Apart.","QCNA II","Apart."],D.plan.map((r,i)=>`<tr><td>${cap(MES[i])}</td><td>${f(r[0],r[1])}</td><td>${f(r[2],r[3])}</td><td>${r[4]?f(r[4],r[5]):"—"}</td><td>${r[6]?f(r[6],r[7]):"—"}</td></tr>`).join(""))}
+function nextList(c){return c.ev.filter(e=>e.d&&e.d>=H).sort((a,b)=>a.d-b.d||0).slice(0,5)}
+function calHTML(c){return `<div class="grid">${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 1.ª quincena",["Mes","Fecha tope"],lst(c.iva1))}${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 2.ª quincena",["Mes","Fecha tope"],lst(c.iva2))}${pn("Protección de las pensiones",["Mes a declarar","Fecha tope"],lst(c.pens))}${pn("Retenciones de ISLR 2026",["Mes a declarar","Fecha tope"],lst(c.islr))}${pn("Autoliquidación anual ISLR 2025",["Concepto","Fecha tope"],`<tr><td>Fecha tope</td>${cell({d:c.aut})}</tr>`)}${pn("Grandes patrimonios",["Mes a declarar","Fecha tope"],lst(c.gp))}${planHTML()}</div>
+ <div class="leg noprint"><span style="color:var(--past)">Vencido</span><span style="background:var(--rd);color:var(--rdt)">Vence hoy</span><span style="background:var(--ok);color:var(--okt)">Próximo vencimiento</span><span style="background:var(--wn);color:var(--wnt)">Vence en 7 días o menos</span></div>`}
+function ctx(){const r=resolve();H=hoy();let c=null,nx=[];NEXT=null;if(r.dig!=null){c=calc(r.dig);nx=nextList(c);NEXT=nx[0]?nx[0].d:null}return{r,c,nx}}
+function summary(x){const{r,c,nx}=x;if(!c)return"Consulta de obligaciones fiscales SPE "+Y;
+ return"OBLIGACIONES FISCALES "+Y+" · Contribuyentes Especiales\nEmpresa: "+(r.emp?r.emp.n:S.q)+" (RIF terminado en "+r.dig+")\nPróximos vencimientos:\n"+nx.slice(0,3).map(e=>"• "+e.o+" — "+e.p+": "+leg(e.d)).join("\n")}
+function shareText(x){if(S.view=="empresas")return"Empresas registradas ("+emps.length+"):\n"+emps.map(e=>"• "+e.n+(edig(e)!=null?" — RIF terminado en "+edig(e):"")).join("\n");
+ if(S.view=="ayuda")return"Consultor de obligaciones fiscales SPE "+Y+": consulte por nombre, RIF o último dígito las fechas tope de IVA, pensiones, ISLR y más.";return summary(x)}
+function renderShare(x){const e=x.r.emp;if(!S.toDirty)S.to=e&&e.em||"";if(!S.waDirty)S.wa=e&&e.wa||"";
+ const tx=shareText(x),sub="Obligaciones fiscales "+Y+(e?" — "+e.n:"");
+ $("share").innerHTML=`<label>Correo del destinatario<input id="to" type="email" placeholder="cliente@gmail.com" value="${S.to}"></label><label>WhatsApp (código de país + número)<input id="wa" placeholder="584141234567" value="${S.wa}"></label>
+ <a class="b gm" id="gm" target="_blank" rel="noopener">Enviar por Gmail</a><a class="b wa" id="wl" target="_blank" rel="noopener">Enviar por WhatsApp</a><button class="b pr" id="pp">Imprimir / guardar PDF</button>`;
+ const upd=()=>{S.to=$("to").value.trim();S.wa=$("wa").value.replace(/\D/g,"");
+  $("gm").href="https://mail.google.com/mail/?view=cm&fs=1&to="+enc(S.to)+"&su="+enc(sub)+"&body="+enc(tx);
+  $("wl").href="https://wa.me/"+S.wa+"?text="+enc(tx)};upd();
+ $("to").oninput=()=>{S.toDirty=true;upd()};$("wa").oninput=()=>{S.waDirty=true;upd()};$("pp").onclick=()=>{try{window.print()}catch(e){alert("Use Ctrl+P y elija Guardar como PDF")}}}
+function head(x){const{r,nx}=x,n=nx[0];return `<div class="who"><div class="dig">${r.dig==null?"?":r.dig}</div><div><b>${r.emp?r.emp.n:r.dig==null?"—":"Todas las empresas con RIF terminado en "+r.dig}</b><div class="msg">${r.msg}</div></div></div>
+ <div class="hero"><div><small>Próximo vencimiento</small><span class="big">${n?leg(n.d):"—"}</span><small>${n?n.o+" · "+n.p:""}</small></div><div><small>Días restantes</small><div class="n">${n?Math.round((n.d-H)/864e5):"—"}</div></div><div><small>Vencen en 7 días</small><div class="n">${x.c?x.c.ev.filter(e=>e.d&&e.d>=H&&e.d-H<=7*864e5).length:"—"}</div></div></div>`}
+function sameDigit(x){if(x.r.dig==null)return"";const l=emps.filter(e=>edig(e)===x.r.dig);return`<h2>Empresas con RIF terminado en ${x.r.dig}</h2><div class="card">${l.length?"<ul>"+l.map(e=>`<li>${e.n}${e.rif?" · "+e.rif:""}</li>`).join("")+"</ul>":"Ninguna registrada."}</div>`}
+function resultados(){const x=ctx();$("res").innerHTML=(x.r.dig==null?`<div class="card">${x.r.msg}</div>`:head(x)+(x.nx.length?"":"")+calHTML(x.c)+sameDigit(x));renderShare(x)}
+function view(){document.querySelectorAll("#nav button").forEach(b=>b.className=b.dataset.v==S.view?"on":"");const A=$("app");
+ if(S.view=="consultor"){A.innerHTML=`<div class="search noprint"><input id="q" placeholder="Buscar empresa, RIF (J-12345678-9) o último dígito" value="${S.q}" autocomplete="off"><label class="msg">Coincidencia n.º<br><input id="sel" type="number" min="1" value="${S.sel+1}" style="width:80px"></label><label class="msg">Simular fecha<br><input id="sim" type="date" value="${S.sim}"></label></div><div id="res"></div>`;
+  $("q").oninput=e=>{S.q=e.target.value;S.sel=0;$("sel").value=1;resultados()};$("sel").oninput=e=>{S.sel=Math.max(0,(+e.target.value||1)-1);resultados()};$("sim").oninput=e=>{S.sim=e.target.value;resultados()};resultados()}
+ else if(S.view=="informe"){const x=ctx();A.innerHTML=x.r.dig==null?`<div class="card">Primero busque una empresa o un dígito en la pestaña Consultor.</div>`:`<div class="only msg">Informe de obligaciones fiscales · Fecha de consulta: ${fmt(H)}</div>${head(x)}${calHTML(x.c)}${sameDigit(x)}`;renderShare(x)}
+ else if(S.view=="empresas"){const x=ctx();A.innerHTML=`<h2>Base de datos de empresas</h2><div class="form noprint"><input id="fn" placeholder="Empresa / razón social"><input id="fr" placeholder="RIF (opcional)"><input id="fd" type="number" min="0" max="9" placeholder="Último dígito"><input id="fe" type="email" placeholder="Correo"><input id="fw" placeholder="WhatsApp 584141234567"><button class="b pr" id="add">Agregar empresa</button></div>
+  <div class="pn"><table><thead><tr><th>Empresa</th><th>RIF</th><th>Dígito</th><th>Correo</th><th>WhatsApp</th><th class="noprint"></th></tr></thead><tbody>${emps.map((e,i)=>`<tr><td>${e.n}</td><td>${e.rif||""}</td><td>${edig(e)??""}</td><td>${e.em||""}</td><td>${e.wa||""}</td><td class="noprint"><button class="x" data-i="${i}" title="Eliminar">✕</button></td></tr>`).join("")||`<tr><td colspan="6">Aún no hay empresas: agregue la primera arriba.</td></tr>`}</tbody></table></div><p class="msg noprint">Los datos se guardan en este navegador.</p>`;
+  $("add").onclick=()=>{const n=$("fn").value.trim();if(!n){$("fn").focus();return}emps.push({n:n.toUpperCase(),rif:$("fr").value.trim(),d:$("fd").value,em:$("fe").value.trim(),wa:$("fw").value.replace(/\D/g,"")});save();view()};
+  A.querySelectorAll(".x").forEach(b=>b.onclick=()=>{emps.splice(+b.dataset.i,1);save();view()});renderShare(x)}
+ else{const x=ctx();A.innerHTML=`<div class="card"><h2 style="margin-top:0">Cómo usar el consultor</h2><ul><li>En Consultor escriba el nombre de la empresa (o parte), el RIF completo o solo el último dígito (0-9).</li><li>Verá las fechas tope por obligación, el próximo vencimiento y los días restantes. Verde: próximo; amarillo: vence en 7 días o menos; rojo: vence hoy; gris: vencido.</li><li>Si hay varias empresas con el mismo texto, cambie «Coincidencia n.º».</li><li>La 1.ª quincena vence el mismo mes y la 2.ª el mes siguiente. Diciembre 2.ª quincena y retención ISLR de diciembre vencen en 2027 y figuran como «Por publicar».</li><li>Cada pestaña tiene botones para enviar por Gmail, por WhatsApp o imprimir y guardar como PDF (en el diálogo de impresión elija «Guardar como PDF»).</li><li>En Empresas registre su cartera con correo y WhatsApp para compartir más rápido.</li></ul></div>`;renderShare(x)}}
+$("nav").innerHTML=VIEWS.map(v=>`<button data-v="${v[0]}">${v[1]}</button>`).join("");
+$("nav").onclick=e=>{const v=e.target.dataset&&e.target.dataset.v;if(v){S.view=v;view()}};view();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMODID='cal';window.UX={status:function(){return{est:'na',det:'Módulo de consulta'}},cur:function(){return S.view},after:function(){view()},clear:{
+consultor:{l:"Limpiar la consulta",f:function(){S.q=EMPRESA.rif;S.sel=0;S.sim=""}},
+informe:{l:"Limpiar correo y WhatsApp",f:function(){S.to="";S.wa="";S.toDirty=true;S.waDirty=true;emps.forEach(function(e){e.em="";e.wa=""});save()}},
+empresas:{l:"Limpiar correo y WhatsApp",f:function(){S.to="";S.wa="";S.toDirty=true;S.waDirty=true;emps.forEach(function(e){e.em="";e.wa=""});save()}}}};/*UX_END*/
+</script><script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body></html>

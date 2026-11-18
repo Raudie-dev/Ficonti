@@ -1,0 +1,51 @@
+{% extends 'layouts/app.html' %}
+
+{% block title %}Seleccionar empresa · TributoVE{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card card-custom p-4 p-md-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-subtle-custom rounded-circle p-3 text-primary-custom mx-auto mb-3" style="width: 64px; height: 64px;">
+          <i class="bi bi-building-exclamation fs-2"></i>
+        </div>
+        <h4 class="fw-bold mb-2">Requiere una Empresa Activa</h4>
+        <p class="text-muted mb-4">
+          Para utilizar el módulo <strong>{{ modulo.nombre }}</strong>, debe seleccionar o registrar una empresa sobre la cual aplicar los cálculos y registrar su estatus fiscal.
+        </p>
+
+        {% if user.empresas.exists %}
+          <div class="mb-4 text-start">
+            <label class="form-label fw-bold small text-muted text-uppercase">Seleccione una de sus empresas:</label>
+            <div class="list-group">
+              {% for emp in user.empresas.all %}
+              <form method="post" action="{% url 'empresas:activar' emp.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong class="d-block">{{ emp.nombre }}</strong>
+                    <small class="text-muted">RIF: {{ emp.rif }} · {{ emp.condicion_corta }}</small>
+                  </div>
+                  <span class="badge bg-primary rounded-pill"><i class="bi bi-arrow-right"></i></span>
+                </button>
+              </form>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 justify-content-center">
+          <a href="{% url 'empresas:lista' %}" class="btn btn-primary px-4">
+            <i class="bi bi-plus-circle me-1"></i> Registrar nueva empresa
+          </a>
+          <a href="{% url 'empresas:resumen' %}" class="btn btn-outline-secondary">
+            Ir a Matriz
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

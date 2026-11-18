@@ -1,0 +1,36 @@
+{% extends 'layouts/auth.html' %}
+
+{% block title %}Recuperar Acceso · TributoVE{% endblock %}
+
+{% block content %}
+<div class="auth-form-header mb-4">
+  <div class="brand-badge mb-3">
+    <div class="brand-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="fw-bold" style="letter-spacing: -0.02em;">TributoVE</span>
+  </div>
+  <h1 class="auth-title" style="font-size: 1.85rem;">Recuperar Acceso</h1>
+  <p class="auth-subtitle mb-4">Por políticas de seguridad y protección de datos fiscales, el restablecimiento de claves es canalizado por el equipo administrativo.</p>
+</div>
+
+{% if config_pago %}
+<div class="card-custom p-3 mb-3 small" style="border-radius: 18px;">
+  <span class="fw-bold text-uppercase d-block mb-2 text-muted" style="font-size: 0.72rem;">Canales de atención:</span>
+  {% if config_pago.pago_movil_telefono %}
+    <div class="mb-1"><i class="bi bi-whatsapp text-success me-1"></i> WhatsApp: <strong>{{ config_pago.pago_movil_telefono }}</strong></div>
+  {% endif %}
+  {% if config_pago.zelle_correo %}
+    <div class="mb-1"><i class="bi bi-envelope text-primary me-1"></i> Correo: <strong>{{ config_pago.zelle_correo }}</strong></div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="p-3 mb-4 rounded-4" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border); font-size: 0.85rem; color: var(--tv-text-muted);">
+  Indique su <strong>nombre de usuario</strong> y <strong>teléfono</strong> para verificar su identidad y emitir una credencial temporal.
+</div>
+
+<a href="{% url 'usuarios:login' %}" class="btn btn-auth-submit w-100 text-center d-inline-block text-decoration-none">
+  Volver al Inicio de Sesión
+</a>
+{% endblock %}

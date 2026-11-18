@@ -1,0 +1,141 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}Estatus Tributario Global · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Estatus Tributario Global</h3>
+      <p class="text-muted small mb-0">Matriz de seguimiento de obligaciones tributarias para todas las empresas de la plataforma.</p>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+      <div class="input-group input-group-sm" style="max-width: 220px;">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" class="form-control" placeholder="Buscar empresa o RIF..." value="{{ q }}">
+      </div>
+
+      <select name="f" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+        <option value="todas" {% if f == 'todas' %}selected{% endif %}>Todas las empresas</option>
+        <option value="pend" {% if f == 'pend' %}selected{% endif %}>Con pendientes</option>
+        <option value="comp" {% if f == 'comp' %}selected{% endif %}>Completadas</option>
+        <option value="sin" {% if f == 'sin' %}selected{% endif %}>Sin iniciar</option>
+      </select>
+
+      <select name="o" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+        <option value="nombre" {% if o == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
+        <option value="menor" {% if o == 'menor' %}selected{% endif %}>Menor avance</option>
+        <option value="mayor" {% if o == 'mayor' %}selected{% endif %}>Mayor avance</option>
+      </select>
+
+      <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+      {% if q or f != 'todas' or o != 'nombre' %}
+        <a href="{% url 'superadmin:estatus' %}" class="btn btn-sm btn-link text-muted p-0 ms-1">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-custom p-3 border-start border-primary border-4 shadow-sm">
+        <span class="text-muted small text-uppercase fw-bold">Total Empresas</span>
+        <h3 class="fw-bold my-1">{{ total_empresas }}</h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-custom p-3 border-start border-success border-4 shadow-sm">
+        <span class="text-muted small text-uppercase fw-bold">Obligaciones Listas</span>
+        <h3 class="fw-bold my-1 text-success">{{ totales.realizados }} <small class="fs-6 text-muted">/ {{ totales.aplican }}</small></h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-custom p-3 border-start border-warning border-4 shadow-sm">
+        <span class="text-muted small text-uppercase fw-bold">Empresas con Pendientes</span>
+        <h3 class="fw-bold my-1 text-warning">{{ totales.pendientes }}</h3>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-custom p-3 border-start border-info border-4 shadow-sm">
+        <span class="text-muted small text-uppercase fw-bold">Avance General</span>
+        <h3 class="fw-bold my-1 text-info">{{ totales.pct }}%</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Matriz -->
+  <div class="card card-custom shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 0.85rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="text-start" style="min-width: 220px;">Empresa / Contador</th>
+            <th style="width: 90px;">Progreso</th>
+            {% for m in modulos_resumen %}
+            <th style="min-width: 100px;">
+              <div class="d-flex flex-column align-items-center">
+                <i class="bi {{ m.icono }} text-primary-custom mb-1 fs-6"></i>
+                <span class="fw-bold">{{ m.corto }}</span>
+              </div>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in filas %}
+          <tr>
+            <td class="text-start">
+              <div class="fw-bold text-dark">{{ fila.empresa.nombre }}</div>
+              <div class="d-flex align-items-center gap-2 small text-muted">
+                <span>{{ fila.empresa.rif }}</span>
+                <span class="badge {% if fila.empresa.es_sujeto_pasivo_especial %}bg-warning-subtle text-warning{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size: 0.65rem;">
+                  {{ fila.empresa.condicion_corta }}
+                </span>
+                <span>·</span>
+                <a href="{% url 'superadmin:contador_detalle' fila.empresa.usuario.pk %}" class="text-decoration-none text-muted">
+                  {{ fila.empresa.usuario.nombre }}
+                </a>
+              </div>
+            </td>
+            <td>
+              <div class="fw-bold">{{ fila.realizados }}/{{ fila.aplican }}</div>
+              <div class="progress mt-1" style="height: 5px;">
+                <div class="progress-bar {% if fila.pct == 100 %}bg-success{% elif fila.pct > 0 %}bg-warning{% else %}bg-secondary{% endif %}" style="width: {{ fila.pct }}%;"></div>
+              </div>
+            </td>
+
+            {% for celda in fila.celdas %}
+            <td>
+              {% if celda.estado == 'na' %}
+                <span class="badge badge-status-na py-1 px-2">N/A</span>
+              {% elif celda.estado == 'ok' %}
+                <span class="badge badge-status-ok py-1 px-2 d-inline-block" title="{{ celda.detalle|default:'Listo' }}">
+                  <i class="bi bi-check-circle-fill me-1"></i> Listo
+                </span>
+              {% elif celda.estado == 'prog' %}
+                <span class="badge badge-status-prog py-1 px-2 d-inline-block" title="{{ celda.detalle|default:'En curso' }}">
+                  <i class="bi bi-hourglass-split me-1"></i> En curso
+                </span>
+              {% else %}
+                <span class="badge badge-status-sin py-1 px-2 d-inline-block" title="Sin datos">
+                  <i class="bi bi-circle me-1"></i> Sin datos
+                </span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{{ modulos_resumen|length|add:2 }}" class="py-5 text-muted text-center">
+              No hay empresas que coincidan con la búsqueda.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

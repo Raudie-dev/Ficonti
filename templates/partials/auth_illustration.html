@@ -1,0 +1,158 @@
+<div class="showcase-container w-100 h-100 d-flex flex-column align-items-center justify-content-between">
+  <!-- Área de Ilustración Contable y Financiera con Widgets Flotantes -->
+  <div class="showcase-scene position-relative w-100 d-flex align-items-center justify-content-center flex-grow-1">
+
+    <!-- Widget Flotante Superior Izquierdo: Estatus SENIAT SPE -->
+    <div class="fintech-float-pill top-left">
+      <div class="d-flex align-items-center gap-2">
+        <div class="icon-pulse-box">
+          <i class="bi bi-shield-check text-success"></i>
+        </div>
+        <div class="text-start">
+          <div class="pill-label">SENIAT · SPE</div>
+          <div class="pill-status"><i class="bi bi-check2-circle text-success me-1"></i>Sin contingencias</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Flotante Superior Derecho: Donut de Retenciones -->
+    <div class="fintech-float-card top-right">
+      <div class="d-flex align-items-center gap-2">
+        <svg viewBox="0 0 40 40" width="38" height="38">
+          <!-- Fondo del aro -->
+          <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(45,81,40,0.15)" stroke-width="4.5" />
+          <!-- Segmento ISLR (Lima) 45% -->
+          <circle cx="20" cy="20" r="16" fill="none" stroke="#D2F865" stroke-width="4.5" stroke-dasharray="45 100" stroke-dashoffset="0" stroke-linecap="round" />
+          <!-- Segmento IVA (Esmeralda) 35% -->
+          <circle cx="20" cy="20" r="16" fill="none" stroke="#22C55E" stroke-width="4.5" stroke-dasharray="35 100" stroke-dashoffset="-45" stroke-linecap="round" />
+          <!-- Centro -->
+          <text x="20" y="24" text-anchor="middle" font-size="9" font-weight="800" fill="#22C55E">100%</text>
+        </svg>
+        <div class="text-start">
+          <div class="donut-title">Retenciones</div>
+          <div class="donut-sub">ISLR · IVA al día</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARJETA PRINCIPAL CENTRAL: Gráficas de Control Fiscal y Flujo Contable -->
+    <div class="fintech-main-chart-card">
+      <!-- Cabecera de la Tarjeta -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="live-indicator"></span>
+          <span class="chart-header-tag">RESUMEN FISCAL 2026/27</span>
+        </div>
+        <span class="chart-growth-pill">
+          <i class="bi bi-arrow-up-right me-1"></i>+32.4%
+        </span>
+      </div>
+
+      <!-- Cifra Principal -->
+      <div class="chart-kpi-row mb-3">
+        <div class="chart-currency">Bs. 1.845.200,00</div>
+        <div class="chart-caption">Base imponible y retenciones conciliadas</div>
+      </div>
+
+      <!-- Gráfica de Barras y Curva de Tendencia Contable (SVG Vectorial) -->
+      <div class="chart-graphic-wrap">
+        <svg viewBox="0 0 340 130" width="100%" height="110" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="barGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#D2F865" />
+              <stop offset="100%" stop-color="#2D5128" />
+            </linearGradient>
+            <linearGradient id="barActiveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#22C55E" />
+              <stop offset="100%" stop-color="#141815" />
+            </linearGradient>
+            <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="rgba(210, 248, 101, 0.35)" />
+              <stop offset="100%" stop-color="rgba(34, 197, 94, 0.0)" />
+            </linearGradient>
+          </defs>
+
+          <!-- Líneas de cuadrícula sutiles -->
+          <line x1="10" y1="20" x2="330" y2="20" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 3" />
+          <line x1="10" y1="55" x2="330" y2="55" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 3" />
+          <line x1="10" y1="90" x2="330" y2="90" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3 3" />
+
+          <!-- Barras de los meses (Ene, Feb, Mar, Abr, May, Jun) -->
+          <!-- Ene -->
+          <rect x="22" y="60" width="22" height="45" rx="5" fill="url(#barGrad)" opacity="0.75" />
+          <text x="33" y="120" text-anchor="middle" font-size="9" font-weight="600" fill="#8B958E">ENE</text>
+
+          <!-- Feb -->
+          <rect x="74" y="45" width="22" height="60" rx="5" fill="url(#barGrad)" opacity="0.8" />
+          <text x="85" y="120" text-anchor="middle" font-size="9" font-weight="600" fill="#8B958E">FEB</text>
+
+          <!-- Mar -->
+          <rect x="126" y="52" width="22" height="53" rx="5" fill="url(#barGrad)" opacity="0.85" />
+          <text x="137" y="120" text-anchor="middle" font-size="9" font-weight="600" fill="#8B958E">MAR</text>
+
+          <!-- Abr -->
+          <rect x="178" y="32" width="22" height="73" rx="5" fill="url(#barGrad)" opacity="0.9" />
+          <text x="189" y="120" text-anchor="middle" font-size="9" font-weight="600" fill="#8B958E">ABR</text>
+
+          <!-- May -->
+          <rect x="230" y="38" width="22" height="67" rx="5" fill="url(#barGrad)" opacity="0.95" />
+          <text x="241" y="120" text-anchor="middle" font-size="9" font-weight="600" fill="#8B958E">MAY</text>
+
+          <!-- Jun (Mes Activo / Pico) -->
+          <rect x="282" y="18" width="22" height="87" rx="5" fill="url(#barGrad)" />
+          <text x="293" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#D2F865">JUN</text>
+
+          <!-- Área degradada bajo la curva de tendencia -->
+          <path d="M 33 60 Q 85 40 137 52 T 241 36 T 293 18 L 293 105 L 33 105 Z" fill="url(#areaGrad)" />
+
+          <!-- Línea de tendencia spline fluida -->
+          <path d="M 33 60 Q 85 40 137 52 T 241 36 T 293 18" fill="none" stroke="#22C55E" stroke-width="2.8" stroke-linecap="round" />
+
+          <!-- Punto de impacto / Baliza en el pico de Junio -->
+          <circle cx="293" cy="18" r="6" fill="#D2F865" />
+          <circle cx="293" cy="18" r="3" fill="#0B0E0C" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Widget Flotante Inferior Izquierdo: Módulos Activos -->
+    <div class="fintech-float-pill bottom-left">
+      <div class="d-flex align-items-center gap-2">
+        <div class="icon-pulse-box modules">
+          <i class="bi bi-grid-fill text-lime"></i>
+        </div>
+        <div class="text-start">
+          <div class="pill-label">9 Módulos Tributarios</div>
+          <div class="pill-status">ISLR · IVA · Planificación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Flotante Inferior Derecho: Conciliación Bancaria -->
+    <div class="fintech-float-pill bottom-right">
+      <div class="d-flex align-items-center gap-2">
+        <div class="icon-pulse-box bank">
+          <i class="bi bi-arrow-left-right text-success"></i>
+        </div>
+        <div class="text-start">
+          <div class="pill-label">Conciliación</div>
+          <div class="pill-status">100% Cuadrado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación de 3 puntos (o o —) -->
+  <div class="showcase-dots my-2">
+    <span class="dot-sm"></span>
+    <span class="dot-sm"></span>
+    <span class="dot-lg"></span>
+  </div>
+
+  <!-- Titular inferior enfocado en contabilidad y fiscalidad -->
+  <div class="showcase-bottom-text text-center px-2">
+    <h4 class="fw-bold mb-0" style="font-size: 1.25rem; line-height: 1.35; letter-spacing: -0.02em;">
+      Control fiscal y contabilidad inteligente con <span class="fw-extrabold" style="color: var(--tv-lime, #22C55E);">TributoVE</span>
+    </h4>
+  </div>
+</div>

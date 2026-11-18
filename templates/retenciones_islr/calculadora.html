@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Consultor de retenciones de ISLR 2026 · Venezuela</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+  --paper:#F3F4FA; --surface:#FFFFFF; --ink:#141A33; --muted:#586080; --rule:#D6DAEA; --rule-strong:#B4BBD6;
+  --royal:#1D2B9B; --royal-deep:#141E73; --on-royal:#FFFFFF; --focus:#1D2B9B;
+  --mark:#FFE59A; --mark-ink:#3A2B00;
+  --pnr-bg:#DDF3EA; --pnr-ink:#08553E;
+  --pnnr-bg:#FCE6D5; --pnnr-ink:#7A3510;
+  --pjd-bg:#DDE6FF; --pjd-ink:#1B2C86;
+  --pjnd-bg:#EBDDF7; --pjnd-ink:#53257A;
+  --shadow:0 1px 2px rgba(20,26,51,.06), 0 8px 24px rgba(20,26,51,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0D1122; --surface:#151A33; --ink:#E7E9F6; --muted:#9CA4C9; --rule:#283056; --rule-strong:#3A4577;
+    --royal:#1D2B9B; --royal-deep:#141E73; --focus:#9AA6FF;
+    --mark:#5E4B05; --mark-ink:#FFEFB8;
+    --pnr-bg:#12382D; --pnr-ink:#8FE0C0;
+    --pnnr-bg:#41240F; --pnnr-ink:#FFC59B;
+    --pjd-bg:#182453; --pjd-ink:#B5C3FF;
+    --pjnd-bg:#34194D; --pjnd-ink:#DDB9FF;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0D1122; --surface:#151A33; --ink:#E7E9F6; --muted:#9CA4C9; --rule:#283056; --rule-strong:#3A4577;
+  --royal:#1D2B9B; --royal-deep:#141E73; --focus:#9AA6FF;
+  --mark:#5E4B05; --mark-ink:#FFEFB8;
+  --pnr-bg:#12382D; --pnr-ink:#8FE0C0;
+  --pnnr-bg:#41240F; --pnnr-ink:#FFC59B;
+  --pjd-bg:#182453; --pjd-ink:#B5C3FF;
+  --pjnd-bg:#34194D; --pjnd-ink:#DDB9FF;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+html{height:auto;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.5;
+}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* Masthead */
+.masthead{background:var(--royal-deep);background-image:linear-gradient(135deg,var(--royal) 0%,var(--royal-deep) 100%);color:var(--on-royal);padding:28px 0 64px}
+.masthead h1{
+  font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;font-weight:600;
+  font-size:clamp(1.6rem,3.6vw,2.5rem);line-height:1.15;margin:0 0 6px;letter-spacing:-.01em;max-width:24ch;
+}
+.masthead p{margin:0;color:rgba(255,255,255,.82);max-width:62ch}
+.facts{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px;font-size:.95rem}
+.facts div{display:flex;flex-direction:column}
+.facts dt{font-size:.8rem;color:rgba(255,255,255,.68)}
+.facts dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.facts{margin-bottom:0}
+dl.facts{margin-block:20px 0}
+
+/* Search panel */
+.panel{
+  background:var(--surface);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow);
+  margin-top:-40px;padding:20px;
+}
+.search-label{display:block;font-weight:600;margin-bottom:8px}
+.search-box{position:relative}
+.search-box svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:22px;height:22px;color:var(--muted);pointer-events:none}
+#q{
+  width:100%;font:inherit;font-size:1.15rem;color:var(--ink);background:var(--paper);
+  border:2px solid var(--rule-strong);border-radius:12px;padding:15px 48px 15px 50px;
+}
+#q::placeholder{color:var(--muted)}
+#q:focus{border-color:var(--royal);outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--focus) 28%,transparent)}
+#q::-webkit-search-cancel-button{display:none}
+.clear{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:1.3rem;line-height:1;
+}
+.clear:hover{background:var(--rule)}
+.clear.on{display:flex}
+.hint{margin:10px 0 0;color:var(--muted);font-size:.92rem}
+.hint button{font:inherit;color:var(--royal);background:none;border:0;padding:0 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+:root[data-theme="dark"] .hint button{color:var(--focus)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hint button{color:var(--focus)}}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{
+  font:inherit;font-size:.92rem;font-weight:500;cursor:pointer;color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--rule-strong);border-radius:999px;padding:7px 14px;display:inline-flex;gap:8px;align-items:baseline;
+}
+.chip small{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:400}
+.chip:hover{border-color:var(--royal)}
+.chip[aria-pressed="true"]{background:var(--royal);border-color:var(--royal);color:#fff}
+.chip[aria-pressed="true"] small{color:rgba(255,255,255,.8)}
+.legend{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 20px;color:var(--muted);font-size:.9rem}
+.legend b{color:var(--ink);font-weight:600}
+
+/* Results bar */
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:28px 0 12px}
+.count{font-weight:600}
+.count span{color:var(--muted);font-weight:400}
+.btn{
+  font:inherit;font-weight:500;cursor:pointer;color:var(--royal);background:var(--surface);border:1.5px solid var(--royal);
+  border-radius:10px;padding:8px 14px;display:inline-flex;gap:8px;align-items:center;
+}
+:root[data-theme="dark"] .btn{color:var(--focus);border-color:var(--focus)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:var(--focus);border-color:var(--focus)}}
+.btn:hover{background:var(--paper)}
+.btn svg{width:18px;height:18px}
+
+/* Table */
+.table-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:980px}
+thead th{
+  background:var(--royal);color:#fff;text-align:left;font-weight:600;font-size:.86rem;line-height:1.25;
+  padding:12px 14px;white-space:normal;vertical-align:bottom;
+}
+thead th.num,tbody td.num{text-align:right}
+tbody td{padding:12px 14px;border-top:1px solid var(--rule);vertical-align:top;font-size:.95rem}
+tbody tr:first-child td{border-top:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--royal) 5%,var(--surface))}
+td.concept{font-weight:500;min-width:260px;max-width:420px}
+td.num,td.code,td.lit{font-variant-numeric:tabular-nums;white-space:nowrap}
+td.muted,.muted{color:var(--muted)}
+td.rate{font-weight:600;font-size:1.02rem}
+mark{background:var(--mark);color:var(--mark-ink);border-radius:3px;padding:0 1px}
+.tag{display:inline-block;font-weight:600;font-size:.82rem;padding:2px 9px;border-radius:6px;letter-spacing:.02em}
+.tag.PNR{background:var(--pnr-bg);color:var(--pnr-ink)}
+.tag.PNNR{background:var(--pnnr-bg);color:var(--pnnr-ink)}
+.tag.PJD{background:var(--pjd-bg);color:var(--pjd-ink)}
+.tag.PJND{background:var(--pjnd-bg);color:var(--pjnd-ink)}
+.pill{
+  font:inherit;font-weight:600;font-size:.9rem;cursor:help;color:var(--royal);background:color-mix(in srgb,var(--royal) 9%,var(--surface));
+  border:1.5px dashed var(--royal);border-radius:8px;padding:3px 10px;white-space:nowrap;
+}
+:root[data-theme="dark"] .pill{color:var(--focus);border-color:var(--focus)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill{color:var(--focus);border-color:var(--focus)}}
+
+.empty{padding:44px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-size:1.1rem;margin-bottom:4px}
+
+/* Popover Tarifa 2 */
+.pop{
+  position:absolute;z-index:20;width:min(430px,calc(100vw - 24px));background:var(--surface);color:var(--ink);
+  border:2px solid var(--royal);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:none;
+}
+.pop.on{display:block}
+.t2-title{background:var(--royal);color:#fff;font-weight:600;padding:10px 14px;font-size:.95rem}
+.t2 table{min-width:0;width:100%}
+.t2 th,.t2 td{padding:8px 10px;font-size:.88rem;border-top:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums}
+.t2 th{background:var(--paper);color:var(--ink);font-weight:600;border-top:0;vertical-align:bottom}
+.t2 th:first-child,.t2 td:first-child{text-align:left}
+
+/* Reference + how to */
+.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:36px 0}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.card h2{margin:0;font-family:"IBM Plex Serif",Georgia,serif;font-size:1.1rem;padding:14px 16px 0}
+.card p,.card ol{margin:8px 16px 16px;color:var(--muted);font-size:.95rem}
+.card ol{padding-left:20px}
+.card li{margin:4px 0}
+.card .t2{margin-top:12px}
+.card .t2 table{border-top:1px solid var(--rule)}
+footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
+
+/* Mobile: filas como tarjetas */
+@media (max-width:760px){
+  .wrap{padding:0 14px}
+  .masthead{padding-bottom:56px}
+  table{min-width:0}
+  .table-scroll{background:transparent;border:0;overflow:visible}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  tbody,tr,td{display:block}
+  tbody tr{background:var(--surface);border:1px solid var(--rule);border-radius:12px;margin-bottom:12px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+  tbody td{border:0;padding:0;font-size:.92rem}
+  tbody tr:hover td{background:transparent}
+  td.concept{grid-column:1 / -1;max-width:none;min-width:0;font-size:1rem}
+  td[data-label]::before{content:attr(data-label);display:block;font-size:.75rem;color:var(--muted);font-weight:400}
+  td.concept::before{display:none}
+  td.num{text-align:left}
+  .legend{grid-template-columns:1fr}
+}
+
+/* Impresión / PDF (reemplaza la macro "PDF") */
+.print-only{display:none}
+@media print{
+  :root{--paper:#fff;--surface:#fff;--ink:#000;--muted:#333;--rule:#bbb}
+  body{background:#fff}
+  .panel,.bar .btn,.hint,.filters,.clear,.refs .howto,.pop,footer .noprint{display:none!important}
+  .masthead{background:#fff!important;color:#000;padding:0 0 10px;border-bottom:2px solid #000}
+  .masthead h1,.masthead p,.facts dt,.facts dd{color:#000}
+  .table-scroll{overflow:visible;border:0}
+  table{min-width:0;font-size:9pt}
+  thead th{background:#eee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  tr{break-inside:avoid}
+  .print-only{display:block}
+  .pill{border:0;background:none;color:#000;padding:0}
+  .tag{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/*mdl*/
+#rows tr[data-r]{cursor:pointer}
+#rows tr[data-r]:focus-visible{outline:2px solid var(--royal);outline-offset:-2px}
+.mdl-bg{position:fixed;inset:0;background:rgba(10,14,30,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px}
+.mdl-bg[hidden]{display:none}
+.mdl{background:var(--surface);color:var(--ink);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:min(560px,100%);max-height:calc(100vh - 28px);overflow:auto}
+.mh{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--surface);z-index:1}
+.mh b{display:block;margin-top:5px;line-height:1.25}
+.mx{border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--muted);padding:0 4px}
+.mb{padding:14px 16px 16px}
+.vars{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0 0 12px}
+.vars div{min-width:0}.vars dt{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.vars dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.mb label{display:block;font-weight:600;margin:6px 0}
+#mm{width:100%;font:inherit;font-size:1.15rem;padding:12px;border:2px solid var(--rule-strong);border-radius:10px;background:var(--paper);color:var(--ink)}
+#mm:focus{outline:0;border-color:var(--royal)}
+.mdl table.calc{width:100%!important;min-width:0!important;border-collapse:collapse;margin-top:12px;display:table!important}
+.mdl .calc tbody{display:table-row-group!important}
+.mdl .calc tr{display:table-row!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;box-shadow:none!important}
+.mdl .calc td{display:table-cell!important}
+.calc td{padding:6px 4px;border-bottom:1px solid var(--rule)}
+.calc td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.calc tr.t td{font-weight:700;background:color-mix(in srgb,var(--royal) 9%,var(--surface))}
+.calc tr.big td{font-size:1.15rem}
+.note{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,#c8871a 16%,var(--surface));font-size:.9rem}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--rule-strong);border-radius:12px;box-shadow:var(--shadow);max-height:320px;overflow:auto}
+.sugg[hidden]{display:none}
+.sugg li{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer}
+.sugg li.on,.sugg li:hover{background:color-mix(in srgb,var(--royal) 10%,var(--surface))}
+.sugg .sc{flex:1;min-width:0;font-weight:500}.sugg small{color:var(--muted);white-space:nowrap}
+@media (max-width:760px){.sugg small{display:none}.mdl-bg{align-items:flex-end;padding:0}.mdl{border-radius:14px 14px 0 0;max-height:92vh}}
+@media print{.mdl-bg,.sugg{display:none!important}}
+</style>
+
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <h1>Consultor de retenciones de ISLR 2026</h1>
+    <p>Venezuela. Escribe el servicio o actividad que vas a pagar y mira qué retención aplica.</p>
+    <dl class="facts">
+      <div><dt>Unidad Tributaria</dt><dd id="utVal"></dd></div>
+      <div><dt>Gaceta Oficial</dt><dd>N.º 43.140 del 02/06/2025</dd></div>
+      <div><dt>Factor</dt><dd>Decreto 1.808, Art. 9, Parágrafo Segundo</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel" aria-label="Buscador">
+    <label class="search-label" for="q">Buscar por concepto, condición, código o tarifa</label>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Por ejemplo: honorarios, arrendamiento, tarjeta, 54">
+      <button class="clear" id="clear" type="button" aria-label="Borrar búsqueda">×</button><ul class="sugg" id="sugg" role="listbox" hidden></ul>
+    </div>
+    <p class="hint">Prueba con
+      <button type="button" data-ex="honorarios">honorarios</button>,
+      <button type="button" data-ex="arrendamiento">arrendamiento</button>,
+      <button type="button" data-ex="servicios">servicios</button> o
+      <button type="button" data-ex="publicidad">publicidad</button>.
+      Con varias palabras se buscan todas a la vez.</p>
+
+    <div class="filters" id="filters" role="group" aria-label="Filtrar por condición del beneficiario"></div>
+    <ul class="legend">
+      <li><b>PNR</b> Persona natural residente</li>
+      <li><b>PNNR</b> Persona natural no residente</li>
+      <li><b>PJD</b> Persona jurídica domiciliada</li>
+      <li><b>PJND</b> Persona jurídica no domiciliada</li>
+    </ul>
+  </section>
+
+  <div class="bar">
+    <div class="count" id="count" role="status" aria-live="polite"></div>
+    <button class="btn" id="print" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
+      Guardar como PDF
+    </button>
+  </div>
+
+  <div class="table-scroll" id="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Condición</th>
+          <th>Numeral-literal</th>
+          <th class="num">Código SENIAT</th>
+          <th class="num">Base imponible</th>
+          <th>Tarifa o porcentaje</th>
+          <th class="num">Pagos mayores a Bs</th>
+          <th class="num">Sustraendo en Bs</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>
+      <strong>Sin resultados</strong>
+      Revisa la ortografía, usa menos palabras o quita el filtro de condición.
+    </div>
+  </div>
+
+  <section class="refs">
+    <article class="card" id="t2card">
+      <h2>Tarifa N.º 2: personas jurídicas no domiciliadas</h2>
+      <div class="t2" id="t2ref"></div>
+    </article>
+    <article class="card howto">
+      <h2>Cómo se usa</h2>
+      <ol>
+        <li>Escribe en el buscador el servicio o la actividad objeto de retención, por ejemplo “honorarios”.</li>
+        <li>Filtra por la condición de quien cobra: PNR, PNNR, PJD o PJND.</li>
+        <li>Para ver la Tarifa N.º 2, pasa el cursor (o toca) sobre la etiqueta “Tarifa N.º 2”.</li>
+        <li>Usa “Guardar como PDF” para imprimir el resultado filtrado.</li>
+      </ol>
+    </article>
+  </section>
+
+  <footer>
+    <p>Herramienta de consulta. Verifica siempre contra la normativa vigente y las providencias del SENIAT antes de practicar una retención.</p>
+  </footer>
+</main>
+
+<div class="mdl-bg" id="mdl" hidden><div class="mdl" role="dialog" aria-modal="true" aria-labelledby="mdl-t"></div></div>
+<div class="pop" id="pop" role="tooltip">
+  <div class="t2-title">Tarifa N.º 2 · Personas jurídicas no domiciliadas</div>
+  <div class="t2" id="t2pop"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var UT = 43 / (window.MON?MON.tasa:1); /* Bs por Unidad Tributaria */
+  var DATA = [["HONORARIOS PROFESIONALES","PNNR","9.1. a",3,0.9,0.34,0,"N/A"],["HONORARIOS PROF. EN HIPÓDROMOS","PNNR","9.1.c",11,0.9,0.34,0,"N/A"],["HONORARIOS PROF. EN CENTROS DE SALUD","PNNR","9.1.d",13,0.9,0.34,0,"N/A"],["COMISIONES ENAJENACIÓN INMUEBLES","PNNR","9.2.a",15,1,0.34,0,"N/A"],["COMISIONES MERCANTILES Y OTRAS","PNNR","9.2.b",19,1,0.34,0,"N/A"],["INTERESES ART. 27 # 2 L.I.S.L.R.","PNNR","9.3. a",22,0.95,0.34,0,"N/A"],["INTERESES","PNNR","9.3.c",26,0.95,0.34,0,"N/A"],["FLETES Y GTOS DE TRANSP. INTERNAC. (entre Venezuela y el Exterior o viceversa). ART. 36 LISLR","PNNR","9.5",30,"-","-",0,"N/A"],["FLETES EN EL PAIS A EMP. INTERNAC. ART. 36 LISLR","PNNR","9.5",30,"-","-",0,"N/A"],["EXHIBICIÓN DE PELÍCULAS. ART 27 # 15, y 34 LISLR","PNNR","9.6",32,0.25,0.34,0,"N/A"],["REGALIAS ART 27 # 16 LISLR","PNNR","9.7",34,0.9,0.34,0,"N/A"],["ASISTENCIA TÉCNICA ART 27 # 16 LISLR","PNNR","9.7",36,0.3,0.34,0,"N/A"],["SERVICIOS TECNOLÓGICOS ART 27 # 16 LISLR","PNNR","9.7",38,0.5,0.34,0,"N/A"],["GANANCIAS EN JUEGOS Y APUESTAS","PNNR","9.9",42,1,0.34,0,"N/A"],["PREMIOS LOTERÍA E HIPÓDROMOS ART. 62 LISLR","PNNR","9.9",46,1,0.16,0,"N/A"],["PROPIETARIOS DE ANIMALES DE CARRERAS POR PREMIOS RECIBIDOS","PNNR","9.1",50,1,0.34,0,"N/A"],["SERVICIOS","PNNR","9.11",54,1,0.34,0,"N/A"],["ARRENDAMIENTO BIENES INMUEBLES","PNNR","9.12",58,1,0.34,0,"N/A"],["ARRENDAMIENTO BIENES MUEBLES","PNNR","9.13",62,1,0.34,0,"N/A"],["PAGOS DE TARJETAS DE CRÉDITO O CONSUMO","PNNR","9.14",66,"**",0.34,0,"N/A"],["PAGOS POR ADQUISICIÓN DE FONDOS DE COMERCIO","PNNR","9.18","-",1,0.34,0,"N/A"],["ENRIQUECIMIENTOS POR ENEJENACIÓN DE ACCIONES EN LA BOLSA DE VALORES","PNNR","9.2","-",1,0.01,0,"N/A"],["PAGOS POR ENAJENACIÓN DE ACCIONES FUERA DE LA BOLSA DE VALORES","PNNR","9.21","-",1,0.34,0,"N/A"],["HONORARIOS PROFESIONALES","PNR","9.1. b",2,1,0.03,3583.34,107.5],["HONORARIOS PROF. EN HIPÓDROMOS","PNR","9.1.c",10,1,0.03,3583.34,107.5],["HONORARIOS PROF. EN CENTROS DE SALUD","PNR","9.1.d",12,1,0.03,3583.34,107.5],["COMISIONES ENAJENACIÓN INMUEBLES","PNR","9.2.a",14,1,0.03,3583.34,107.5],["COMISIONES MERCANTILES Y OTRAS","PNR","9.2.b",18,1,0.03,3583.34,107.5],["INTERESES","PNR","9.3.c",25,1,0.03,3583.34,107.5],["GANANCIAS EN JUEGOS Y APUESTAS","PNR","9.9",41,1,0.34,"-","-"],["PREMIOS LOTERÍA E HIPÓDROMOS ART. 62 LISLR","PNR","9.9",45,1,0.16,"-","-"],["PROPIETARIOS DE ANIMALES DE CARRERAS POR PREMIOS RECIBIDOS","PNR","9.1",49,1,0.03,3583.34,107.5],["SERVICIOS","PNR","9.11",53,1,0.01,3583.34,35.83],["ARRENDAMIENTO BIENES INMUEBLES","PNR","9.12",57,1,0.03,3583.34,107.5],["ARRENDAMIENTO BIENES MUEBLES","PNR","9.13",61,1,0.03,3583.34,107.5],["PAGOS DE TARJETAS DE CRÉDITO O CONSUMO","PNR","9.14",65,"**",0.03,"-","-"],["PAGO DE GASOLINA CON TARJETA DE CRÉDITO O CONSUMO","PNR","9.14",69,"**",0.01,"-","-"],["FLETES Y GASTOS DE TRANSPORTE NACIONAL","PNR","9.15",71,1,0.01,3583.34,35.83],["PAGO DE EMP.DE SEGURO A CORREDORES","PNR","9.16",73,1,0.03,3583.34,107.5],["PAGO DE EMPRESAS DE SEGUROS POR REPARACIÓN DE BIENES DE SUS ASEGURADOS","PNR","9.17",75,1,0.03,3583.34,107.5],["PAGOS DE EMPRESAS DE SEGURO  A CENTROS DE SALUD POR ATENCIÓN DE SUS ASEGURADOS","PNR","9.17",77,1,0.03,3583.34,107.5],["PAGOS POR ADQUISICIÓN DE FONDOS DE COMERCIO","PNR","9.18",79,1,0.03,3583.34,107.5],["PUBLICIDAD Y PROPAGANDA","PNR","9.19",83,1,0.03,3583.34,107.5],["ENRIQUECIMIENTOS POR ENEJENACIÓN DE ACCIONES EN LA BOLSA DE VALORES","PNR","9.2","-",1,0.01,"-","-"],["PAGOS POR ENAJENACIÓN DE ACCIONES FUERA DE LA BOLSA DE VALORES","PNR","9.21","-",1,0.03,3583.34,107.5],["HONORARIOS PROFESIONALES","PJND","9.1. a",5,0.9,"TARIFA N° 2","N/A","N/A"],["COMISIONES ENAJENACIÓN INMUEBLES","PJND","9.2.a",17,1,0.05,"N/A","N/A"],["COMISIONES MERCANTILES Y OTRAS","PJND","9.2.b",21,1,0.05,"N/A","N/A"],["INTERESES ART. 27 # 2 L.I.S.L.R.","PJND","9.3. a",23,0.95,"TARIFA N° 2","N/A","N/A"],["INTERESES ART. 52 PARÁGRAFO 2° L.I.S.L.R.","PJND","9.3.b",24,1,"4,95%","N/A","N/A"],["INTERESES","PJND","9.3.c",28,0.95,"TARIFA N° 2","N/A","N/A"],["AGENCIAS DE NOTICIAS INTERNACIONALES ART. 35 LISLR","PJND","9.4",29,0.15,"TARIFA N° 2","N/A","N/A"],["FLETES Y GTOS DE TRANSP. INTERNAC. (entre Venezuela y el Exterior o viceversa). ART. 36 LISLR","PJND","9.5",31,0.05,"TARIFA N° 2","N/A","N/A"],["FLETES EN EL PAIS A EMP. INTERNAC. ART. 36 LISLR","PJND","9.5",31,0.1,"TARIFAN°2","N/A","N/A"],["EXHIBICIÓN DE PELÍCULAS. ART 27 # 15, y 34 LISLR","PJND","9.6",33,0.25,"TARIFA N° 2","N/A","N/A"],["REGALIAS ART 27 # 16 LISLR","PJND","9.7",35,0.9,"TARIFA N° 2","N/A","N/A"],["ASISTENCIA TÉCNICA ART 27 # 16 LISLR","PJND","9.7",37,0.3,"TARIFA N° 2","N/A","N/A"],["SERVICIOS TECNOLÓGICOS ART 27 # 16 LISLR","PJND","9.7",39,0.5,"TARIFA N° 2","N/A","N/A"],["PRIMAS DE SEGURO Y REASEG. ART. 27 #18 Y PARÁGRAFO 3° ART. 52 LISLR","PJND","9.8",40,"30% Ing. Neto",0.1,"N/A","N/A"],["GANANCIAS EN JUEGOS Y APUESTAS","PJND","9.9",44,1,0.34,"N/A","N/A"],["PREMIOS LOTERÍA E HIPÓDROMOS ART. 62 LISLR","PJND","9.9",48,1,0.16,"N/A","N/A"],["PROPIETARIOS DE ANIMALES DE CARRERAS POR PREMIOS RECIBIDOS","PJND","9.1",52,1,0.05,"N/A","N/A"],["SERVICIOS","PJND","9.11",56,1,"TARIFA N° 2","N/A","N/A"],["ARRENDAMIENTO BIENES INMUEBLES","PJND","9.12",60,1,"TARIFA N° 2","N/A","N/A"],["ARRENDAMIENTO BIENES MUEBLES","PJND","9.13",64,1,0.05,"N/A","N/A"],["PAGOS DE TARJETAS DE CRÉDITO O CONSUMO","PJND","9.14",68,"**",0.05,"N/A","N/A"],["PAGOS POR ADQUISICIÓN DE FONDOS DE COMERCIO","PJND","9.18",82,1,0.05,"N/A","N/A"],["PUBLICIDAD Y PROPAGANDA","PJND","9.19",85,1,0.05,"N/A","N/A"],["ENRIQUECIMIENTOS POR ENEJENACIÓN DE ACCIONES EN LA BOLSA DE VALORES","PJND","9.2","-",1,0.01,"N/A","N/A"],["PAGOS POR ENAJENACIÓN DE ACCIONES FUERA DE LA BOLSA DE VALORES","PJND","9.21","-",1,0.05,"N/A","N/A"],["HONORARIOS PROFESIONALES","PJD","9.1. b",4,1,0.05,"N/A","N/A"],["COMISIONES ENAJENACIÓN INMUEBLES","PJD","9.2.a",16,1,0.05,"N/A","N/A"],["COMISIONES MERCANTILES Y OTRAS","PJD","9.2.b",20,1,0.05,"N/A","N/A"],["INTERESES","PJD","9.3.c",27,1,0.05,"N/A","N/A"],["GANANCIAS EN JUEGOS Y APUESTAS","PJD","9.9",43,1,0.34,"N/A","N/A"],["PREMIOS LOTERÍA E HIPÓDROMOS ART. 62 LISLR","PJD","9.9",47,1,0.16,"N/A","N/A"],["PROPIETARIOS DE ANIMALES DE CARRERAS POR PREMIOS RECIBIDOS","PJD","9.1",51,1,0.05,"N/A","N/A"],["SERVICIOS","PJD","9.11",55,1,0.02,"N/A","N/A"],["ARRENDAMIENTO BIENES INMUEBLES","PJD","9.12",59,1,0.05,"N/A","N/A"],["ARRENDAMIENTO BIENES MUEBLES","PJD","9.13",63,1,0.05,"N/A","N/A"],["PAGOS DE TARJETAS DE CRÉDITO O CONSUMO","PJD","9.14",67,"**",0.05,"N/A","N/A"],["PAGO DE GASOLINA CON TARJETA DE CRÉDITO O CONSUMO","PJD","9.14",70,"**",0.01,"N/A","N/A"],["FLETES Y GASTOS DE TRANSPORTE NACIONAL","PJD","9.15",72,1,0.03,"N/A","N/A"],["PAGO DE EMP.DE SEGURO A CORREDORES","PJD","9.16",74,1,0.05,"N/A","N/A"],["PAGO DE EMPRESAS DE SEGUROS POR REPARACIÓN DE BIENES DE SUS ASEGURADOS","PJD","9.17",76,1,0.05,"N/A","N/A"],["PAGOS DE EMPRESAS DE SEGURO  A CENTROS DE SALUD POR ATENCIÓN DE SUS ASEGURADOS","PJD","9.17",77,1,0.05,"N/A","N/A"],["PAGOS POR ADQUISICIÓN DE FONDOS DE COMERCIO","PJD","9.18",81,1,0.05,"N/A","N/A"],["PUBLICIDAD Y PROPAGANDA","PJD","9.19",84,1,0.05,"N/A","N/A"],["PUBLICIDAD Y PROPAGANDA EMISORAS DE RADIO","PJD","9.19",86,1,0.03,"N/A","N/A"],["ENRIQUECIMIENTOS POR ENEJENACIÓN DE ACCIONES EN LA BOLSA DE VALORES","PJD","9.2","-",1,0.01,"N/A","N/A"],["PAGOS POR ENAJENACIÓN DE ACCIONES FUERA DE LA BOLSA DE VALORES","PJD","9.21","-",1,0.05,"N/A","N/A"]];
+  var CONDS = ["PNR","PNNR","PJD","PJND"];
+  var CONDNAME = {PNR:"Persona natural residente",PNNR:"Persona natural no residente",PJD:"Persona jurídica domiciliada",PJND:"Persona jurídica no domiciliada"};
+  var TRAMOS = [
+    {rango:"1 – 2.000 U.T.", pct:15, ut:0},
+    {rango:"2.001 – 3.000 U.T.", pct:22, ut:140},
+    {rango:"3.001 U.T. en adelante", pct:34, ut:500}
+  ];
+
+  function norm(s){return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();}
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function bs(n){return n.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function pct(v){return String(Number((v*100).toFixed(2))).replace(".",",")+"%";}
+
+  /* Normaliza los datos */
+  var rows = DATA.map(function(r){
+    var t = r[5], t2 = false, tText;
+    if(typeof t === "string" && /^TARIFA\s*N/i.test(t)){ t2 = true; tText = "Tarifa N.º 2"; }
+    else if(typeof t === "number"){ tText = pct(t); }
+    else { tText = String(t); }
+    var o = {c:r[0], k:r[1], n:String(r[2]), s:r[3], b:r[4], t:t, t2:t2, tText:tText, m:r[6], u:r[7]};
+    o.hay = norm([o.c,o.k,CONDNAME[o.k],o.n,o.s,o.tText].join(" | "));
+    return o;
+  });
+
+  var state = {q:"", cond:"ALL"};
+  var $ = function(id){return document.getElementById(id);};
+
+  $("utVal").textContent = "Bs " + bs(UT);
+
+  /* Filtro */
+  function tokens(q){return norm(q).trim().split(/\s+/).filter(Boolean);}
+  function matchQuery(r, toks){return toks.every(function(t){return r.hay.indexOf(t) !== -1;});}
+
+  /* Resaltado insensible a tildes */
+  function highlight(text, toks){
+    if(!toks.length) return esc(text);
+    var chars = Array.from(text);
+    var n = chars.map(function(ch){return norm(ch);});
+    if(n.some(function(x){return x.length !== 1;})) return esc(text);
+    var flat = n.join(""), mask = new Array(flat.length).fill(false);
+    toks.forEach(function(t){
+      var i = 0;
+      while((i = flat.indexOf(t, i)) !== -1){ for(var j=i;j<i+t.length;j++) mask[j]=true; i += t.length; }
+    });
+    var out = "", open = false;
+    chars.forEach(function(ch, i){
+      if(mask[i] && !open){ out += "<mark>"; open = true; }
+      if(!mask[i] && open){ out += "</mark>"; open = false; }
+      out += esc(ch);
+    });
+    if(open) out += "</mark>";
+    return out;
+  }
+
+  function cell(v, isNum){
+    if(v === "-" ) return '<span class="muted">—</span>';
+    if(v === "N/A") return '<span class="muted">N/A</span>';
+    if(typeof v === "number"){
+      if(isNum === "pct") return pct(v);
+      if(isNum === "plain") return String(v);
+      return bs(v * UT / 43);
+    }
+    return esc(v);
+  }
+
+  function render(){
+    var toks = tokens(state.q);
+    var byQuery = rows.filter(function(r){return matchQuery(r, toks);});
+    var shown = byQuery.filter(function(r){return state.cond === "ALL" || r.k === state.cond;});
+
+    /* Chips con conteo según la búsqueda */
+    var counts = {ALL: byQuery.length};
+    CONDS.forEach(function(c){counts[c] = byQuery.filter(function(r){return r.k===c;}).length;});
+    var chips = $("filters").children;
+    for(var i=0;i<chips.length;i++){
+      var key = chips[i].getAttribute("data-c");
+      chips[i].setAttribute("aria-pressed", String(state.cond === key));
+      chips[i].querySelector("small").textContent = counts[key];
+    }
+
+    $("count").innerHTML = shown.length + ' <span>de ' + rows.length + ' retenciones</span>';
+    $("clear").classList.toggle("on", state.q.length > 0);
+    $("empty").hidden = shown.length > 0;
+
+    $("rows").innerHTML = shown.map(function(r){
+      var tarifa = r.t2
+        ? '<button type="button" class="pill" data-t2="1" aria-label="Tarifa N.º 2, ver tabla">Tarifa N.º 2</button>'
+        : cell(r.t, "pct");
+      return '<tr tabindex="0" data-r="' + rows.indexOf(r) + '" title="Tocar para calcular la retención">' +
+        '<td class="concept">' + highlight(r.c, toks) + '</td>' +
+        '<td data-label="Condición"><span class="tag ' + r.k + '" title="' + esc(CONDNAME[r.k]) + '">' + r.k + '</span></td>' +
+        '<td class="lit" data-label="Numeral-literal">' + esc(r.n) + '</td>' +
+        '<td class="num" data-label="Código SENIAT">' + cell(r.s, "plain") + '</td>' +
+        '<td class="num" data-label="Base imponible">' + cell(r.b, "pct") + '</td>' +
+        '<td class="rate" data-label="Tarifa o porcentaje">' + tarifa + '</td>' +
+        '<td class="num" data-label="Pagos mayores a Bs">' + cell(r.m) + '</td>' +
+        '<td class="num" data-label="Sustraendo en Bs">' + cell(r.u) + '</td>' +
+        '</tr>';
+    }).join("");
+  }
+
+  /* Chips */
+  var chipDefs = [["ALL","Todas"]].concat(CONDS.map(function(c){return [c,c];}));
+  $("filters").innerHTML = chipDefs.map(function(d){
+    return '<button type="button" class="chip" data-c="'+d[0]+'" aria-pressed="false">'+d[1]+' <small></small></button>';
+  }).join("");
+  $("filters").addEventListener("click", function(e){
+    var b = e.target.closest(".chip"); if(!b) return;
+    state.cond = b.getAttribute("data-c"); render();
+  });
+
+  /* Búsqueda */
+  $("q").addEventListener("input", function(e){ state.q = e.target.value; render(); });
+  $("clear").addEventListener("click", function(){ $("q").value = ""; state.q = ""; render(); $("q").focus(); });
+  document.querySelector(".hint").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-ex]"); if(!b) return;
+    $("q").value = b.getAttribute("data-ex"); state.q = $("q").value; render(); $("q").focus();
+  });
+
+  /* Tabla Tarifa 2 (misma fuente para el popover y la tarjeta de referencia) */
+  function t2html(){
+    return '<table><thead><tr><th>Monto pagado</th><th>% de retención</th><th>Sustraendo U.T.</th><th>Sustraendo Bs</th></tr></thead><tbody>' +
+      TRAMOS.map(function(t){
+        return '<tr><td>'+t.rango+'</td><td>'+t.pct+'%</td><td>'+t.ut+'</td><td>'+bs(t.ut*UT)+'</td></tr>';
+      }).join("") + '</tbody></table>';
+  }
+  $("t2pop").innerHTML = t2html();
+  $("t2ref").innerHTML = t2html();
+
+  /* Popover */
+  var pop = $("pop"), popOwner = null;
+  function showPop(btn){
+    popOwner = btn; pop.classList.add("on");
+    var r = btn.getBoundingClientRect();
+    var w = pop.offsetWidth, vw = document.documentElement.clientWidth;
+    var left = Math.min(Math.max(8, r.left + window.scrollX), window.scrollX + vw - w - 8);
+    pop.style.left = left + "px";
+    var below = r.bottom + window.scrollY + 8;
+    var h = pop.offsetHeight;
+    if(r.bottom + h + 16 > window.innerHeight && r.top > h + 16){ below = r.top + window.scrollY - h - 8; }
+    pop.style.top = below + "px";
+    btn.setAttribute("aria-describedby","pop");
+  }
+  function hidePop(){ pop.classList.remove("on"); if(popOwner){ popOwner.removeAttribute("aria-describedby"); popOwner = null; } }
+  var rowsEl = $("rows");
+  rowsEl.addEventListener("mouseover", function(e){ var b = e.target.closest("[data-t2]"); if(b) showPop(b); });
+  rowsEl.addEventListener("mouseout", function(e){ if(e.target.closest("[data-t2]")) hidePop(); });
+  rowsEl.addEventListener("focusin", function(e){ var b = e.target.closest("[data-t2]"); if(b) showPop(b); });
+  rowsEl.addEventListener("focusout", function(e){ if(e.target.closest("[data-t2]")) hidePop(); });
+  rowsEl.addEventListener("click", function(e){
+    var b = e.target.closest("[data-t2]"); if(!b) return;
+    if(popOwner === b && pop.classList.contains("on")) hidePop(); else showPop(b);
+  });
+  document.addEventListener("click", function(e){ if(!e.target.closest("[data-t2]") && !e.target.closest("#pop")) hidePop(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") hidePop(); });
+  window.addEventListener("scroll", function(){ if(popOwner) showPop(popOwner); }, {passive:true});
+
+  $("print").addEventListener("click", function(){ hidePop(); window.print(); });
+
+  /* ===== Calculadora de retención (ventana flotante) ===== */
+  var K = UT / 43, LAB = (window.MON && !MON.esBs) ? MON.lab : "Bs";
+  var mdl = $("mdl"), mbox = mdl.querySelector(".mdl"), curRow = null, lastFocus = null;
+  var sg = $("sugg"), sgIdx = -1, sgList = [];
+  function r2(x){ return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function parseMonto(s){
+    s = String(s).trim().replace(/\s/g, ""); if(!s) return 0;
+    if(s.indexOf(",") !== -1){ s = s.replace(/\./g, "").replace(",", "."); }
+    else if((s.match(/\./g) || []).length > 1){ s = s.replace(/\./g, ""); }
+    var n = parseFloat(s); return isFinite(n) && n > 0 ? n : 0;
+  }
+  function calcRet(r, monto){
+    var o = {ok:true, notas:[], monto:monto}, b = r.b, t = r.t;
+    if(b === "**"){ b = 1; o.notas.push("Este concepto tiene una base imponible especial (marcada con ** en la tabla). Escriba como monto el valor base que corresponda."); }
+    if(typeof b !== "number" || (!r.t2 && typeof t !== "number")){ o.ok = false; return o; }
+    var min = typeof r.m === "number" ? r.m * K : 0, sus = typeof r.u === "number" ? r.u * K : 0;
+    o.b = b; o.base = monto * b; o.min = min;
+    if(r.t2){
+      var u = o.base / UT, tr = u <= 2000 ? TRAMOS[0] : (u <= 3000 ? TRAMOS[1] : TRAMOS[2]);
+      o.pct = tr.pct / 100; o.sus = tr.ut * UT; o.tramo = tr; o.min = 0;
+    } else { o.pct = t; o.sus = sus; }
+    o.bruta = o.base * o.pct;
+    if(o.min > 0 && monto <= o.min){ o.exento = true; o.sus = 0; o.ret = 0; }
+    else { o.ret = Math.max(0, o.bruta - o.sus); }
+    o.ret = r2(o.ret); o.neto = r2(monto - o.ret);
+    return o;
+  }
+  function L(v){ return LAB + " " + bs(v); }
+  function paintRes(){
+    if(!curRow) return;
+    var m = parseMonto($("mm").value), res = $("mres");
+    if(!m){ res.innerHTML = '<p class="muted" style="margin:10px 0 0">Escriba el monto para ver el cálculo.</p>'; return; }
+    var o = calcRet(curRow, m);
+    if(!o.ok){ res.innerHTML = '<div class="note">La tabla no trae un porcentaje fijo para este concepto. Revise el numeral ' + esc(curRow.n) + ' del Decreto 1.808 para determinar la retención.</div>'; return; }
+    var h = '<table class="calc"><tbody>' +
+      '<tr><td>Monto pagado</td><td>' + L(o.monto) + '</td></tr>' +
+      '<tr><td>Base imponible (' + pct(o.b) + ' del monto)</td><td>' + L(o.base) + '</td></tr>' +
+      '<tr><td>Tarifa aplicada' + (o.tramo ? ' (tramo ' + esc(o.tramo.rango) + ')' : '') + '</td><td>' + pct(o.pct) + '</td></tr>' +
+      '<tr><td>Retención calculada (base × tarifa)</td><td>' + L(o.bruta) + '</td></tr>' +
+      '<tr><td>(−) Sustraendo' + (o.exento ? ' (no se aplica)' : '') + '</td><td>' + L(o.sus) + '</td></tr>' +
+      '<tr class="t"><td>Retención de ISLR</td><td>' + L(o.ret) + '</td></tr>' +
+      '<tr class="t big"><td>Total a pagar al beneficiario</td><td>' + L(o.neto) + '</td></tr></tbody></table>';
+    if(o.exento) h += '<div class="note">El pago no supera el mínimo de ' + L(o.min) + ': no corresponde retener.</div>';
+    o.notas.forEach(function(n){ h += '<div class="note">' + esc(n) + '</div>'; });
+    h += '<p class="muted" style="margin:10px 0 0;font-size:.85rem">Total a pagar = monto − retención de ISLR. No incluye el IVA ni su retención. Verifique contra la normativa vigente.</p>';
+    res.innerHTML = h;
+  }
+  function hideSugg(){ sg.hidden = true; sgIdx = -1; }
+  function closeCalc(){
+    mdl.hidden = true; document.body.style.overflow = ""; curRow = null;
+    if(lastFocus && lastFocus.focus){ try{ lastFocus.focus(); }catch(e){} }
+  }
+  function openCalc(r){
+    if(!r) return;
+    curRow = r; lastFocus = document.activeElement; hideSugg(); hidePop();
+    var vars = [
+      ["Condición", r.k + " · " + CONDNAME[r.k]],
+      ["Numeral-literal", r.n],
+      ["Código SENIAT", typeof r.s === "number" ? String(r.s) : "—"],
+      ["Base imponible", typeof r.b === "number" ? pct(r.b) : (r.b === "**" ? "Especial (**)" : "—")],
+      ["Tarifa o porcentaje", r.t2 ? "Tarifa N.º 2" : (typeof r.t === "number" ? pct(r.t) : "—")],
+      ["Pagos mayores a", typeof r.m === "number" && r.m > 0 ? L(r.m * K) : "No aplica"],
+      ["Sustraendo", r.t2 ? "Según el tramo" : (typeof r.u === "number" ? L(r.u * K) : "No aplica")],
+      ["Unidad Tributaria", L(UT)]
+    ];
+    mbox.innerHTML = '<div class="mh"><div><span class="tag ' + r.k + '">' + r.k + '</span><b id="mdl-t">' + esc(r.c) + '</b></div><button type="button" class="mx" id="mx" aria-label="Cerrar">×</button></div>' +
+      '<div class="mb"><dl class="vars">' + vars.map(function(v){ return '<div><dt>' + esc(v[0]) + '</dt><dd>' + esc(v[1]) + '</dd></div>'; }).join("") + '</dl>' +
+      '<label for="mm">Monto pagado o abonado, sin IVA (' + esc(LAB) + ')</label><input id="mm" inputmode="decimal" autocomplete="off" placeholder="0,00"><div id="mres" aria-live="polite"></div></div>';
+    mdl.hidden = false; document.body.style.overflow = "hidden";
+    $("mm").addEventListener("input", paintRes); $("mx").addEventListener("click", closeCalc);
+    paintRes(); $("mm").focus();
+  }
+  mdl.addEventListener("mousedown", function(e){ if(e.target === mdl) closeCalc(); });
+  document.addEventListener("keydown", function(e){
+    if(mdl.hidden) return;
+    if(e.key === "Escape"){ closeCalc(); return; }
+    if(e.key === "Tab"){
+      var f = mbox.querySelectorAll("button,input"); if(!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  /* Lista de sugerencias al escribir el concepto */
+  function paintSugg(){
+    var toks = tokens(state.q);
+    sg.innerHTML = sgList.map(function(r, i){
+      return '<li role="option" data-i="' + i + '" class="' + (i === sgIdx ? "on" : "") + '"><span class="tag ' + r.k + '">' + r.k + '</span><span class="sc">' + highlight(r.c, toks) + '</span><small>' + esc(r.n) + ' · ' + esc(r.tText) + '</small></li>';
+    }).join("");
+  }
+  function showSugg(){
+    var toks = tokens(state.q);
+    if(!toks.length){ hideSugg(); return; }
+    sgList = rows.filter(function(r){ return matchQuery(r, toks) && (state.cond === "ALL" || r.k === state.cond); }).slice(0, 8);
+    if(!sgList.length){ hideSugg(); return; }
+    sgIdx = -1; paintSugg(); sg.hidden = false;
+  }
+  $("q").addEventListener("input", showSugg);
+  $("q").addEventListener("focus", showSugg);
+  $("q").addEventListener("blur", function(){ setTimeout(hideSugg, 150); });
+  $("q").addEventListener("keydown", function(e){
+    if(sg.hidden){ if(e.key === "ArrowDown") showSugg(); return; }
+    if(e.key === "ArrowDown"){ sgIdx = (sgIdx + 1) % sgList.length; paintSugg(); e.preventDefault(); }
+    else if(e.key === "ArrowUp"){ sgIdx = (sgIdx - 1 + sgList.length) % sgList.length; paintSugg(); e.preventDefault(); }
+    else if(e.key === "Enter"){ var r = sgList[sgIdx >= 0 ? sgIdx : 0]; if(r){ e.preventDefault(); openCalc(r); } }
+    else if(e.key === "Escape"){ e.preventDefault(); hideSugg(); }
+  });
+  sg.addEventListener("mousedown", function(e){
+    var li = e.target.closest("li[data-i]"); if(!li) return;
+    e.preventDefault(); openCalc(sgList[+li.getAttribute("data-i")]);
+  });
+  $("clear").addEventListener("click", hideSugg);
+  /* Toque en una fila de la tabla */
+  rowsEl.addEventListener("click", function(e){
+    if(e.target.closest("[data-t2]")) return;
+    var tr = e.target.closest("tr[data-r]"); if(tr) openCalc(rows[+tr.getAttribute("data-r")]);
+  });
+  rowsEl.addEventListener("keydown", function(e){
+    if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("tr[data-r]")){ e.preventDefault(); openCalc(rows[+e.target.getAttribute("data-r")]); }
+  });
+
+
+  render();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:1};window.UXMODID='ret';window.UX={status:function(){return{est:'na',det:'Módulo de consulta'}},cur:function(){return "main"},after:function(){},clear:{main:{l:"Limpiar búsqueda y filtros",f:function(){state.q="";state.cond="ALL";$("q").value="";render()}}}};/*UX_END*/
+})();
+</script>
+<script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body>
+</html>

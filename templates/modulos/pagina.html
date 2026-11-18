@@ -1,0 +1,23 @@
+{% extends 'layouts/app.html' %}
+
+{% block title %}{{ modulo.nombre }} · TributoVE{% endblock %}
+
+{% block content %}
+<div class="w-100 p-0 m-0" style="background-color: var(--tv-bg, #0b0e0c); min-height: calc(100vh - 70px);">
+  <iframe
+    src="{{ url_calculadora }}"
+    id="moduloFrame"
+    title="{{ modulo.nombre }}"
+    allow="clipboard-write"
+    allowtransparency="true"
+    style="width: 100%; min-height: calc(100vh - 70px); border: 0; background-color: var(--tv-bg, #0b0e0c); display: block; overflow-x: hidden;">
+  </iframe>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.TV_URL_ESTADO = "{{ url_estado }}";
+  window.TV_CSRF = "{{ csrf_token }}";
+</script>
+{% endblock %}

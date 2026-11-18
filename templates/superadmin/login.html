@@ -1,0 +1,110 @@
+{% extends 'layouts/auth.html' %}
+
+{% block title %}SuperAdmin Login · TributoVE{% endblock %}
+
+{% block content %}
+<div class="text-center mb-3">
+  <div class="d-inline-flex align-items-center gap-1 mb-2 px-3 py-1 rounded-pill" style="background: rgba(234, 179, 8, 0.12); color: #eab308; font-size: 0.75rem; font-weight: 700;">
+    <i class="bi bi-shield-lock-fill"></i> SUPERADMIN
+  </div>
+  <h1 class="auth-title">¡Bienvenido Administrador!</h1>
+  <p class="auth-subtitle mx-auto" style="max-width: 320px;">
+    Panel maestro de control, gestión de contadores y auditoría central.
+  </p>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if next %}
+    <input type="hidden" name="next" value="{{ next }}">
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger py-2 px-3 small mb-3 border-0 text-start" style="border-radius: 14px; font-size: 0.82rem;">
+      {% for error in form.non_field_errors %}
+        <div><i class="bi bi-shield-x me-1"></i> {{ error }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="mb-3">
+    <input
+      type="text"
+      name="usuario"
+      id="id_usuario"
+      class="form-control auth-pill-input {% if form.usuario.errors %}is-invalid{% endif %}"
+      placeholder="Usuario administrador"
+      autocomplete="username"
+      autofocus
+      required
+      value="{{ form.usuario.value|default:'' }}">
+    {% if form.usuario.errors %}
+      <div class="text-danger small ps-3 mt-1 text-start" style="font-size: 0.78rem;">{{ form.usuario.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="mb-2">
+    <div class="position-relative">
+      <input
+        type="password"
+        name="clave"
+        id="id_clave"
+        class="form-control auth-pill-input pe-5 {% if form.clave.errors %}is-invalid{% endif %}"
+        placeholder="Contraseña maestra"
+        autocomplete="current-password"
+        required>
+      <button
+        type="button"
+        class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-3 text-muted p-1 text-decoration-none"
+        onclick="togglePasswordVisibility('id_clave', this)"
+        aria-label="Mostrar u ocultar contraseña">
+        <i class="bi bi-eye"></i>
+      </button>
+    </div>
+    {% if form.clave.errors %}
+      <div class="text-danger small ps-3 mt-1 text-start" style="font-size: 0.78rem;">{{ form.clave.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="text-end mb-3">
+    <span class="small" style="font-size: 0.78rem; opacity: 0.7;">Acceso restringido y auditado</span>
+  </div>
+
+  <button type="submit" class="btn btn-auth-pill w-100">
+    Iniciar sesión como Administrador
+  </button>
+</form>
+
+<div class="auth-split-divider">
+  <span>o continúa con</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-center gap-3">
+  <button
+    type="button"
+    class="auth-social-circle"
+    title="Demostración rápida de SuperAdmin"
+    onclick="document.getElementById('id_usuario').value='admin';document.getElementById('id_clave').focus();">
+    <i class="bi bi-google"></i>
+  </button>
+  <a
+    href="{% url 'usuarios:login' %}"
+    class="auth-social-circle"
+    title="Acceso de contadores">
+    <i class="bi bi-apple"></i>
+  </a>
+  <a
+    href="{% url 'core:inicio' %}"
+    class="auth-social-circle"
+    title="Inicio del portal">
+    <i class="bi bi-facebook"></i>
+  </a>
+</div>
+
+<div class="text-center mt-auto pt-4">
+  <span class="small" style="color: inherit; opacity: 0.75;">¿Eres contador o usuario normal?</span>
+  <a href="{% url 'usuarios:login' %}" class="small fw-bold text-decoration-none ms-1" style="color: inherit;">
+    Acceso general
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}Ficha de {{ contador.nombre }} · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2">
+  <!-- Encabezado con datos del Contador y botones rápidos -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <a href="{% url 'superadmin:contadores' %}" class="btn btn-outline-custom btn-sm rounded-circle p-2" title="Volver a la lista">
+        <i class="bi bi-arrow-left fs-6"></i>
+      </a>
+      <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold text-dark flex-shrink-0"
+           style="width: 48px; height: 48px; background: var(--tv-primary); font-size: 1.15rem;">
+        {{ contador.nombre|slice:":1"|upper }}
+      </div>
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h3 class="fw-bold mb-0 text-white">{{ contador.nombre }}</h3>
+          {% if contador.is_active %}
+            <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.72rem;">
+              Cuenta Habilitada
+            </span>
+          {% else %}
+            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem;">
+              Cuenta Bloqueada
+            </span>
+          {% endif %}
+        </div>
+        <p class="text-dim small mb-0 mt-1">
+          Usuario: <code class="text-white">@{{ contador.usuario }}</code> ·
+          Teléfono: {{ contador.telefono|default:'No registrado' }} ·
+          Email: {{ contador.email|default:'No registrado' }} ·
+          Alta: {{ contador.creado|date:"d/m/Y" }}
+        </p>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <!-- Alternar Estado Rápido -->
+      <form method="post" action="{% url 'superadmin:contador_alternar' contador.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% if suscripcion.activo %}
+          <button type="submit" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2" style="border-radius: 10px; font-weight: 600;">
+            <i class="bi bi-pause-circle"></i>
+            <span>Suspender Acceso</span>
+          </button>
+        {% else %}
+          <button type="submit" class="btn btn-dash-primary btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2" style="border-radius: 10px; font-weight: 700;">
+            <i class="bi bi-play-circle"></i>
+            <span>Habilitar Suscripción</span>
+          </button>
+        {% endif %}
+      </form>
+      <a href="{% url 'superadmin:contador_editar' contador.pk %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-2" style="border-radius: 10px;">
+        <i class="bi bi-pencil"></i>
+        <span>Editar Perfil</span>
+      </a>
+      <form method="post" action="{% url 'superadmin:contador_eliminar' contador.pk %}" onsubmit="return confirm('¿Está seguro de eliminar definitivamente a este contador y sus empresas asociadas? Esta acción no se puede deshacer.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm p-2" title="Eliminar contador" style="border-radius: 10px;">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Columna Izquierda: Suscripción y Conciliación de Pagos -->
+    <div class="col-lg-6">
+      <!-- Tarjeta: Estado de la Suscripción -->
+      <div class="card card-custom mb-4">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check" style="color: var(--tv-primary);"></i>
+            <span>Estatus del Plan y Ciclo de Facturación</span>
+          </h6>
+          {% if suscripcion.esta_activa %}
+            <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.74rem;">
+              Activo
+            </span>
+          {% elif suscripcion.vence %}
+            <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.74rem;">
+              Vencido
+            </span>
+          {% else %}
+            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.74rem;">
+              Pendiente
+            </span>
+          {% endif %}
+        </div>
+        <div class="card-body p-4">
+          <form method="post" action="{% url 'superadmin:contador_suscripcion' contador.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label small fw-bold text-dim">Condición de Acceso</label>
+                <div class="form-check form-switch pt-1">
+                  {{ sus_form.activo }}
+                  <label class="form-check-label fw-semibold text-white small" for="{{ sus_form.activo.id_for_label }}">
+                    Acceso permitido al sistema
+                  </label>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small fw-bold text-dim">Días Restantes de Acceso</label>
+                <div class="p-2 rounded-3 text-center fw-bold" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border); font-size: 1.1rem; color: {% if suscripcion.dias_restantes is not None and suscripcion.dias_restantes > 5 %}#4ade80{% elif suscripcion.dias_restantes is not None and suscripcion.dias_restantes >= 0 %}#fbbf24{% else %}#f87171{% endif %};">
+                  {% if suscripcion.dias_restantes is not None %}
+                    {{ suscripcion.dias_restantes }} días
+                  {% else %}
+                    Indefinido / Permanente
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-12">
+                <label for="{{ sus_form.vence.id_for_label }}" class="form-label small fw-bold text-dim">Fecha de Vencimiento</label>
+                {{ sus_form.vence }}
+                <div class="text-dim mt-1" style="font-size: 0.74rem;">Dejar vacío para otorgar acceso permanente sin vencimiento programado.</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ sus_form.nota.id_for_label }}" class="form-label small fw-bold text-dim">Notas de seguimiento interno</label>
+              {{ sus_form.nota }}
+            </div>
+
+            <button type="submit" class="btn btn-outline-custom btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5" style="border-radius: 10px; font-weight: 600;">
+              <i class="bi bi-save"></i>
+              <span>Guardar Estatus</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Registrar / Conciliar Pago -->
+      <div class="card card-custom mb-4">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-cash-coin" style="color: var(--tv-primary);"></i>
+            <span>Conciliar Pago y Extender Suscripción</span>
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" action="{% url 'superadmin:contador_pago' contador.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ pago_form.monto.id_for_label }}" class="form-label small fw-bold text-dim">Monto Cobrado</label>
+                {{ pago_form.monto }}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ pago_form.moneda.id_for_label }}" class="form-label small fw-bold text-dim">Moneda</label>
+                {{ pago_form.moneda }}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ pago_form.metodo.id_for_label }}" class="form-label small fw-bold text-dim">Método / Canal</label>
+                {{ pago_form.metodo }}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ pago_form.dias.id_for_label }}" class="form-label small fw-bold text-dim">Días a Añadir</label>
+                {{ pago_form.dias }}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ pago_form.referencia.id_for_label }}" class="form-label small fw-bold text-dim">Referencia Bancaria / Capture</label>
+                {{ pago_form.referencia }}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ pago_form.nota.id_for_label }}" class="form-label small fw-bold text-dim">Nota Interna</label>
+                {{ pago_form.nota }}
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-dash-primary w-100 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2" style="border-radius: 12px;">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Conciliar Pago y Activar Periodo</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Restablecer Contraseña -->
+      <div class="card card-custom">
+        <div class="p-3" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-key" style="color: var(--tv-primary);"></i>
+            <span>Restablecer Contraseña</span>
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" action="{% url 'superadmin:contador_clave' contador.pk %}">
+            {% csrf_token %}
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ clave_form.clave1.id_for_label }}" class="form-label small fw-bold text-dim">Nueva Contraseña</label>
+                {{ clave_form.clave1 }}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ clave_form.clave2.id_for_label }}" class="form-label small fw-bold text-dim">Confirmar Contraseña</label>
+                {{ clave_form.clave2 }}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-outline-custom btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5" style="border-radius: 10px; font-weight: 600;">
+              <i class="bi bi-lock-fill"></i>
+              <span>Actualizar Contraseña</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Empresas del Contador & Historial de Pagos -->
+    <div class="col-lg-6">
+      <!-- Empresas de este Contador (SIN datos contables) -->
+      <div class="card card-custom mb-4">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <div>
+            <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+              <i class="bi bi-buildings-fill" style="color: var(--tv-primary);"></i>
+              <span>Empresas Gestionadas ({{ empresas|length }})</span>
+            </h6>
+            <span class="text-dim" style="font-size: 0.72rem;">Cartera de clientes del contador (datos administrativos)</span>
+          </div>
+          <span class="badge" style="background: rgba(255, 255, 255, 0.06); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem;">
+            {{ empresas|length }} empresas
+          </span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Empresa (Razón Social)</th>
+                <th>RIF</th>
+                <th>Condición Fiscal</th>
+                <th>Fecha Registro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in empresas %}
+              <tr>
+                <td>
+                  <strong class="text-white d-block">{{ emp.nombre }}</strong>
+                </td>
+                <td>
+                  <span class="badge font-monospace" style="background: rgba(255, 255, 255, 0.05); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.74rem;">
+                    {{ emp.rif }}
+                  </span>
+                </td>
+                <td>
+                  {% if emp.es_sujeto_pasivo_especial %}
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.7rem;">
+                      Sujeto Pasivo Especial
+                    </span>
+                  {% else %}
+                    <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); font-size: 0.7rem;">
+                      Contribuyente Ordinario
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="text-dim small">
+                  {{ emp.creado|date:"d/m/Y" }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-5 text-dim">
+                  <i class="bi bi-buildings fs-2 d-block mb-2 opacity-50"></i>
+                  <span>Este contador aún no ha registrado empresas en su cartera.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Historial de Pagos de este Contador -->
+      <div class="card card-custom">
+        <div class="p-3 d-flex justify-content-between align-items-center" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-receipt" style="color: var(--tv-primary);"></i>
+            <span>Historial de Pagos y Conciliaciones</span>
+          </h6>
+          <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); font-size: 0.72rem;">
+            {{ pagos|length }} pagos registrados
+          </span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Método</th>
+                <th>Ref</th>
+                <th>Días</th>
+                <th>Admin</th>
+                <th class="text-end"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pago in pagos %}
+              <tr>
+                <td class="text-dim small">{{ pago.fecha|date:"d/m/Y" }}</td>
+                <td>
+                  <strong style="color: #4ade80;">{{ pago.monto|floatformat:2 }}</strong>
+                  <span class="text-dim small">{{ pago.moneda }}</span>
+                </td>
+                <td>
+                  <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--tv-text-muted); font-size: 0.7rem;">
+                    {{ pago.get_metodo_display|default:'Pago Móvil' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge font-monospace" style="background: rgba(255, 255, 255, 0.05); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem;">
+                    {{ pago.referencia|default:'S/R' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); font-size: 0.7rem;">
+                    +{{ pago.dias_agregados }}d
+                  </span>
+                </td>
+                <td class="text-dim small">
+                  {{ pago.registrado_por.nombre_mostrar|default:'Admin' }}
+                </td>
+                <td class="text-end">
+                  <form method="post" action="{% url 'superadmin:pago_eliminar' pago.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este registro de pago del historial?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Eliminar registro" style="border-radius: 6px;">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-5 text-dim">
+                  <i class="bi bi-receipt fs-2 d-block mb-2 opacity-50"></i>
+                  <span>No hay registros de pago previos para este contador.</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

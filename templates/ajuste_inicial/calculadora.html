@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ajuste inicial fiscal · Venezuela</title><style>:root{--bg:#f5f3ec;--c:#fff;--t:#26332d;--g:#1f6f50;--g2:#e2f0e8;--a:#c8871a;--b:#d6dad3;--r:#b3261e;--ok:#1f7a4d;--w:#9a6200;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#141f1a;--c:#1d2b25;--t:#e6eee9;--g:#4cc38a;--g2:#24382f;--a:#e0a43c;--b:#35483f;--r:#ff8a80;--ok:#6fdc9f;--w:#f0b44c}}
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{background:var(--g);color:#fff;padding:12px 16px}header h1{margin:0;font-size:18px}header small{opacity:.85}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 12px;background:var(--c);border-bottom:2px solid var(--a);position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:8px 12px;border-radius:6px;color:var(--t);font-weight:600;white-space:nowrap;cursor:pointer}nav .on{background:var(--g);color:#fff}
+main{padding:14px;max-width:1300px;margin:auto}.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:16px;color:var(--g)}.sc{overflow-x:auto}table{border-collapse:collapse;width:100%}th{background:var(--g);color:#fff;padding:6px;font-size:12px;text-align:left;white-space:nowrap}
+td{border-bottom:1px solid var(--b);padding:2px 4px}td input,td select{width:100%;min-width:80px;border:1px solid transparent;background:transparent;color:var(--t);padding:4px;font:inherit}td input:focus,td select:focus{border-color:var(--a);outline:0;background:var(--g2)}
+.n{text-align:right;font-variant-numeric:tabular-nums}.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.f label{font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.f input,.f select,textarea{padding:7px;border:1px solid var(--b);border-radius:6px;background:var(--c);color:var(--t);font:inherit}
+.b{background:var(--g);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin:4px 4px 4px 0}.b.s{background:var(--a)}.b.x{background:none;color:var(--r);padding:2px 8px}
+.tg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}.ok{background:var(--g2);color:var(--ok)}.wr{background:#fbefd2;color:var(--w)}.er{background:#fbdcd9;color:var(--r)}
+.tot td{font-weight:700;background:var(--g2)}.big{font-size:18px;font-weight:700;padding:12px;border-radius:8px;text-align:center;margin:10px 0}.mu{opacity:.75}
+@media print{header,nav,.np{display:none!important}body{background:#fff}.card{border:0}}</style>
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: transparent !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head>
+<body><header><h1>Ajuste inicial fiscal · Venezuela</h1><small>Actualización de activos y pasivos no monetarios · Registro de Activos Actualizados</small></header><nav id="nv"></nav><main id="v"></main>
+<script>const KEY='aif1',EM=window.EMPRESA||{nombre:'',rif:'',condicion:''};
+const $=s=>document.querySelector(s),N=v=>parseFloat(v)||0,R=v=>Math.round((v+Number.EPSILON)*100)/100,F=v=>R(v).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}),E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),FX=v=>v?R(v*10000)/10000:'';
+const CATS=['Terrenos','Edificaciones','Maquinaria y equipo','Vehículos','Mobiliario y enseres','Inventarios','Cargos diferidos e intangibles','Inversiones en acciones','Otros no monetarios'];
+const rowA=()=>({d:'',cat:'Maquinaria y equipo',fa:'',ci:0,da:0,ia:0}),rowP=()=>({d:'',m:0,ia:0});
+const blank=()=>({cfg:{emp:EM.nombre,rif:EM.rif,cierre:'',inpc:0,tasa:3,elab:''},act:[rowA()],mon:{caja:0,cxc:0,otros:0},pas:[rowP()],pmon:{prov:0,otros:0}});
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.cfg)S=blank();S.cfg.emp=EM.nombre;S.cfg.rif=EM.rif;
+const sv=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let tab='cfg';
+const NV=[['cfg','Datos'],['act','Activos no monetarios'],['pas','Monetarios y pasivos'],['res','Resultado'],['asi','Asiento y registro'],['gui','Guía y normas']];
+const fac=ia=>N(ia)>0&&N(S.cfg.inpc)>0?N(S.cfg.inpc)/N(ia):1;
+function calc(){
+ const A=S.act.map(r=>{const f=fac(r.ia),ok=N(r.ia)>0&&N(S.cfg.inpc)>0,nh=N(r.ci)-N(r.da),ca=R(N(r.ci)*f),da=R(N(r.da)*f),na=ca-da;return{r,f,ok,nh,ca,da,na,aj:R(na-nh)}});
+ const P=S.pas.map(r=>{const f=fac(r.ia),ok=N(r.ia)>0&&N(S.cfg.inpc)>0,ma=R(N(r.m)*f);return{r,f,ok,ma,aj:R(ma-N(r.m))}});
+ const aA=R(A.reduce((s,x)=>s+x.aj,0)),aP=R(P.reduce((s,x)=>s+x.aj,0)),neto=R(aA-aP);
+ const mon=N(S.mon.caja)+N(S.mon.cxc)+N(S.mon.otros),pm=N(S.pmon.prov)+N(S.pmon.otros);
+ const nh=A.reduce((s,x)=>s+x.nh,0),na=A.reduce((s,x)=>s+x.na,0),ph=P.reduce((s,x)=>s+N(x.r.m),0),pa=P.reduce((s,x)=>s+x.ma,0);
+ return{A,P,aA,aP,neto,mon,pm,nh,na,ph,pa,patH:R(mon+nh-pm-ph),patF:R(mon+na-pm-pa),imp:R(Math.max(0,neto)*N(S.cfg.tasa)/100),falta:A.some(x=>!x.ok&&(N(x.r.ci)||N(x.r.da)))||P.some(x=>!x.ok&&N(x.r.m))}}
+function C(k,v){S.cfg[k]=v;sv();draw()}
+function A_(i,k,v){S.act[i][k]=v;sv();draw()}
+function addA(){S.act.push(rowA());sv();draw()}
+function delA(i){S.act.splice(i,1);if(!S.act.length)S.act.push(rowA());sv();draw()}
+function P_(i,k,v){S.pas[i][k]=v;sv();draw()}
+function addP(){S.pas.push(rowP());sv();draw()}
+function delP(i){S.pas.splice(i,1);if(!S.pas.length)S.pas.push(rowP());sv();draw()}
+function M(g,k,v){S[g][k]=N(v);sv();draw()}
+const fl=(l,h)=>`<label>${l}${h}</label>`;
+const warn=c=>c.falta?'<p><span class="tg wr">Hay partidas sin INPC de origen o sin INPC de cierre: se actualizan con factor 1,0000 hasta completarlos</span></p>':'';
+const V={
+cfg(){const c=S.cfg;return`<div class=card><h2>Datos del ajuste inicial</h2><div class=f>
+${fl('Razón social',`<input value="${E(c.emp)}" readonly>`)}${fl('RIF',`<input value="${E(c.rif)}" readonly>`)}
+${fl('Cierre del primer ejercicio gravable',`<input type=date value="${E(c.cierre)}" onchange="C('cierre',this.value)">`)}
+${fl('INPC del mes de cierre',`<input type=number step=any value="${c.inpc||''}" onchange="C('inpc',N(this.value))">`)}
+${fl('Impuesto sobre el ajuste inicial neto (%)',`<input type=number step=any value="${c.tasa}" onchange="C('tasa',N(this.value))">`)}
+${fl('Elaborado por',`<input value="${E(c.elab)}" onchange="C('elab',this.value)">`)}</div>
+<p class=mu style="margin:10px 0 0">El INPC (Índice Nacional de Precios al Consumidor, Área Metropolitana de Caracas) lo publica el Banco Central de Venezuela. Cargue los índices que corresponden a cada fecha.</p></div>
+<div class=card><h2>Pasos</h2><ol><li>Registre en <b>Activos no monetarios</b> cada partida con su costo, depreciación acumulada e INPC del mes de adquisición.</li><li>En <b>Monetarios y pasivos</b> cargue los activos monetarios, los pasivos no monetarios y los pasivos monetarios.</li><li>Revise el <b>Resultado</b>: ajuste neto, impuesto y patrimonio fiscal actualizado.</li><li>Genere el <b>asiento</b> y el <b>Registro de Activos Actualizados</b>.</li></ol></div>`},
+act(){const c=calc();let h=`<div class=card><h2>Activos no monetarios</h2>${warn(c)}<button class=b onclick="addA()">+ Agregar activo</button><div class=sc><table><tr><th>Descripción</th><th>Categoría</th><th>Adquisición</th><th>Costo histórico</th><th>Deprec. acumulada</th><th>INPC de adquisición</th><th class=n>Factor</th><th class=n>Costo actualizado</th><th class=n>Deprec. actualizada</th><th class=n>Valor neto actualizado</th><th class=n>Ajuste</th><th></th></tr>`;
+ c.A.forEach((x,i)=>{const r=x.r;h+=`<tr><td><input value="${E(r.d)}" onchange="A_(${i},'d',this.value)"></td><td><select onchange="A_(${i},'cat',this.value)">${CATS.map(k=>`<option${k==r.cat?' selected':''}>${k}</option>`).join('')}</select></td><td><input type=month value="${E(r.fa)}" onchange="A_(${i},'fa',this.value)"></td><td><input type=number step=any value="${r.ci}" onchange="A_(${i},'ci',N(this.value))"></td><td><input type=number step=any value="${r.da}" onchange="A_(${i},'da',N(this.value))"></td><td><input type=number step=any value="${r.ia||''}" onchange="A_(${i},'ia',N(this.value))"></td><td class=n>${FX(x.f)||'1'}</td><td class=n>${F(x.ca)}</td><td class=n>${F(x.da)}</td><td class=n>${F(x.na)}</td><td class=n><b>${F(x.aj)}</b></td><td><button class="b x" onclick="delA(${i})">✕</button></td></tr>`});
+ return h+`<tr class=tot><td colspan=3>Totales</td><td class=n>${F(S.act.reduce((s,r)=>s+N(r.ci),0))}</td><td class=n>${F(S.act.reduce((s,r)=>s+N(r.da),0))}</td><td colspan=3></td><td class=n>${F(c.A.reduce((s,x)=>s+x.da,0))}</td><td class=n>${F(c.na)}</td><td class=n>${F(c.aA)}</td><td></td></tr></table></div><p class=mu style="margin:8px 0 0">Costo y depreciación se actualizan con el mismo factor (INPC de cierre ÷ INPC de adquisición). Los terrenos y las inversiones no se deprecian.</p></div>`},
+pas(){const c=calc(),m=(g,k,l)=>fl(l,`<input type=number step=any value="${S[g][k]}" onchange="M('${g}','${k}',this.value)">`);
+ let h=`<div class=card><h2>Activos monetarios (no se actualizan)</h2><div class=f>${m('mon','caja','Caja y bancos')}${m('mon','cxc','Cuentas por cobrar')}${m('mon','otros','Otros activos monetarios')}</div></div>
+<div class=card><h2>Pasivos monetarios (no se actualizan)</h2><div class=f>${m('pmon','prov','Proveedores y cuentas por pagar')}${m('pmon','otros','Otros pasivos monetarios')}</div></div>
+<div class=card><h2>Pasivos no monetarios</h2>${warn(c)}<button class=b onclick="addP()">+ Agregar pasivo</button><div class=sc><table><tr><th>Descripción</th><th>Monto histórico</th><th>INPC de origen</th><th class=n>Factor</th><th class=n>Monto actualizado</th><th class=n>Ajuste</th><th></th></tr>`;
+ c.P.forEach((x,i)=>{const r=x.r;h+=`<tr><td><input value="${E(r.d)}" onchange="P_(${i},'d',this.value)"></td><td><input type=number step=any value="${r.m}" onchange="P_(${i},'m',N(this.value))"></td><td><input type=number step=any value="${r.ia||''}" onchange="P_(${i},'ia',N(this.value))"></td><td class=n>${FX(x.f)||'1'}</td><td class=n>${F(x.ma)}</td><td class=n><b>${F(x.aj)}</b></td><td><button class="b x" onclick="delP(${i})">✕</button></td></tr>`});
+ return h+`<tr class=tot><td>Totales</td><td class=n>${F(c.ph)}</td><td colspan=2></td><td class=n>${F(c.pa)}</td><td class=n>${F(c.aP)}</td><td></td></tr></table></div><p class=mu style="margin:8px 0 0">Ejemplos: anticipos de clientes e ingresos diferidos.</p></div>`},
+res(){const c=calc(),ok=Math.abs(R(c.patF-c.patH-c.neto))<0.01;return`<div class=card><h2>Resultado del ajuste inicial</h2>${warn(c)}<div class="big" style="background:var(--g2);color:${c.neto>=0?'var(--g)':'var(--r)'}">Ajuste inicial neto: Bs ${F(c.neto)}</div>
+<div class=sc><table><tr><th>Concepto</th><th class=n>Bs</th></tr><tr><td>Ajuste de activos no monetarios</td><td class=n>${F(c.aA)}</td></tr><tr><td>(−) Ajuste de pasivos no monetarios</td><td class=n>${F(c.aP)}</td></tr><tr class=tot><td>Ajuste inicial neto (a la cuenta Actualización del Patrimonio)</td><td class=n>${F(c.neto)}</td></tr>
+<tr><td>Impuesto sobre el ajuste inicial neto (${S.cfg.tasa} % sobre el neto positivo)</td><td class=n><b>${F(c.imp)}</b></td></tr></table></div></div>
+<div class=card><h2>Patrimonio neto fiscal</h2><div class=sc><table><tr><th>Concepto</th><th class=n>Histórico</th><th class=n>Actualizado</th></tr><tr><td>Activos monetarios</td><td class=n>${F(c.mon)}</td><td class=n>${F(c.mon)}</td></tr><tr><td>Activos no monetarios (valor neto)</td><td class=n>${F(c.nh)}</td><td class=n>${F(c.na)}</td></tr><tr><td>(−) Pasivos monetarios</td><td class=n>${F(c.pm)}</td><td class=n>${F(c.pm)}</td></tr><tr><td>(−) Pasivos no monetarios</td><td class=n>${F(c.ph)}</td><td class=n>${F(c.pa)}</td></tr><tr class=tot><td>Patrimonio neto</td><td class=n>${F(c.patH)}</td><td class=n>${F(c.patF)}</td></tr></table></div>
+<p>${ok?'<span class="tg ok">Cuadra: la diferencia entre patrimonio actualizado e histórico es igual al ajuste neto</span>':'<span class="tg er">No cuadra: revise los datos</span>'}</p></div>`},
+asi(){const c=calc(),g={};c.A.forEach(x=>{g[x.r.cat]=(g[x.r.cat]||0)+x.aj});
+ const L=[];Object.keys(g).forEach(k=>{const v=R(g[k]);if(v>0)L.push([k+' (actualización)',v,0]);else if(v<0)L.push([k+' (actualización)',0,-v])});
+ if(c.aP>0)L.push(['Pasivos no monetarios (actualización)',0,c.aP]);else if(c.aP<0)L.push(['Pasivos no monetarios (actualización)',-c.aP,0]);
+ if(c.neto>=0)L.push(['Actualización del Patrimonio',0,c.neto]);else L.push(['Actualización del Patrimonio',-c.neto,0]);
+ const td=R(L.reduce((s,x)=>s+x[1],0)),th=R(L.reduce((s,x)=>s+x[2],0));
+ return`<div class=card><h2>Asiento de ajuste inicial${S.cfg.cierre?' al '+S.cfg.cierre.split('-').reverse().join('/'):''}</h2><div class=sc><table><tr><th>Cuenta</th><th class=n>Debe</th><th class=n>Haber</th></tr>${L.map(x=>`<tr><td>${E(x[0])}</td><td class=n>${x[1]?F(x[1]):''}</td><td class=n>${x[2]?F(x[2]):''}</td></tr>`).join('')||'<tr><td colspan=3>Sin movimientos.</td></tr>'}<tr class=tot><td>Totales</td><td class=n>${F(td)}</td><td class=n>${F(th)}</td></tr></table></div></div>
+<div class=card><h2>Registro de Activos Actualizados</h2><div class=sc><table><tr><th>Descripción</th><th>Categoría</th><th>Adquisición</th><th class=n>Costo histórico</th><th class=n>Costo actualizado</th><th class=n>Deprec. actualizada</th><th class=n>Valor neto actualizado</th></tr>${c.A.filter(x=>N(x.r.ci)||x.r.d).map(x=>`<tr><td>${E(x.r.d)}</td><td>${E(x.r.cat)}</td><td>${E(x.r.fa)}</td><td class=n>${F(N(x.r.ci))}</td><td class=n>${F(x.ca)}</td><td class=n>${F(x.da)}</td><td class=n>${F(x.na)}</td></tr>`).join('')||'<tr><td colspan=7>Sin activos registrados.</td></tr>'}</table></div></div>`},
+gui(){return`<div class=card><h2>Qué es el ajuste inicial por inflación fiscal</h2><p>Es la actualización extraordinaria, al cierre del primer ejercicio gravable, de los activos y pasivos no monetarios con el INPC. Produce un aumento o disminución del patrimonio neto, que se lleva a la cuenta <b>Actualización del Patrimonio</b>. El balance actualizado sirve de punto de partida para el reajuste regular de los ejercicios siguientes.</p>
+<ul><li><b>Quiénes:</b> los contribuyentes que realizan actividades comerciales, industriales, bancarias, financieras, de seguros y reaseguros, y de minas e hidrocarburos, y que están obligados a llevar contabilidad (Ley de ISLR, título de ajuste por inflación fiscal, arts. 171 y siguientes tras la reforma de 2015).</li><li><b>Índice:</b> INPC del Área Metropolitana de Caracas, del BCV.</li><li><b>Registro:</b> los activos actualizados se inscriben en el Registro de Activos Actualizados.</li><li><b>Impuesto:</b> el ajuste inicial neto positivo causa un impuesto proporcional (por defecto 3 %, editable en Datos).</li></ul>
+<p class=mu><b>Verifique antes de aplicar:</b> si su empresa está obligada o excluida del sistema de ajuste por inflación fiscal vigente, el porcentaje y el plazo de pago del impuesto, y las reglas de depreciación actualizada. Este módulo es una herramienta de cálculo y no sustituye la revisión de un contador público.</p></div>`}
+};
+let busy=0;function draw(){if(busy){setTimeout(draw,0);return}busy=1;try{$('#nv').innerHTML=NV.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="tab='${t[0]}';draw()">${t[1]}</button>`).join('');$('#v').innerHTML=V[tab]()}finally{busy=0}}
+draw();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:1};window.UXMODID='aif';window.UX={status:function(){var c=calc(),n=S.act.filter(function(r){return N(r.ci)||N(r.da)}).length+S.pas.filter(function(r){return N(r.m)}).length;
+ if(!n&&!(N(S.mon.caja)+N(S.mon.cxc)+N(S.mon.otros)))return{est:'sin',det:'Sin datos'};
+ return !c.falta&&n>0&&N(S.cfg.inpc)>0?{est:'ok',det:'Ajuste neto '+F(c.neto)+' · impuesto '+F(c.imp)}:{est:'proc',det:n+(n==1?' partida':' partidas')+' · falta el INPC'}},cur:function(){return tab},after:function(){sv();draw()},clear:{
+cfg:{l:"Limpiar cierre, INPC y responsable",f:function(){S.cfg.cierre='';S.cfg.inpc=0;S.cfg.elab=''}},
+act:{l:"Limpiar los activos no monetarios",f:function(){S.act=[rowA()]}},
+pas:{l:"Limpiar monetarios y pasivos",f:function(){S.mon={caja:0,cxc:0,otros:0};S.pmon={prov:0,otros:0};S.pas=[rowP()]}}}};/*UX_END*/
+</script><script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body></html>

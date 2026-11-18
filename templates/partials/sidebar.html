@@ -1,0 +1,128 @@
+<aside class="app-sidebar" id="appSidebar">
+  <!-- Usuario en cabecera del Sidebar (idéntico al dashboard de referencia) -->
+  <div class="sidebar-user-header">
+    <div class="sidebar-user-avatar">
+      {{ user.nombre|slice:":1"|upper }}
+    </div>
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-name">{{ user.nombre_mostrar }}</div>
+      <div class="sidebar-user-role">
+        {% if user.suscripcion_activa %}
+          <span class="text-success"><i class="bi bi-patch-check-fill"></i> Contador Activo</span>
+        {% else %}
+          <span class="text-danger"><i class="bi bi-clock"></i> Plan Vencido</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 14px;">
+        <li><a class="dropdown-item" href="{% url 'usuarios:mi_cuenta' %}"><i class="bi bi-person me-2"></i> Mi perfil</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form method="post" action="{% url 'usuarios:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Buscador con Shortcut ⌘ K -->
+  <div class="sidebar-search-box">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" id="sidebarSearchInput" placeholder="Buscar módulo..." autocomplete="off">
+    <span class="shortcut-tag">⌘ K</span>
+  </div>
+
+  <!-- Navegación por grupos -->
+  <div class="sidebar-scroll" id="sidebarNavScroll">
+    <nav class="sidebar-nav">
+      <!-- DASHBOARDS -->
+      <div class="sidebar-heading">Dashboards</div>
+      <a class="nav-link {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}active{% endif %}" href="{% url 'empresas:resumen' %}">
+        <i class="bi bi-grid-fill"></i>
+        <span>Matriz de estatus</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'lista' %}active{% endif %}" href="{% url 'empresas:lista' %}">
+        <i class="bi bi-buildings-fill"></i>
+        <span>Mis empresas</span>
+      </a>
+
+      <!-- PLANIFICACIÓN -->
+      <div class="sidebar-heading mt-2">Planificación</div>
+      <a class="nav-link {% if request.resolver_match.app_name == 'planificacion' %}active{% endif %}" href="{% url 'planificacion:index' %}">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>Planificación fiscal</span>
+      </a>
+
+      <!-- CONSULTAS TRIBUTARIAS -->
+      <div class="sidebar-heading mt-2">Consultas</div>
+      <a class="nav-link {% if request.resolver_match.app_name == 'retenciones_islr' %}active{% endif %}" href="{% url 'retenciones_islr:index' %}">
+        <i class="bi bi-search"></i>
+        <span>Retenciones ISLR</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'retenciones_iva' %}active{% endif %}" href="{% url 'retenciones_iva:index' %}">
+        <i class="bi bi-receipt"></i>
+        <span>Retenciones IVA</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'calendario' %}active{% endif %}" href="{% url 'calendario:index' %}">
+        <i class="bi bi-calendar2-week-fill"></i>
+        <span>Calendario fiscal</span>
+      </a>
+
+      <!-- CONTABILIDAD FISCAL -->
+      <div class="sidebar-heading mt-2">Contabilidad Fiscal</div>
+      <a class="nav-link {% if request.resolver_match.app_name == 'impuesto_diferido' %}active{% endif %}" href="{% url 'impuesto_diferido:index' %}">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Impuesto diferido</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'grandes_patrimonios' %}active{% endif %}" href="{% url 'grandes_patrimonios:index' %}">
+        <i class="bi bi-bank"></i>
+        <span>Grandes patrimonios</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'conciliacion' %}active{% endif %}" href="{% url 'conciliacion:index' %}">
+        <i class="bi bi-arrow-left-right"></i>
+        <span>Conciliación bancaria</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'ajuste_inicial' %}active{% endif %}" href="{% url 'ajuste_inicial:index' %}">
+        <i class="bi bi-sliders"></i>
+        <span>Ajuste inicial fiscal</span>
+      </a>
+      <a class="nav-link {% if request.resolver_match.app_name == 'cedula_fiscal' %}active{% endif %}" href="{% url 'cedula_fiscal:index' %}">
+        <i class="bi bi-journal-text"></i>
+        <span>Cédula fiscal ISLR</span>
+      </a>
+
+      <!-- SETTINGS -->
+      <div class="sidebar-heading mt-2">Configuración</div>
+      <a class="nav-link {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'mi_cuenta' %}active{% endif %}" href="{% url 'usuarios:mi_cuenta' %}">
+        <i class="bi bi-gear-fill"></i>
+        <span>Ajustes &amp; Apariencia</span>
+      </a>
+
+      <!-- Botón PWA en Sidebar -->
+      <div class="px-2 pt-2 d-none" id="sidebarPwaInstallContainer">
+        <button type="button" id="sidebarPwaInstallBtn" class="btn btn-sm btn-dash-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2" style="font-size: 0.78rem;">
+          <i class="bi bi-download text-lime"></i> Instalar Aplicación
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Pie del Sidebar con Isotipo Geométrico TributoVE -->
+  <div class="sidebar-footer">
+    <div class="brand-badge">
+      <div class="brand-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span>TributoVE</span>
+    </div>
+    <span class="badge bg-body-tertiary text-muted" style="font-size: 0.65rem;">2026/27</span>
+  </div>
+</aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>

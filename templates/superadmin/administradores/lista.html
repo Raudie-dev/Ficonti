@@ -1,0 +1,91 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}SuperAdministradores · TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 px-md-2">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold mb-0 text-white">SuperAdministradores</h3>
+        <span class="badge" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); font-size: 0.7rem; font-weight: 700; border-radius: 999px;">
+          SEGURIDAD
+        </span>
+      </div>
+      <p class="text-dim small mb-0">Cuentas con privilegios de gestión y control total de TributoVE.</p>
+    </div>
+    <div>
+      <a href="{% url 'superadmin:administrador_crear' %}" class="btn btn-dash-primary btn-sm d-inline-flex align-items-center gap-2 px-3 py-2">
+        <i class="bi bi-shield-plus"></i>
+        <span>Nuevo SuperAdmin</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="card card-custom">
+    <div class="table-responsive">
+      <table class="table table-hover table-custom align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Último Ingreso</th>
+            <th>Creado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sa in administradores %}
+          <tr style="{% if sa.pk == superadmin_actual.pk %}background: rgba(210, 248, 101, 0.04);{% endif %}">
+            <td>
+              <div class="d-flex align-items-center gap-2.5">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-dark fw-bold flex-shrink-0"
+                     style="width: 34px; height: 34px; background: {% if sa.pk == superadmin_actual.pk %}var(--tv-primary){% else %}rgba(255,255,255,0.1){% endif %}; color: {% if sa.pk == superadmin_actual.pk %}#000000{% else %}#FFFFFF{% endif %}; font-size: 0.85rem;">
+                  <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                  <strong class="text-white d-block">{{ sa.nombre }}</strong>
+                  {% if sa.pk == superadmin_actual.pk %}
+                    <span class="badge" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); font-size: 0.65rem;">Su cuenta actual</span>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td><code class="text-white">@{{ sa.usuario }}</code></td>
+            <td class="text-dim small">{{ sa.email|default:'-' }}</td>
+            <td>
+              {% if sa.is_active %}
+                <span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.72rem;">Habilitado</span>
+              {% else %}
+                <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem;">Inactivo</span>
+              {% endif %}
+            </td>
+            <td class="small text-dim">{{ sa.ultimo_ingreso|date:"d/m/Y H:i"|default:'Nunca' }}</td>
+            <td class="small text-dim">{{ sa.creado|date:"d/m/Y" }}</td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1.5">
+                <a href="{% url 'superadmin:administrador_editar' sa.pk %}" class="btn btn-sm btn-outline-custom" title="Editar datos" style="border-radius: 8px;">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {% if sa.pk != superadmin_actual.pk %}
+                <form method="post" action="{% url 'superadmin:administrador_eliminar' sa.pk %}" class="d-inline" onsubmit="return confirm('¿Seguro de eliminar este administrador?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Eliminar cuenta" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-dim">No hay administradores registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

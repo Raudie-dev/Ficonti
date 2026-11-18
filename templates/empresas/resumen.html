@@ -1,0 +1,240 @@
+{% extends 'layouts/app.html' %}
+
+{% block title %}Dashboard Overview · TributoVE{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Encabezado Overview estilo Imagen de Referencia -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Overview Fiscal</h2>
+      <p class="text-muted small mb-0">Monitoreo en tiempo real de obligaciones tributarias y estado de empresas.</p>
+    </div>
+
+    <!-- Filtros con estilo minimalista -->
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+      <div class="position-relative" style="min-width: 220px;">
+        <input type="text" name="q" class="form-control form-control-sm ps-4" placeholder="Buscar empresa o RIF..." value="{{ q }}" style="font-size: 0.82rem;">
+        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+      </div>
+
+      <select name="f" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
+        <option value="todas" {% if f == 'todas' %}selected{% endif %}>Todas</option>
+        <option value="pend" {% if f == 'pend' %}selected{% endif %}>Con pendientes</option>
+        <option value="comp" {% if f == 'comp' %}selected{% endif %}>100% Listas</option>
+        <option value="sin" {% if f == 'sin' %}selected{% endif %}>Sin iniciar</option>
+      </select>
+
+      <select name="o" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
+        <option value="nombre" {% if o == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
+        <option value="menor" {% if o == 'menor' %}selected{% endif %}>Menor avance</option>
+        <option value="mayor" {% if o == 'mayor' %}selected{% endif %}>Mayor avance</option>
+      </select>
+
+      <button type="submit" class="btn btn-sm btn-dash-secondary">Filtrar</button>
+      {% if q or f != 'todas' or o != 'nombre' %}
+        <a href="{% url 'empresas:resumen' %}" class="btn btn-sm btn-link text-muted p-0 ms-1">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Fila de Tarjetas KPI Superiores (Exacto al Dashboard de la Imagen) -->
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Total Empresas -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Empresas en Cartera</div>
+        <div class="kpi-value">{{ total_empresas }}</div>
+        <div class="kpi-trend trend-up">
+          <i class="bi bi-arrow-up-right"></i>
+          <span>Activas en sistema</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Obligaciones Listas -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Obligaciones Cumplidas</div>
+        <div class="kpi-value text-white">{{ totales.realizados }}</div>
+        <div class="kpi-trend trend-neutral">
+          <i class="bi bi-check2-circle"></i>
+          <span>de {{ totales.aplican }} aplicables</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Nivel de Cumplimiento Goal -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Cumplimiento Global</div>
+        <div class="kpi-value" style="color: var(--tv-lime);">{{ totales.pct }}%</div>
+        <div class="progress mt-1" style="height: 6px; background: var(--tv-surface-subtle); border-radius: 999px;">
+          <div class="progress-bar" style="width: {{ totales.pct }}%; background: var(--tv-lime); border-radius: 999px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Empresas con Pendientes -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Atención Requerida</div>
+        <div class="kpi-value text-warning">{{ totales.pendientes }}</div>
+        <div class="kpi-trend trend-warn">
+          <i class="bi bi-exclamation-triangle"></i>
+          <span>empresas con trámites</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid Principal con Matriz de Estatus y Widget de Suscripción -->
+  <div class="row g-4">
+    <!-- Matriz de Módulos (Estilo Tabla Customer List del Dashboard) -->
+    <div class="col-xl-9">
+      <div class="card-dashboard p-0">
+        <div class="p-4 d-flex justify-content-between align-items-center border-bottom" style="border-color: var(--tv-border-subtle) !important;">
+          <div>
+            <h5 class="fw-bold mb-0">Matriz de Obligaciones por Empresa</h5>
+            <small class="text-muted">Haga clic en cualquier celda para abrir directamente la calculadora de ese módulo.</small>
+          </div>
+          <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-secondary">
+            <i class="bi bi-plus-lg me-1"></i> Gestionar
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table-dashboard align-middle mb-0 text-center">
+            <thead>
+              <tr>
+                <th class="text-start ps-4" style="min-width: 220px;">Empresa</th>
+                <th style="width: 100px;">Progreso</th>
+                {% for m in modulos_resumen %}
+                <th style="min-width: 90px;" title="{{ m.nombre }}">
+                  <div class="d-flex flex-column align-items-center">
+                    <i class="bi {{ m.icono }} mb-1" style="font-size: 0.95rem; color: var(--tv-lime);"></i>
+                    <span style="font-size: 0.72rem;">{{ m.corto }}</span>
+                  </div>
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for fila in filas %}
+              <tr>
+                <td class="text-start ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="table-avatar">{{ fila.empresa.nombre|slice:":1"|upper }}</span>
+                    <div>
+                      <div class="fw-bold text-white">{{ fila.empresa.nombre }}</div>
+                      <div class="d-flex align-items-center gap-2 small text-muted" style="font-size: 0.75rem;">
+                        <span>{{ fila.empresa.rif }}</span>
+                        <span class="badge {% if fila.empresa.es_sujeto_pasivo_especial %}badge-dash-lime{% else %}badge-dash-dim{% endif %}" style="font-size: 0.65rem;">
+                          {{ fila.empresa.condicion_corta }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-bold">{{ fila.realizados }}/{{ fila.aplican }}</div>
+                  <div class="progress mt-1 mx-auto" style="height: 4px; width: 60px; background: var(--tv-surface-subtle); border-radius: 999px;">
+                    <div class="progress-bar" style="width: {{ fila.pct }}%; background: {% if fila.pct == 100 %}var(--tv-emerald){% else %}var(--tv-lime){% endif %}; border-radius: 999px;"></div>
+                  </div>
+                </td>
+
+                {% for celda in fila.celdas %}
+                <td>
+                  {% if celda.estado == 'na' %}
+                    <span class="badge-dash-dim" title="No aplica a esta condición">N/A</span>
+                  {% elif celda.estado == 'ok' %}
+                    <a href="{{ celda.url }}" class="badge-dash-ok text-decoration-none d-inline-block" title="{{ celda.detalle|default:'Listo' }}">
+                      <i class="bi bi-check2"></i> Listo
+                    </a>
+                  {% elif celda.estado == 'prog' %}
+                    <a href="{{ celda.url }}" class="badge-dash-prog text-decoration-none d-inline-block" title="{{ celda.detalle|default:'En curso' }}">
+                      <i class="bi bi-hourglass-split"></i> Curso
+                    </a>
+                  {% else %}
+                    <a href="{{ celda.url }}" class="badge-dash-dim text-decoration-none d-inline-block" title="Sin iniciar">
+                      <i class="bi bi-dash"></i>
+                    </a>
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="{{ modulos_resumen|length|add:2 }}" class="py-5 text-muted text-center">
+                  No se encontraron empresas con los filtros aplicados.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Lateral Derecha: Widget "Premium Plan" & Actividad -->
+    <div class="col-xl-3">
+      <!-- Widget Suscripción Idéntico a "Premium Plane" de la imagen -->
+      <div class="card-promo-widget mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="promo-pill"><i class="bi bi-lightning-charge-fill text-warning"></i> Plan TributoVE</span>
+          <i class="bi bi-three-dots text-muted"></i>
+        </div>
+
+        <div class="promo-price">
+          ${{ user.suscripcion.configuracion.monto|default:'10'|floatformat:0 }}
+          <span style="font-size: 0.85rem; font-weight: 500; color: rgba(255, 255, 255, 0.7); display: block;">Mensual / Todas las Empresas</span>
+        </div>
+
+        <p class="small text-white-50 mb-4" style="font-size: 0.82rem;">
+          Acceso ilimitado a los 9 módulos tributarios SENIAT, conciliación bancaria y libros de retenciones.
+        </p>
+
+        <a href="{% url 'usuarios:mi_cuenta' %}" class="promo-btn text-decoration-none">
+          <i class="bi bi-check-circle-fill"></i> Gestionar Plan
+        </a>
+      </div>
+
+      <!-- Widget Actividades / Módulos Rápidos -->
+      <div class="card-dashboard">
+        <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+          <span>Accesos Frecuentes</span>
+          <i class="bi bi-stars text-lime"></i>
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <a href="{% url 'retenciones_iva:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
+            <div class="table-avatar" style="background: rgba(34, 197, 94, 0.15); color: var(--tv-emerald);"><i class="bi bi-receipt"></i></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold small">Retenciones de IVA</div>
+              <small class="text-muted" style="font-size: 0.72rem;">Providencia 000054</small>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+
+          <a href="{% url 'retenciones_islr:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
+            <div class="table-avatar" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-lime);"><i class="bi bi-search"></i></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold small">Retenciones ISLR</div>
+              <small class="text-muted" style="font-size: 0.72rem;">Decreto 1.808</small>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+
+          <a href="{% url 'calendario:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
+            <div class="table-avatar" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="bi bi-calendar2-week"></i></div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold small">Calendario Fiscal</div>
+              <small class="text-muted" style="font-size: 0.72rem;">Sujetos pasivos especiales</small>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

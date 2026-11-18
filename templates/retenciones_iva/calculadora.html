@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme') || 'dark';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Retenciones de IVA · Venezuela</title><style>:root{--bg:#f5f3ec;--c:#fff;--t:#26332d;--g:#1f6f50;--g2:#e2f0e8;--a:#c8871a;--b:#d6dad3;--r:#b3261e;--ok:#1f7a4d;--w:#9a6200;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#141f1a;--c:#1d2b25;--t:#e6eee9;--g:#4cc38a;--g2:#24382f;--a:#e0a43c;--b:#35483f;--r:#ff8a80;--ok:#6fdc9f;--w:#f0b44c}}
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{background:var(--g);color:#fff;padding:12px 16px}header h1{margin:0;font-size:18px}header small{opacity:.85}
+nav{display:flex;gap:4px;overflow-x:auto;padding:8px 12px;background:var(--c);border-bottom:2px solid var(--a);position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:8px 12px;border-radius:6px;color:var(--t);font-weight:600;white-space:nowrap;cursor:pointer}nav .on{background:var(--g);color:#fff}
+main{padding:14px;max-width:1300px;margin:auto}.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:16px;color:var(--g)}.sc{overflow-x:auto}table{border-collapse:collapse;width:100%}th{background:var(--g);color:#fff;padding:6px;font-size:12px;text-align:left;white-space:nowrap}
+td{border-bottom:1px solid var(--b);padding:2px 4px}td input,td select{width:100%;min-width:80px;border:1px solid transparent;background:transparent;color:var(--t);padding:4px;font:inherit}td input:focus,td select:focus{border-color:var(--a);outline:0;background:var(--g2)}
+.n{text-align:right;font-variant-numeric:tabular-nums}.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.f label{font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.f input,.f select,textarea{padding:7px;border:1px solid var(--b);border-radius:6px;background:var(--c);color:var(--t);font:inherit}
+.b{background:var(--g);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin:4px 4px 4px 0}.b.s{background:var(--a)}.b.x{background:none;color:var(--r);padding:2px 8px}
+.tg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}.ok{background:var(--g2);color:var(--ok)}.wr{background:#fbefd2;color:var(--w)}.er{background:#fbdcd9;color:var(--r)}
+.tot td{font-weight:700;background:var(--g2)}.big{font-size:18px;font-weight:700;padding:12px;border-radius:8px;text-align:center;margin:10px 0}.mu{opacity:.75}
+@media print{header,nav,.np{display:none!important}body{background:#fff}.card{border:0}}</style>
+
+<style id="tv-modern-ui">
+/* ==========================================================================
+   TributoVE - Sistema Visual Verde Fintech Moderno
+   Espaciado amplio, responsive y PWA Ready
+   Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
+           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+   ========================================================================== */
+
+:root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
+  /* Calendario / Azul */
+  --navy: #141815 !important;
+  --blue: #2D5128 !important;
+  --card: #141815 !important;
+  --bd: rgba(255, 255, 255, 0.08) !important;
+  --tx: #ffffff !important;
+  --mut: #8b958e !important;
+  --lt: #1a201c !important;
+  --zb: #171c18 !important;
+  --ok: #2D5128 !important;
+  --okt: #D2F865 !important;
+  --wn: #2D5128 !important;
+  --wnt: #D2F865 !important;
+  --rd: #3a1c1a !important;
+  --rdt: #f87171 !important;
+  --past: #525a54 !important;
+
+  /* Retenciones ISLR / Royal */
+  --paper: transparent !important;
+  --surface: #141815 !important;
+  --ink: #ffffff !important;
+  --muted: #8b958e !important;
+  --rule: rgba(255, 255, 255, 0.08) !important;
+  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #141815 !important;
+  --on-royal: #ffffff !important;
+  --focus: #D2F865 !important;
+  --pnr-bg: rgba(34, 197, 94, 0.15) !important;
+  --pnr-ink: #22c55e !important;
+  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
+  --pnnr-ink: #D2F865 !important;
+  --pjd-bg: rgba(45, 81, 40, 0.3) !important;
+  --pjd-ink: #a7f3d0 !important;
+  --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
+  --pjnd-ink: #e4eb9c !important;
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+
+  /* Globales */
+  --bg: transparent !important;
+  --g: #2D5128 !important;
+  --g2: #1a201c !important;
+  --gl: #141815 !important;
+  --gt: #ffffff !important;
+  --s: #141815 !important;
+  --c: #141815 !important;
+  --m: #8b958e !important;
+  --l: rgba(255, 255, 255, 0.08) !important;
+  --b: rgba(255, 255, 255, 0.08) !important;
+  --a: #D2F865 !important;
+  --tv-bg: #0b0e0c !important;
+  --bg: #0b0e0c !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-surface: #141815;
+  --tv-surface-subtle: #1a201c;
+  --tv-surface-hover: #222a24;
+  --tv-border: rgba(255, 255, 255, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #ffffff;
+}
+
+[data-theme="light"], html.theme-light {
+  --navy: #ffffff !important;
+  --blue: #2D5128 !important;
+  --card: #ffffff !important;
+  --bd: rgba(0, 0, 0, 0.08) !important;
+  --tx: #0b0e0c !important;
+  --mut: #5f6861 !important;
+  --lt: #f7faf5 !important;
+  --zb: #fafcf9 !important;
+  --ok: #e8f5ec !important;
+  --okt: #16a34a !important;
+  --wn: #fef3c7 !important;
+  --wnt: #b45309 !important;
+  --rd: #fee2e2 !important;
+  --rdt: #dc2626 !important;
+  --past: #8c968f !important;
+  --paper: #f2f5f1 !important;
+  --surface: #ffffff !important;
+  --ink: #0b0e0c !important;
+  --muted: #5f6861 !important;
+  --rule: rgba(0, 0, 0, 0.08) !important;
+  --rule-strong: rgba(45, 81, 40, 0.3) !important;
+  --royal: #2D5128 !important;
+  --royal-deep: #ffffff !important;
+  --on-royal: #ffffff !important;
+  --focus: #2D5128 !important;
+  --bg: #f2f5f1 !important;
+  --g: #2D5128 !important;
+  --g2: #f7faf5 !important;
+  --gl: #ffffff !important;
+  --gt: #ffffff !important;
+  --s: #ffffff !important;
+  --c: #ffffff !important;
+  --m: #5f6861 !important;
+  --l: rgba(0, 0, 0, 0.08) !important;
+  --b: rgba(0, 0, 0, 0.08) !important;
+  --a: #537B2F !important;
+  --tv-bg: #f2f5f1 !important;
+  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-surface: #ffffff;
+  --tv-surface-subtle: #f7faf5;
+  --tv-surface-hover: #eaf0e6;
+  --tv-border: rgba(0, 0, 0, 0.08);
+  --tv-lime: #D2F865;
+  --tv-text: #0b0e0c;
+}
+
+/* Base fluida y tipografía moderna */
+html, body {
+  background-color: var(--tv-bg, #0b0e0c) !important;
+  background-image: var(--tv-bg-gradient) !important;
+  background-attachment: fixed !important;
+  color: var(--tv-text) !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Contenedor principal sin límites artificiales que causen amontonamiento */
+.wrap, .w, main, #v, #m {
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem 2.5rem !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Banner de empresa activa */
+#emp-banner {
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 1.25rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Header del módulo */
+header, .masthead {
+  background: var(--tv-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+}
+header > div, .masthead > div {
+  width: 100% !important;
+}
+header h1, .masthead h1 {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.35rem !important;
+}
+header small, .masthead p, #sub {
+  font-size: 0.88rem !important;
+  color: var(--mut) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+.facts, dl.facts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.25rem 2.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid var(--bd) !important;
+  width: 100% !important;
+}
+.facts dt {
+  font-size: 0.75rem !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.25rem !important;
+}
+.facts dd {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-lime) !important;
+  margin: 0 !important;
+}
+
+/* Barra superior de herramientas y navegación (#ux-top, nav, #ux-bar) */
+#ux-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+nav {
+  display: flex !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 0 4px !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+nav button, .chips button, .chip {
+  border: 1px solid var(--bd) !important;
+  background: var(--tv-surface) !important;
+  color: var(--mut) !important;
+  padding: 0.55rem 1.15rem !important;
+  border-radius: 12px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+nav button:hover, .chips button:hover, .chip:hover {
+  background: var(--tv-surface-hover) !important;
+  color: var(--tv-text) !important;
+}
+nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  border-color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+}
+
+/* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
+#ux-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px 18px !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1.35rem !important;
+  margin: 0 !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.35) !important;
+}
+#ux-bar .ux-emp {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-right: 8px !important;
+  max-width: none !important;
+}
+#ux-bar .ux-emp b {
+  color: var(--tv-lime) !important;
+  font-weight: 700 !important;
+}
+#ux-bar .ux-chip {
+  background: rgba(210, 248, 101, 0.12) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+}
+#ux-bar .sp {
+  flex: 1 1 auto !important;
+}
+
+/* ==========================================================================
+   TARJETAS Y PANELES MODERNOS - ESPACIADOS Y DESAHOGADOS
+   ========================================================================== */
+.card, .c, .pn, .hero, .share, .form, section.c, div.card, .search, .table-scroll, .panel, section.panel {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  padding: 1.6rem 1.85rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  color: var(--tv-text) !important;
+}
+
+/* Panel de búsqueda y filtros */
+.search-label {
+  display: block !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+  margin-bottom: 0.95rem !important;
+}
+.search-box {
+  position: relative !important;
+  margin-bottom: 0.85rem !important;
+}
+.search-box svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--mut) !important;
+  pointer-events: none !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+#q, .search input#q, .search-box input {
+  width: 100% !important;
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  color: var(--tv-text) !important;
+  padding: 0.95rem 1.25rem 0.95rem 3.2rem !important;
+  font-size: 1rem !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+#q:focus, .search input#q:focus, .search-box input:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+}
+.hint {
+  margin: 0.85rem 0 1.25rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  color: var(--mut) !important;
+}
+.hint button {
+  color: var(--tv-lime) !important;
+  font-weight: 600 !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 4px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin: 1.25rem 0 1.15rem !important;
+}
+.legend {
+  margin-top: 1.25rem !important;
+  padding-top: 1.15rem !important;
+  border-top: 1px solid var(--bd) !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+  gap: 0.85rem 1.75rem !important;
+  font-size: 0.84rem !important;
+  color: var(--mut) !important;
+}
+.legend b {
+  color: var(--tv-text) !important;
+  font-weight: 700 !important;
+  margin-right: 0.35rem !important;
+}
+
+/* Barra de resultados y acciones */
+.bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin: 1.75rem 0 1.15rem !important;
+  padding: 0 0.25rem !important;
+}
+.bar .count {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: var(--tv-text) !important;
+}
+.bar .count span {
+  color: var(--mut) !important;
+  font-weight: 500 !important;
+}
+
+/* ==========================================================================
+   TABLAS FINTECH AMPLIAS Y LEGIBLES
+   ========================================================================== */
+.table-scroll, .sc {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  padding: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 !important;
+}
+th, thead th {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+td, tbody td {
+  padding: 1.1rem 1.35rem !important;
+  border-bottom: 1px solid var(--bd) !important;
+  border-top: 0 !important;
+  color: var(--tv-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  vertical-align: middle !important;
+  background: var(--tv-surface) !important;
+}
+tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+tr:hover td, tbody tr:nth-child(even) td, tbody tr:hover td {
+  background: var(--tv-surface-hover) !important;
+}
+td.concept {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+  line-height: 1.5 !important;
+  min-width: 280px !important;
+}
+td.num, td.code, td.lit {
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 600 !important;
+}
+td.rate {
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  font-size: 0.98rem !important;
+}
+td.next {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+}
+td.today {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #22c55e !important;
+  font-weight: 800 !important;
+}
+td.past {
+  color: var(--past) !important;
+}
+.tot td, tfoot td {
+  background: rgba(210, 248, 101, 0.08) !important;
+  color: var(--tv-lime) !important;
+  font-weight: 800 !important;
+  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+}
+
+/* ==========================================================================
+   KPI CARDS, GRIDS Y FORMULARIOS
+   ========================================================================== */
+.grid, .two {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.grid .c, .grid .card, .grid .pn {
+  margin: 0 !important;
+}
+.k {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  min-height: 95px !important;
+}
+.k b {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.45rem !important;
+  letter-spacing: -0.02em !important;
+}
+.k span {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: var(--mut) !important;
+  line-height: 1.4 !important;
+}
+
+.f, .form {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 1.25rem 1.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.f label, .form label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: var(--mut) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.45rem !important;
+}
+
+input, select, textarea, td input, td select {
+  background: var(--tv-surface-subtle) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  color: var(--tv-text) !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.88rem !important;
+  outline: none !important;
+  transition: all 0.15s ease !important;
+}
+input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
+  border-color: var(--tv-lime) !important;
+  background: var(--tv-surface-hover) !important;
+  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+}
+
+/* Calendario Hero y Paneles */
+.hero {
+  border-left: 6px solid var(--tv-lime) !important;
+  background: var(--tv-surface) !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto auto !important;
+  gap: 1.5rem 2.5rem !important;
+  align-items: center !important;
+}
+.hero b, .hero h2, .hero .big, .hero strong {
+  color: var(--tv-lime) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.hero .n {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  line-height: 1 !important;
+}
+.pn {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.pn h3 {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-lime) !important;
+  border-bottom: 1px solid var(--bd) !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.95rem 1.25rem !important;
+  margin: 0 !important;
+}
+.dig {
+  background: #2D5128 !important;
+  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  color: var(--tv-lime) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Botones */
+.b, button.b, a.b, .btn, .bt, .pr, .wa, .gm, #ux-bar .ux-b {
+  border-radius: 10px !important;
+  padding: 0.55rem 1.15rem !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+}
+.b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
+  background: var(--tv-lime) !important;
+  color: #0b0e0c !important;
+  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  border: 0 !important;
+}
+.b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
+  background: #e0fb80 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+}
+.b.s, .sec, header .btn, button#rs {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--tv-text) !important;
+  border: 1px solid var(--bd) !important;
+}
+.b.s:hover, .sec:hover, header .btn:hover, button#rs:hover {
+  background: var(--tv-surface-hover) !important;
+  border-color: var(--tv-lime) !important;
+}
+.b.x, #ux-bar .ux-b.o {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Badges y Pills */
+.tg, .pill, .ok, .wa, .ba, .gr, .tag {
+  border-radius: 8px !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.7rem !important;
+  display: inline-block !important;
+  letter-spacing: 0.02em !important;
+}
+.ok, .tag.PNR {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+.wa, .wr, .tag.PNNR {
+  background: rgba(210, 248, 101, 0.15) !important;
+  color: var(--tv-lime) !important;
+  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+}
+.tag.PJD {
+  background: rgba(45, 81, 40, 0.35) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(45, 81, 40, 0.5) !important;
+}
+.tag.PJND {
+  background: rgba(141, 167, 80, 0.2) !important;
+  color: #e4eb9c !important;
+  border: 1px solid rgba(141, 167, 80, 0.35) !important;
+}
+
+/* Números y Cifras Grandes */
+.k b, .big {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 800 !important;
+  color: var(--tv-lime) !important;
+}
+
+/* ==========================================================================
+   ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .wrap, .w, main, #v, #m {
+    padding: 0.25rem 0.25rem 2rem !important;
+  }
+  header, .masthead {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+  }
+  header h1, .masthead h1 {
+    font-size: 1.2rem !important;
+  }
+  .facts, dl.facts {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 0.85rem 1.25rem !important;
+  }
+  #ux-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    padding: 1rem 1.15rem !important;
+  }
+  #ux-bar .ux-emp {
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    margin-right: 0 !important;
+  }
+  #ux-bar .ux-chip {
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  #ux-bar .sp {
+    display: none !important;
+  }
+  #ux-bar .ux-b {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.7rem 1rem !important;
+    min-height: 40px !important;
+  }
+  .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
+    padding: 1.15rem 1.25rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.15rem !important;
+  }
+  nav {
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    scrollbar-width: none !important;
+  }
+  nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav button, .chips button, .chip {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+  }
+  .grid, .two {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+  .k {
+    min-height: 80px !important;
+  }
+  .k b {
+    font-size: 1.45rem !important;
+  }
+  .hero {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+  }
+  .hero .n {
+    text-align: left !important;
+    font-size: 1.85rem !important;
+  }
+  .f, .form {
+    grid-template-columns: 1fr !important;
+    gap: 0.95rem !important;
+  }
+  .table-scroll, .sc {
+    border-radius: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  th, thead th {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.72rem !important;
+  }
+  td, tbody td {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.84rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+  .bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  #q, .search input#q, .search-box input {
+    font-size: 0.92rem !important;
+    padding: 0.85rem 1rem 0.85rem 2.75rem !important;
+  }
+  .search-box svg {
+    left: 12px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .facts, dl.facts {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .legend {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+  .who {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+}
+</style>
+</head>
+<body><header><h1>Retenciones de IVA · Venezuela</h1><small>Calculadora · Libro de retenciones · Quincenas · Retenciones recibidas</small></header><nav id="nv"></nav><main id="v"></main>
+<script>const KEY='ivaret1',EM=window.EMPRESA||{nombre:'',rif:'',condicion:''};
+const $=s=>document.querySelector(s),N=v=>parseFloat(v)||0,R=v=>Math.round((v+Number.EPSILON)*100)/100,F=v=>R(v).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}),E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),D=d=>d?d.split('-').reverse().join('/'):'';
+const OP={normal:'Compra de bienes o servicios gravados',metal:'Compra de metales y piedras preciosas',exento:'Operación no sujeta, exenta o exonerada',via:'Viáticos de empleados',cch:'Gasto reembolsable o caja chica',spub:'Luz, agua, aseo o teléfono por domiciliación'};
+const PT={ord:'Contribuyente ordinario',formal:'Contribuyente formal',p100:'Portal Fiscal: sujeto a retención 100 %',srif:'Proveedor sin RIF',excl:'Exportador / excluido del listado',ente:'Órgano o ente público especial'};
+const COND={spe:'Sujeto pasivo especial (agente de retención)',no:'No es sujeto pasivo especial',metal:'Comprador habitual de metales y piedras preciosas'};
+const blank=()=>({cfg:{emp:EM.nombre,rif:EM.rif,ut:43,elab:'',cond:EM.condicion==='Sujeto pasivo especial'?'spe':'no'},c:{base:1000,ali:16,disc:'si',req:'si',pt:'ord',op:'normal'},libro:[],rec:{ex0:0,rows:[{m:'',deb:0,cre:0,ret:0}]}});
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.cfg)S=blank();S.cfg.emp=EM.nombre;S.cfg.rif=EM.rif;
+const sv=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let tab='cfg';
+const NV=[['cfg','Datos'],['cal','Calculadora'],['lib','Libro de retenciones'],['qui','Quincenas'],['rec','Retenciones recibidas'],['gui','Guía y normas']];
+function agente(op){return S.cfg.cond==='spe'||S.cfg.cond==='metal'&&op==='metal'||op==='metal'}
+function rule(o){
+ const ut=MON.utEf(N(S.cfg.ut)),base=N(o.base),ali=N(o.ali)/100;
+ if(!agente(o.op))return{p:0,art:'Arts. 1 y 2',why:'La empresa no es sujeto pasivo especial: no actúa como agente de retención.'};
+ if(o.op==='exento'||ali===0)return{p:0,art:'Art. 3, num. 1',why:'Operación no sujeta, exenta o exonerada: no se retiene.'};
+ if(o.pt==='formal')return{p:0,art:'Art. 3, num. 2',why:'El proveedor es contribuyente formal: no se retiene.'};
+ if(o.op==='via')return{p:0,art:'Art. 3, num. 5 a 7',why:'Viáticos de empleados: no se retiene.'};
+ if(o.op==='cch'&&base<=20*ut)return{p:0,art:'Art. 3, num. 5 a 7',why:'Caja chica o gasto reembolsable de hasta 20 UT (Bs '+F(20*ut)+'): no se retiene.'};
+ if(o.op==='spub')return{p:0,art:'Art. 3, num. 8',why:'Servicio público pagado por domiciliación bancaria: no se retiene.'};
+ if(o.pt==='excl')return{p:0,art:'Art. 3, num. 9 y 10',why:'Proveedor exportador o excluido en el Portal Fiscal: no se retiene.'};
+ if(o.pt==='ente')return{p:0,art:'Art. 3, num. 11 y 12',why:'Órgano o ente público calificado como especial: no se retiene bajo esta providencia.'};
+ if(o.op==='metal')return{p:100,art:'Art. 5, num. 4',why:'Compra de metales y piedras preciosas: retención del 100 %.'};
+ if(o.disc==='no')return{p:100,art:'Art. 5, num. 1',why:'El IVA no está discriminado en la factura: retención del 100 % sobre el precio facturado.'};
+ if(o.req==='no')return{p:100,art:'Art. 5, num. 2',why:'La factura no cumple los requisitos legales: retención del 100 %.'};
+ if(o.pt==='p100'||o.pt==='srif')return{p:100,art:'Art. 5, num. 3',why:'Proveedor con retención del 100 % en el Portal Fiscal o sin RIF: retención del 100 %.'};
+ return{p:75,art:'Art. 4',why:'Regla general: se retiene el 75 % del impuesto causado.'}}
+function calc(o){const r=rule(o),base=N(o.base),iva=R(base*N(o.ali)/100),ret=R(iva*r.p/100);return Object.assign({},r,{base,iva,ret,pag:R(base+iva-ret)})}
+const opt=(m,v)=>Object.keys(m).map(k=>`<option value="${k}"${k==v?' selected':''}>${m[k]}</option>`).join('');
+function C(k,v){S.cfg[k]=v;sv();draw()}
+function K(k,v){S.c[k]=v;sv();draw()}
+function L(i,k,v){S.libro[i][k]=v;sv();draw()}
+function addL(){S.libro.push({f:new Date().toISOString().slice(0,10),prov:'',rif:'',fac:'',ctl:'',base:0,ali:16,disc:'si',req:'si',pt:'ord',op:'normal',comp:''});sv();draw()}
+function delL(i){S.libro.splice(i,1);sv();draw()}
+function numerar(){const cnt={};S.libro.map((r,i)=>[r,i]).sort((a,b)=>(a[0].f||'').localeCompare(b[0].f||'')||a[1]-b[1]).forEach(([r])=>{if(!r.f)return;const k=r.f.slice(0,7);cnt[k]=(cnt[k]||0)+1;if(calc(r).p>0&&!r.comp)r.comp=r.f.slice(0,4)+r.f.slice(5,7)+String(cnt[k]).padStart(8,'0')});sv();draw()}
+function Rc(i,k,v){S.rec.rows[i][k]=v;sv();draw()}
+function RX(v){S.rec.ex0=N(v);sv();draw()}
+function addR(){S.rec.rows.push({m:'',deb:0,cre:0,ret:0});sv();draw()}
+function delR(i){S.rec.rows.splice(i,1);if(!S.rec.rows.length)addR();else{sv();draw()}}
+const fl=(l,h)=>`<label>${l}${h}</label>`;
+const V={
+cfg(){const c=S.cfg;return`<div class=card><h2>Datos del agente de retención</h2><div class=f>
+${fl('Razón social',`<input value="${E(c.emp)}" readonly>`)}${fl('RIF',`<input value="${E(c.rif)}" readonly>`)}
+${fl('Condición frente a la retención',`<select onchange="C('cond',this.value)">${opt(COND,c.cond)}</select>`)}
+${fl('Unidad Tributaria (Bs\u200b, se convierte con la tasa)',`<input type=number step=any value="${c.ut}" onchange="C('ut',N(this.value))">`)}
+${fl('Elaborado por',`<input value="${E(c.elab)}" onchange="C('elab',this.value)">`)}</div>
+<p style="margin:10px 0 0">${agente('normal')?'<span class="tg ok">Actúa como agente de retención</span>':'<span class="tg wr">No es agente de retención (salvo compras de metales y piedras preciosas)</span>'}</p></div>
+<div class=card><h2>Cómo usar este módulo</h2><p>1) Revise los datos. 2) Use la <b>Calculadora</b> para una operación puntual. 3) Registre las compras en el <b>Libro de retenciones</b>: el módulo aplica la regla y totaliza por quincena. 4) Si usted es el proveedor al que le retienen, use <b>Retenciones recibidas</b>. La base legal es la Providencia SNAT/2025/000054 (ver <i>Guía y normas</i>).</p></div>`},
+cal(){const c=S.c,r=calc(c);return`<div class=card><h2>Calculadora de retención de IVA</h2><div class=f>
+${fl('Base imponible (Bs)',`<input type=number step=any value="${c.base}" onchange="K('base',N(this.value))">`)}
+${fl('Alícuota del IVA (%)',`<select onchange="K('ali',N(this.value))">${[[16,'16 % general'],[8,'8 % reducida'],[31,'31 % (16 % + 15 %)'],[0,'0 % exenta']].map(a=>`<option value="${a[0]}"${a[0]==c.ali?' selected':''}>${a[1]}</option>`).join('')}</select>`)}
+${fl('Operación',`<select onchange="K('op',this.value)">${opt(OP,c.op)}</select>`)}
+${fl('Proveedor',`<select onchange="K('pt',this.value)">${opt(PT,c.pt)}</select>`)}
+${fl('¿IVA discriminado en la factura?',`<select onchange="K('disc',this.value)"><option value=si${c.disc=='si'?' selected':''}>Sí</option><option value=no${c.disc=='no'?' selected':''}>No</option></select>`)}
+${fl('¿Factura cumple requisitos legales?',`<select onchange="K('req',this.value)"><option value=si${c.req=='si'?' selected':''}>Sí</option><option value=no${c.req=='no'?' selected':''}>No</option></select>`)}</div></div>
+<div class=card><h2>Resultado</h2><div class="big" style="background:var(--g2);color:var(--g)">Retención: ${r.p} %</div>
+<div class=sc><table><tr><th>Concepto</th><th class=n>Bs</th></tr><tr><td>Base imponible</td><td class=n>${F(r.base)}</td></tr><tr><td>IVA causado</td><td class=n>${F(r.iva)}</td></tr><tr><td><b>IVA retenido (${r.p} %)</b></td><td class=n><b>${F(r.ret)}</b></td></tr><tr class=tot><td>Monto a pagar al proveedor (base + IVA − retención)</td><td class=n>${F(r.pag)}</td></tr></table></div>
+<p><b>${E(r.art)}:</b> ${E(r.why)}</p>${!agente(c.op)?'<p><span class="tg wr">Esta empresa no es sujeto pasivo especial</span></p>':''}</div>`},
+lib(){let h=`<div class=card><h2>Libro de retenciones de IVA (compras)</h2><button class=b onclick="addL()">+ Agregar compra</button><button class="b s" onclick="numerar()">Numerar comprobantes</button><div class=sc><table><tr><th>Fecha</th><th>Proveedor</th><th>RIF</th><th>Factura</th><th>Control</th><th>Base</th><th>IVA %</th><th>IVA discr.</th><th>Cumple</th><th>Tipo proveedor</th><th>Operación</th><th>% ret.</th><th>IVA causado</th><th>IVA retenido</th><th>N.º comprobante</th><th></th></tr>`;
+ let tb=0,ti=0,tr=0;
+ S.libro.forEach((r,i)=>{const x=calc(r);tb+=x.base;ti+=x.iva;tr+=x.ret;
+  const t=(k,ty='text')=>`<td><input type=${ty} value="${E(r[k])}" onchange="L(${i},'${k}',${ty=='number'?'N(this.value)':'this.value'})"></td>`;
+  const s=(k,m)=>`<td><select onchange="L(${i},'${k}',this.value)">${opt(m,r[k])}</select></td>`;
+  h+=`<tr>${t('f','date')}${t('prov')}${t('rif')}${t('fac')}${t('ctl')}${t('base','number')}${t('ali','number')}<td><select onchange="L(${i},'disc',this.value)"><option value=si${r.disc=='si'?' selected':''}>Sí</option><option value=no${r.disc=='no'?' selected':''}>No</option></select></td><td><select onchange="L(${i},'req',this.value)"><option value=si${r.req=='si'?' selected':''}>Sí</option><option value=no${r.req=='no'?' selected':''}>No</option></select></td>${s('pt',PT)}${s('op',OP)}<td class=n>${x.p}%</td><td class=n>${F(x.iva)}</td><td class=n>${F(x.ret)}</td>${t('comp')}<td><button class="b x" onclick="delL(${i})">✕</button></td></tr>`});
+ return h+`<tr class=tot><td colspan=5>Totales</td><td class=n>${F(tb)}</td><td></td><td colspan=5></td><td class=n>${F(ti)}</td><td class=n>${F(tr)}</td><td colspan=2></td></tr></table></div><p class=mu style="margin:8px 0 0">El comprobante lleva 14 dígitos: año (4) + mes (2) + secuencial (8). Se entrega a más tardar en los dos primeros días hábiles del período siguiente.</p></div>`},
+qui(){const g={};S.libro.forEach(r=>{if(!r.f)return;const x=calc(r),d=+r.f.slice(8,10),k=r.f.slice(0,7)+(d<=15?'-1':'-2');const o=g[k]=g[k]||{n:0,b:0,i:0,r:0};o.n++;o.b+=x.base;o.i+=x.iva;o.r+=x.ret});
+ const dig=(S.cfg.rif||'').slice(-1);const ks=Object.keys(g).sort();
+ return`<div class=card><h2>Retenciones por quincena (a enterar)</h2><div class=sc><table><tr><th>Período</th><th>Quincena</th><th class=n>Operaciones</th><th class=n>Base</th><th class=n>IVA causado</th><th class=n>IVA retenido a enterar</th></tr>${ks.map(k=>{const o=g[k],[y,m,q]=k.split('-');return`<tr><td>${m}/${y}</td><td>${q=='1'?'1 al 15':'16 al último día'}</td><td class=n>${o.n}</td><td class=n>${F(o.b)}</td><td class=n>${F(o.i)}</td><td class=n><b>${F(o.r)}</b></td></tr>`}).join('')||'<tr><td colspan=6>Sin operaciones registradas en el libro.</td></tr>'}</table></div>
+<p>El enteramiento es por quincena, en las fechas del calendario de sujetos pasivos especiales según el <b>último dígito del RIF${dig?' ('+E(dig)+')':''}</b>. Consulte las fechas exactas en el módulo <i>Calendario fiscal</i>. La declaración de retenciones se presenta aunque no haya retenciones en la quincena.</p></div>`},
+rec(){let prev=N(S.rec.ex0);const rows=S.rec.rows.map(r=>{const cuota=Math.max(0,N(r.deb)-N(r.cre)),ap=N(r.ret)+prev,pag=Math.max(0,cuota-ap),ex=Math.max(0,ap-cuota);const o={cuota,ap,pag,ex,prev};prev=ex;return o});
+ return`<div class=card><h2>Retenciones de IVA recibidas (cuando la empresa es proveedor)</h2>
+<div class=f>${fl('Excedente de retenciones al inicio (Bs)',`<input type=number step=any value="${S.rec.ex0}" onchange="RX(this.value)">`)}</div><button class=b onclick="addR()">+ Agregar período</button>
+<div class=sc><table><tr><th>Período</th><th>Débito fiscal</th><th>Crédito fiscal</th><th>Retenciones del período</th><th class=n>Cuota</th><th class=n>Excedente anterior</th><th class=n>IVA a pagar</th><th class=n>Excedente a trasladar</th><th></th></tr>
+${S.rec.rows.map((r,i)=>{const x=rows[i];return`<tr><td><input type=month value="${E(r.m)}" onchange="Rc(${i},'m',this.value)"></td><td><input type=number step=any value="${r.deb}" onchange="Rc(${i},'deb',N(this.value))"></td><td><input type=number step=any value="${r.cre}" onchange="Rc(${i},'cre',N(this.value))"></td><td><input type=number step=any value="${r.ret}" onchange="Rc(${i},'ret',N(this.value))"></td><td class=n>${F(x.cuota)}</td><td class=n>${F(x.prev)}</td><td class=n>${F(x.pag)}</td><td class=n><b>${F(x.ex)}</b></td><td><button class="b x" onclick="delR(${i})">✕</button></td></tr>`}).join('')}</table></div>
+<p>Las retenciones se descuentan de la cuota del período en que se reciben, con el comprobante. Lo que sobra se traslada a los meses siguientes. El excedente acumulado puede recuperarse por compensación o cesión: se solicita el excedente de los tres períodos anteriores, una solicitud por mes, y solo procede lo que el agente declaró y enteró.</p></div>`},
+gui(){return`<div class=card><h2>Reglas de retención (Providencia SNAT/2025/000054)</h2><div class=sc><table><tr><th>Supuesto</th><th>Retención</th><th>Artículo</th></tr>
+<tr><td>Compra de bienes o servicios gravados a un contribuyente ordinario</td><td>75 %</td><td>4</td></tr>
+<tr><td>IVA no discriminado en la factura</td><td>100 %</td><td>5, num. 1</td></tr><tr><td>Factura sin los requisitos legales</td><td>100 %</td><td>5, num. 2</td></tr>
+<tr><td>Proveedor con retención 100 % en el Portal Fiscal, o sin RIF</td><td>100 %</td><td>5, num. 3</td></tr><tr><td>Metales y piedras preciosas</td><td>100 %</td><td>5, num. 4</td></tr>
+<tr><td>Operación no sujeta, exenta o exonerada</td><td>No se retiene</td><td>3, num. 1</td></tr><tr><td>Proveedor contribuyente formal</td><td>No se retiene</td><td>3, num. 2</td></tr>
+<tr><td>Viáticos; gastos reembolsables o caja chica hasta 20 UT por operación</td><td>No se retiene</td><td>3, num. 5 a 7</td></tr><tr><td>Luz, agua, aseo o teléfono por domiciliación bancaria</td><td>No se retiene</td><td>3, num. 8</td></tr>
+<tr><td>Proveedor exportador o en el listado de excluidos del Portal Fiscal</td><td>No se retiene</td><td>3, num. 9 y 10</td></tr><tr><td>Compras a órganos y entes públicos calificados como especiales</td><td>No se retiene</td><td>3, num. 11 y 12</td></tr></table></div></div>
+<div class=card><h2>Puntos clave</h2><ul><li><b>Quién retiene:</b> los sujetos pasivos especiales que no son personas naturales, y las personas naturales especiales con firma personal (desde el 1-ago-2025); además los compradores de metales y piedras preciosas.</li>
+<li><b>Cuándo:</b> al pagar o abonar en cuenta, lo que ocurra primero.</li><li><b>Comprobante:</b> a más tardar en los dos primeros días hábiles del período de imposición siguiente.</li>
+<li><b>Enteramiento:</b> por quincena, según el calendario de sujetos pasivos especiales.</li><li><b>Sanciones:</b> el Código Orgánico Tributario castiga con multa no retener, retener de menos, enterar tarde o no enterar. Revise el art. 115 del COT.</li></ul>
+<p class=mu>Resumen elaborado a partir de la providencia (G.O. 43.171 del 16-jul-2025, vigente desde el 1-ago-2025, que derogó la SNAT/2015/0049) y de fuentes secundarias. <b>Verifique el texto oficial y los criterios del SENIAT antes de aplicarlo.</b> Para IVA no discriminado, el módulo calcula sobre el precio facturado como base imponible; confirme el tratamiento en su caso.</p></div>`}
+};
+let busy=0;function draw(){if(busy){setTimeout(draw,0);return}busy=1;try{$('#nv').innerHTML=NV.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="tab='${t[0]}';draw()">${t[1]}</button>`).join('');$('#v').innerHTML=V[tab]()}finally{busy=0}}
+draw();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*UX_BEGIN*/window.UXMON={relabel:1};window.UXMODID='iva';window.UX={status:function(){var n=S.libro.length,rc=S.rec.rows.filter(function(r){return N(r.deb)||N(r.cre)||N(r.ret)}).length;
+ if(!n&&!rc)return S.cfg.cond==='no'?{est:'na',det:'No es agente de retención'}:{est:'sin',det:'Sin operaciones'};
+ var tr=S.libro.reduce(function(s,r){return s+calc(r).ret},0),pend=S.libro.filter(function(r){var x=calc(r);return !r.prov||!r.rif||(x.p>0&&!r.comp)}).length;
+ return pend===0?{est:'ok',det:n+(n==1?' operación':' operaciones')+' · retenido '+F(tr)}:{est:'proc',det:n+(n==1?' operación':' operaciones')+' · '+pend+' sin completar'}},cur:function(){return tab},after:function(){sv();draw()},clear:{
+cfg:{l:"Limpiar el responsable",f:function(){S.cfg.elab=''}},
+cal:{l:"Limpiar la calculadora",f:function(){S.c=blank().c}},
+lib:{l:"Limpiar el libro de retenciones",f:function(){S.libro=[]}},
+rec:{l:"Limpiar las retenciones recibidas",f:function(){S.rec=blank().rec}}}};/*UX_END*/
+</script><script id="ux-js">(function(){
+var nativePrint=window.print.bind(window);
+function run(){
+var d=document,B=d.body,E=window.EMPRESA||{};
+var header=d.querySelector('header,.masthead');
+if(!header||d.getElementById('ux-bar'))return;
+var nav=d.querySelector('nav');
+function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
+function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
+function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
+var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
+function fill(){
+ pt.innerHTML='';
+ [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
+  h1text()+(active()?' · '+active():''),
+  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+}
+function sync(){
+ d.querySelectorAll('input,select,textarea').forEach(function(el){
+  if(el.tagName==='SELECT'){[].forEach.call(el.options,function(o){o.defaultSelected=o.selected})}
+  else if(el.tagName==='TEXTAREA'){el.textContent=el.value}
+  else if(el.type==='checkbox'||el.type==='radio'){el.defaultChecked=el.checked}
+  else el.setAttribute('value',el.value);
+ });
+}
+function buildDoc(){
+ sync();fill();
+ var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
+ var cl=B.cloneNode(true);
+ [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+}
+var flag=false;
+window.addEventListener('beforeprint',function(){flag=true;fill()});
+function fallback(){
+ var nm=(h1text()+' '+active()+' '+(E.nombre||'')).replace(/[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]+/g,'_').replace(/^_+|_+$/g,'')+'.html';
+ try{parent.postMessage({type:'ux-print',name:nm,html:buildDoc()},'*')}catch(e){alert('No se pudo preparar la impresión. Use Ctrl+P.')}
+}
+function doPrint(){
+ flag=false;fill();
+ try{nativePrint()}catch(e){}
+ setTimeout(function(){if(!flag)fallback()},500);
+}
+window.print=doPrint;
+window.addEventListener('message',function(e){if(e.data&&e.data.type==='ux-do-print')doPrint()});
+var bar=d.createElement('div');bar.id='ux-bar';
+var chip=null;if(window.UXMON&&window.MON){chip=d.createElement('span');chip.className='ux-chip';chip.textContent=window.innerWidth<640?(MON.esBs?'Moneda: Bs':'Moneda: '+MON.lab+' · 1 = Bs '+MON.tasa.toLocaleString('es-VE')):'Moneda: '+MON.lab+' ('+MON.nom+')'+(MON.esBs?'':' · 1 '+MON.lab+' = Bs '+MON.tasa.toLocaleString('es-VE'));bar.appendChild(chip)}
+var lab=d.createElement('span');lab.className='ux-emp';
+var mn=h1text().split(/\s·\s/)[0],lb=d.createElement('b');lb.textContent=mn;lab.appendChild(lb);lab.appendChild(d.createTextNode(E.nombre?' · '+E.nombre:''));lab.title=mn+(E.nombre?' · '+E.nombre:'');
+bar.insertBefore(lab,bar.firstChild);
+function relabel(){
+ if(!window.UXMON||!UXMON.relabel||!window.MON||MON.esBs)return;
+ var w=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT,null),n,re=/\b(Bs|VES)\b(?!\u200b)/g;
+ while((n=w.nextNode())){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE)$/.test(p.nodeName)||p.id==='emp-banner'||p.id==='ux-pt'||(p.closest&&p.closest('#ux-bar')))continue;
+  if(re.test(n.nodeValue)){re.lastIndex=0;n.nodeValue=n.nodeValue.replace(re,MON.lab)}re.lastIndex=0}
+}
+var sp=d.createElement('span');sp.className='sp';
+var bp=mk('🖨 Imprimir',doPrint,'');
+var bc=mk('🗑 Limpiar',function(){
+ var u=window.UX,c=u&&u.clear&&u.clear[u.cur()];if(!c)return;
+ if(!confirm('¿'+c.l+'? Esta acción no se puede deshacer.'))return;
+ try{c.f();if(u.after)u.after()}catch(e){alert('No se pudo limpiar: '+e.message)}
+},'o');
+bc.style.display='none';
+bar.appendChild(sp);bar.appendChild(bc);bar.appendChild(bp);
+var top=d.createElement('div');top.id='ux-top';
+header.parentNode.insertBefore(top,header.nextSibling);
+if(nav)top.appendChild(nav);
+top.appendChild(bar);
+var lastAb='';
+function upd(){
+ var ab=nav&&nav.querySelector('.on,.a,[aria-selected="true"]');
+ if(ab&&ab.textContent!==lastAb){lastAb=ab.textContent;try{nav.scrollLeft+=ab.getBoundingClientRect().left-nav.getBoundingClientRect().left-(nav.clientWidth-ab.offsetWidth)/2}catch(e){}}
+ var u=window.UX,c=null;try{c=u&&u.clear&&u.clear[u.cur()]}catch(e){}
+ var sm=window.innerWidth<640,show=c?'':'none',txt=c?(sm?'🗑 Limpiar':'🗑 '+c.l):'🗑 Limpiar';if(c)bc.title=c.l;
+ if(bc.style.display!==show)bc.style.display=show;
+ if(c&&bc.textContent!==txt)bc.textContent=txt;
+}
+var lastRep='',tmr=null;
+function report(){var u=window.UX,st=null;if(!u||!u.status||!window.UXMODID||!E.id)return;try{st=u.status()}catch(e){return}if(!st)return;
+ var j=JSON.stringify(st);if(j===lastRep)return;lastRep=j;
+ try{parent.postMessage({type:'ux-status',emp:E.id,mod:window.UXMODID,st:{e:st.est,d:String(st.det||'').slice(0,60)}},'*')}catch(e){}}
+function sched(){clearTimeout(tmr);tmr=setTimeout(report,900)}
+d.addEventListener('change',sched,true);setTimeout(report,700);
+new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-selected']});
+relabel();upd();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();</script></body></html>

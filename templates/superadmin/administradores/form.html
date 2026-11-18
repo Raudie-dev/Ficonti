@@ -1,0 +1,85 @@
+{% extends 'layouts/admin.html' %}
+
+{% block title %}{{ titulo }} · SuperAdmin TributoVE{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card card-custom">
+        <div class="p-4 d-flex align-items-center justify-content-between" style="background: var(--tv-surface-subtle); border-bottom: 1px solid var(--tv-border);">
+          <div>
+            <h4 class="fw-bold mb-1 text-white">{{ titulo }}</h4>
+            <p class="text-dim small mb-0">Gestión de credenciales para administradores del sistema.</p>
+          </div>
+          <a href="{% url 'superadmin:administradores' %}" class="btn btn-outline-custom btn-sm d-inline-flex align-items-center gap-1.5" style="border-radius: 10px;">
+            <i class="bi bi-arrow-left"></i>
+            <span>Volver</span>
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small mb-3">
+                {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ form.nombre.id_for_label }}" class="form-label small fw-bold text-dim">Nombre completo</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}<div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ form.usuario.id_for_label }}" class="form-label small fw-bold text-dim">Usuario</label>
+                {{ form.usuario }}
+                {% if form.usuario.errors %}<div class="text-danger small mt-1">{{ form.usuario.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.email.id_for_label }}" class="form-label small fw-bold text-dim">Correo electrónico</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+
+            {% if form.clave1 %}
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="{{ form.clave1.id_for_label }}" class="form-label small fw-bold text-dim">Contraseña</label>
+                {{ form.clave1 }}
+                {% if form.clave1.errors %}<div class="text-danger small mt-1">{{ form.clave1.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-6">
+                <label for="{{ form.clave2.id_for_label }}" class="form-label small fw-bold text-dim">Repetir contraseña</label>
+                {{ form.clave2 }}
+                {% if form.clave2.errors %}<div class="text-danger small mt-1">{{ form.clave2.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if form.is_active %}
+            <div class="mb-3 form-check form-switch">
+              {{ form.is_active }}
+              <label class="form-check-label fw-bold small text-dim" for="{{ form.is_active.id_for_label }}">Cuenta administrativa activa</label>
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4" style="border-color: var(--tv-border) !important;">
+              <a href="{% url 'superadmin:administradores' %}" class="btn btn-outline-custom px-4" style="border-radius: 10px;">Cancelar</a>
+              <button type="submit" class="btn btn-dash-primary px-4 py-2 fw-bold d-inline-flex align-items-center gap-2" style="border-radius: 10px;">
+                <i class="bi bi-shield-check"></i>
+                <span>Guardar SuperAdmin</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
