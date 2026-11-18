@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Declaración Estimada ISLR Venezuela — Personas Jurídicas</title>
+<style>
+:root, [data-theme="dark"], html.theme-dark{--bg:#0b0e0c;--card:#141815;--sub:#1a201c;--ink:#ffffff;--mut:#8b958e;--line:rgba(255,255,255,0.08);--acc:#22c55e;--accbg:rgba(34,197,94,0.15);--lime:#1A6B4A;--warn:#fbbf24;--warnbg:rgba(245,158,11,0.15);--bad:#f87171;--badbg:rgba(239,68,68,0.15)}
+[data-theme="light"], html.theme-light{--bg:#f2f5f1;--card:#ffffff;--sub:#f7faf5;--ink:#0b0e0c;--mut:#5f6861;--line:rgba(0,0,0,0.08);--acc:#16a34a;--accbg:#e8f5ec;--lime:#2D5128;--warn:#b45309;--warnbg:#fef3c7;--bad:#dc2626;--badbg:#fee2e2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 12px 36px}
+.n{font-variant-numeric:tabular-nums}
+header{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px}
+.wrap{max-width:100%;margin:0 auto}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font-size:20px;font-weight:800;margin:0;letter-spacing:-0.02em}.sub{color:var(--mut);font-size:13px;margin:2px 0 0}
+nav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+nav button{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 15px;font:600 13.5px 'Inter',system-ui;color:var(--mut);cursor:pointer;white-space:nowrap;transition:all .15s}
+nav button[aria-selected=true]{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A;font-weight:700;box-shadow:0 2px 10px rgba(26, 107, 74,0.25)}
+button,select,input{font:inherit;color:var(--ink)}
+.btn{background:var(--sub);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:700;font-size:13.5px;cursor:pointer}
+.btn.p{background:#1A6B4A;border-color:#1A6B4A;color:#ffffff}
+:focus-visible{outline:2px solid #1A6B4A;outline-offset:2px}
+main{padding:0 0 40px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media screen and (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+.card h2{font-size:15.5px;font-weight:700;margin:0 0 12px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 4px}
+label small{font-weight:400;color:var(--mut)}
+input[type=text],input[type=date],select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--sub);color:var(--ink)}
+input.num{text-align:right;font-variant-numeric:tabular-nums}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{font-size:12px;color:var(--mut);margin-top:4px}
+.msg{border-radius:12px;padding:12px 14px;font-size:13.5px;margin-bottom:16px}
+.msg.ok{background:var(--accbg);color:var(--acc)}.msg.warn{background:var(--warnbg);color:var(--warn)}.msg.bad{background:var(--badbg);color:var(--bad)}
+.msg b{display:block;margin-bottom:2px}
+.hero{padding:22px 20px;background:linear-gradient(145deg,#18281d,#0f1c13);border:1px solid rgba(26, 107, 74,0.25);color:#fff}
+.hero .big{font-size:34px;font-weight:800;line-height:1.1;color:#1A6B4A}
+.hero .lbl{color:#9ca3af;font-size:13px}
+.kp{display:flex;flex-wrap:wrap;gap:24px;margin-top:14px}
+.kp div{font-size:12.5px;color:#9ca3af}.kp b{display:block;font-size:15.5px;color:#fff;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:11.5px;color:var(--mut);font-weight:700;text-transform:uppercase;background:var(--sub)}
+td.r,th.r{text-align:right}
+tr.t td{font-weight:800;border-top:2px solid var(--lime);color:var(--lime)}
+.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--sub)}
+.tag.v{background:var(--badbg);color:var(--bad)}.tag.o{background:var(--accbg);color:var(--acc)}.tag.w{background:var(--warnbg);color:var(--warn)}
+.scroll{overflow-x:auto}
+details{margin-bottom:10px}summary{cursor:pointer;font-weight:600}
+.legal p,.legal li{font-size:14px}
+.toast{position:fixed;bottom:16px;right:16px;background: #1A6B4A ; color: #ffffff ;font-weight:700;padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+.toast.s{opacity:1}
+.hid{display:none!important}
+.po{display:none}
+@media print{body{background:#fff;color:#000}header,.noprint,nav,#emp-banner{display:none!important}.po{display:block;margin-bottom:12px}.grid{display:block}.card{border:1px solid #999;break-inside:avoid}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head>
+<body>
+<header class="noprint"><div class="wrap">
+<div class="top">
+<div><h1>Declaración Estimada ISLR Venezuela</h1><p class="sub">Declaración estimada de rentas · personas jurídicas · Art. 80 LISLR y Arts. 156 y 158 RLISLR</p></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn" onclick="demo()">Cargar ejemplo</button>
+<button class="btn" onclick="saveClient()">Guardar en cartera</button>
+<button class="btn p" onclick="doPrint()">Imprimir / PDF</button>
+</div></div>
+</div></header>
+
+<nav role="tablist" class="noprint" aria-label="Secciones de declaración estimada">
+  <button type="button" role="tab" id="b-calc" aria-selected="true" onclick="tab('calc')">1. Calculadora General (Art. 156)</button>
+  <button type="button" role="tab" id="b-min" aria-selected="false" onclick="tab('min')">2. SPE Minería e Hidrocarburos (Art. 158)</button>
+  <button type="button" role="tab" id="b-cli" aria-selected="false" onclick="tab('cli')">3. Historial Guardado <span class="tag" id="cnt">0</span></button>
+  <button type="button" role="tab" id="b-leg" aria-selected="false" onclick="tab('leg')">4. Base legal y tarifa</button>
+</nav>
+
+<main class="wrap">
+<div class="po"><h2 style="margin:0">Papel de trabajo — Declaración estimada de ISLR</h2><div id="po-meta" class="sub"></div></div>
+
+<section id="p-calc"><div class="grid">
+<div>
+<div class="card"><h2>1. Contribuyente</h2>
+<label for="razon">Razón social</label><input type="text" id="razon" placeholder="Ej. Comercializadora Nacional, C.A.">
+<label for="rif">RIF <small>J-00000000-0</small></label><input type="text" id="rif" maxlength="12" placeholder="J-12345678-9">
+<label for="tipo">Tipo de contribuyente</label>
+<select id="tipo"><option value="ord">Persona jurídica ordinaria (no SPE)</option><option value="spe">Sujeto pasivo especial (SPE)</option><option value="soc">Sociedad de personas o comunidad (tributa en sus socios)</option><option value="min">Minería, hidrocarburos y conexas</option></select>
+<div class="row"><div><label for="inicio">Inicio del ejercicio a estimar</label><input type="date" id="inicio" value="2026-01-01"></div>
+<div><label for="cierre">Cierre <small>(automático)</small></label><input type="date" id="cierre" disabled></div></div>
+<div class="hint" id="ej-h"></div>
+</div>
+<div class="card"><h2>2. Datos del cálculo</h2>
+<div class="row"><div><label for="ut">Valor U.T. (Bs.)</label><input type="text" class="num" id="ut" value="43,00"></div>
+<div><label for="porc">Porciones de pago</label><select id="porc"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option></select></div></div>
+<label for="enr">Enriquecimiento neto gravable del ejercicio anterior (Bs.) <small>según declaración definitiva</small></label><input type="text" class="num" id="enr" value="0,00"><div class="hint" id="enr-h"></div>
+<label for="reb">Rebajas por nuevas inversiones y excedente de rebajas anteriores (Bs.)</label><input type="text" class="num" id="reb" value="0,00">
+<label for="ret">Retenciones de ISLR soportadas hasta el mes anterior a la declaración (Bs.)</label><input type="text" class="num" id="ret" value="0,00">
+<label for="exc">Impuesto pagado en exceso no compensado ni reintegrado, y anticipos por enajenación de inmuebles (Bs.)</label><input type="text" class="num" id="exc" value="0,00">
+<div class="hint">Escriba con coma decimal (1.250.000,50). El punto decimal también se reconoce.</div>
+<button class="btn noprint" style="margin-top:14px" onclick="clearAll()">Limpiar campos</button>
+</div></div>
+
+<div>
+<div id="status"></div>
+<div class="card hero"><div class="lbl">Total a pagar por declaración estimada</div><div class="big n" id="h-total">0,00 Bs.</div>
+<div class="kp"><div>Equivale a<b class="n" id="h-ut">0,00 U.T.</b></div><div>Base imponible (80%)<b class="n" id="h-base">0,00 Bs.</b></div><div>Alícuota aplicada<b class="n" id="h-pct">—</b></div><div>Plazo para declarar<b class="n" id="h-plazo">—</b></div></div></div>
+<div class="card"><h2>Liquidación paso a paso</h2><div class="scroll"><table><thead><tr><th>Concepto</th><th class="r">Bs.</th><th class="r">U.T.</th></tr></thead><tbody id="liq"></tbody></table></div></div>
+<div class="card"><h2>Cronograma de pago</h2><div class="scroll"><table><thead><tr><th>Porción</th><th>Vence</th><th>Estado</th><th class="r">Monto Bs.</th><th class="noprint">Pagada</th></tr></thead><tbody id="cron"></tbody></table></div>
+<div class="hint">La diferencia por redondeo se incluye en la primera porción. Si el vencimiento cae en día inhábil, verifique el calendario del SENIAT y pague el día hábil anterior para no arriesgar mora.</div></div>
+</div></div></section>
+
+<section id="p-cli" class="hid"><div class="card"><h2>Escenarios / Clientes guardados</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input type="text" id="q" placeholder="Buscar por razón social o RIF" style="max-width:300px" oninput="renderClients()">
+<button class="btn" onclick="exportClients()">Exportar respaldo</button><label class="btn" style="margin:0;font-weight:600">Importar respaldo<input type="file" id="imp" accept=".json" class="hid" onchange="importClients(this)"></label></div>
+<div class="scroll"><table><thead><tr><th>Cliente</th><th>RIF</th><th>Ejercicio</th><th class="r">Total Bs.</th><th></th></tr></thead><tbody id="cl"></tbody></table></div>
+</div></section>
+
+<section id="p-min" class="hid"><div class="grid"><div>
+<div class="card"><h2>Estimada Art. 158 RLISLR: minería e hidrocarburos</h2>
+<label for="m-act">Actividad y tarifa</label><select id="m-act"><option value="hid">Hidrocarburos y conexas: 50% proporcional (Arts. 11 y 53 b)</option><option value="reg">Regalías y participaciones: 60% proporcional (Art. 53 a)</option><option value="min">Minería, persona jurídica: Tarifa N° 2 (Art. 52)</option></select>
+<div class="row"><div><label for="m-spe">¿Es SPE?</label><select id="m-spe"><option value="1">Sí</option><option value="0">No</option></select></div>
+<div><label for="m-reg">¿Percibe regalías o exporta?</label><select id="m-reg"><option value="1">Sí</option><option value="0">No</option></select></div></div>
+<label for="m-cierre">Cierre del ejercicio anterior</label><input type="date" id="m-cierre" value="2025-12-31">
+<div class="row"><div><label for="m-ut">Valor U.T. (Bs.)</label><input type="text" class="num" id="m-ut" value="43,00"></div><div><label for="m-enr">Enriquecimiento neto anterior (Bs.)</label><input type="text" class="num" id="m-enr" value="0,00"></div></div>
+<label for="m-ret">Retenciones soportadas hasta el mes anterior al vencimiento (Bs.)</label><input type="text" class="num" id="m-ret" value="0,00">
+<label for="m-exc">Impuesto pagado en exceso no compensado (Bs.)</label><input type="text" class="num" id="m-exc" value="0,00">
+<div class="hint">Umbral 1.000 U.T., base 80%, anticipo 96%, 12 porciones. Un SPE sin regalías ni exportación no presenta estimada: paga anticipos de ISLR con el calendario SPE.</div></div></div>
+<div><div id="m-st"></div><div class="card"><h2>Liquidación</h2><table><tbody id="m-liq"></tbody></table></div>
+<div class="card"><h2>Calendario de 12 porciones</h2><div class="scroll"><table><thead><tr><th>Porción</th><th>Pago dentro de</th><th>Estado</th><th class="r">Monto Bs.</th></tr></thead><tbody id="m-cal"></tbody></table></div>
+<div class="hint">Declaración: 45 días continuos desde el cierre. 1ª porción: 14 días después. Las demás: últimos 10 días de cada uno de los 11 meses siguientes. El calendario SPE del año puede fijar días distintos: confírmelo en el SENIAT.</div></div></div></div></section>
+<section id="p-leg" class="hid legal"><div class="card">
+<h2>Base legal aplicada</h2>
+<ul>
+<li><b>Obligación (Art. 80 LISLR; Art. 156 RLISLR):</b> personas jurídicas con enriquecimiento neto gravable del ejercicio anterior superior a 1.500 U.T. No aplica a SPE (mientras rija su régimen de anticipos) ni a sociedades de personas y comunidades cuyo enriquecimiento se grava en sus socios.</li>
+<li><b>Determinación:</b> 80% del enriquecimiento neto del ejercicio anterior → Tarifa N° 2 (Art. 52 LISLR) → menos rebajas por nuevas inversiones y excedentes de rebajas → 75% → menos retenciones, excesos y anticipos acreditables → monto a pagar (o crédito a favor).</li>
+<li><b>Plazo:</b> segunda quincena del sexto mes posterior al cierre del ejercicio anterior (16 al último día de junio en año calendario). Pago hasta en 6 porciones iguales, mensuales y consecutivas; la primera con la declaración.</li>
+<li><b>Minería e hidrocarburos (Art. 158 RLISLR):</b> régimen distinto (1.000 U.T., 96%, 12 porciones, 45 días). Se calcula en la pestaña “SPE Minería e Hidrocarburos”; las tarifas del sector (50%, 60% o Tarifa N° 2) deben confirmarse según la actividad.</li>
+<li><b>Unidad Tributaria:</b> Bs. 43,00 desde el 02/06/2025 (Providencia SNAT/2025/000048, G.O. 43.140). Confirme el valor vigente y el criterio de U.T. aplicable en el portal del SENIAT.</li></ul>
+<div style="overflow-x:auto"><table><caption style="text-align:left;font-weight:700;padding:8px 0">Tarifa N° 2 (Art. 52 LISLR)</caption><thead><tr><th>Base en U.T.</th><th class="r">Alícuota</th><th class="r">Sustraendo U.T.</th></tr></thead><tbody id="tar"></tbody></table></div></div>
+<p class="hint">Herramienta de apoyo. No sustituye el criterio profesional ni la normativa publicada por el SENIAT.</p></section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const NORMATIVA={ut:43,umbral:1500,base:0.80,anticipo:0.75,maxPorc:6,
+ tarifa:[{hasta:2000,pct:15,sust:0},{hasta:3000,pct:22,sust:140},{hasta:Infinity,pct:34,sust:500}]};
+const KEY='islr_ve_estimada_v2',ACTIVE_KEY='islr_ve_estimada_active_v1',$=id=>document.getElementById(id);
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+let paid=[];
+const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
+const fmt=(n,d=2)=>(isFinite(n)?n:0).toLocaleString('es-VE',{minimumFractionDigits:d,maximumFractionDigits:d});
+function parseVE(s){s=String(s||'').trim().replace(/[^\d.,-]/g,'');if(!s)return 0;
+ const c=s.includes(','),p=s.includes('.');
+ if(c&&p){s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'')}
+ else if(c){s=s.replace(',','.')}
+ else if(p&&/^-?\d{1,3}(\.\d{3})+$/.test(s)){s=s.replace(/\./g,'')}
+ const v=parseFloat(s);return isNaN(v)?0:v}
+const eom=(d,m)=>new Date(d.getFullYear(),d.getMonth()+m+1,0);
+const iso=s=>{const [y,m,d]=(s||'').split('-').map(Number);return y?new Date(y,m-1,d):null};
+const fd=d=>d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`:'—';
+const toIso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function taxFor(baseUT){const t=NORMATIVA.tarifa.find(x=>baseUT<=x.hasta);return t}
+function calc(i){
+ const o={ok:false,ut:i.ut};
+ o.enrUT=i.ut>0?i.enr/i.ut:0;
+ if(i.ut<=0){o.kind='bad';o.title='Falta el valor de la U.T.';o.desc='Ingrese un valor mayor a cero para convertir a unidades tributarias.';return o}
+ if(i.tipo==='spe'){o.kind='warn';o.title='Sujeto pasivo especial: no presenta estimada ordinaria';o.desc='Los SPE se rigen por su régimen de anticipos. Confirme en el calendario vigente del SENIAT (o use la pestaña SPE Minería e Hidrocarburos si percibe regalías/exporta).';return o}
+ if(i.tipo==='soc'){o.kind='warn';o.title='Sociedad de personas o comunidad: exceptuada';o.desc='Su enriquecimiento se grava en cabeza de los socios o comuneros.';return o}
+ if(i.tipo==='min'){o.kind='warn';o.title='Minería e hidrocarburos: otro régimen';o.desc='Use la pestaña “SPE Minería e Hidrocarburos” (Art. 158 RLISLR).';return o}
+ if(!(o.enrUT>NORMATIVA.umbral)){o.kind='ok';o.title='No está obligado a declarar estimada';o.desc=`Su enriquecimiento anterior (${fmt(o.enrUT)} U.T.) no supera ${fmt(NORMATIVA.umbral)} U.T.`;return o}
+ o.ok=true;o.kind='ok';o.title='Obligado a declarar estimada';o.desc=`Su enriquecimiento anterior (${fmt(o.enrUT)} U.T.) supera ${fmt(NORMATIVA.umbral)} U.T.`;
+ o.baseBs=r2(i.enr*NORMATIVA.base);o.baseUT=o.baseBs/i.ut;
+ const t=taxFor(o.baseUT);o.t=t;o.sustBs=r2(t.sust*i.ut);
+ o.det=r2(Math.max(0,o.baseBs*t.pct/100-o.sustBs));
+ o.reb=r2(Math.min(o.det,i.reb));o.neto=r2(o.det-o.reb);
+ o.ant=r2(o.neto*NORMATIVA.anticipo);
+ o.cred=r2(i.ret+i.exc);
+ o.pagar=r2(Math.max(0,o.ant-o.cred));o.favor=r2(Math.max(0,o.cred-o.ant));
+ const cents=Math.round(o.pagar*100),n=i.porc,b=Math.floor(cents/n),rest=cents-b*n;
+ o.cuotas=Array.from({length:n},(_,k)=>(k===0?b+rest:b)/100);
+ return o}
+function read(){return{razon:$('razon').value.trim(),rif:$('rif').value.trim().toUpperCase(),tipo:$('tipo').value,inicio:$('inicio').value,
+ ut:Math.max(0,parseVE($('ut').value)),porc:Math.min(6,Math.max(1,+$('porc').value||6)),enr:Math.max(0,parseVE($('enr').value)),
+ reb:Math.max(0,parseVE($('reb').value)),ret:Math.max(0,parseVE($('ret').value)),exc:Math.max(0,parseVE($('exc').value))}}
+function render(){
+ const i=read(),o=calc(i);
+ const ini=iso(i.inicio),prev=ini?new Date(ini.getFullYear(),ini.getMonth(),ini.getDate()-1):null;
+ if(ini){const c=new Date(ini.getFullYear()+1,ini.getMonth(),ini.getDate()-1);$('cierre').value=toIso(c);
+  $('ej-h').textContent=`Ejercicio ${fd(ini)} al ${fd(c)} (12 meses). Estimación basada en el cierre anterior: ${fd(prev)}.`}
+ $('enr-h').textContent=i.ut>0?`Equivale a ${fmt(o.enrUT)} U.T.`:'';
+ const plIni=prev?new Date(eom(prev,6).getFullYear(),eom(prev,6).getMonth(),16):null,plFin=prev?eom(prev,6):null;
+ $('status').innerHTML=`<div class="msg ${o.kind}"><b>${o.title}</b>${o.desc}</div>`;
+ const T=o.ok;
+ $('h-total').textContent=T?fmt(o.pagar)+' Bs.':'0,00 Bs.';
+ $('h-ut').textContent=T?fmt(o.pagar/i.ut)+' U.T.':'0,00 U.T.';
+ $('h-base').textContent=T?fmt(o.baseBs)+' Bs.':'0,00 Bs.';
+ $('h-pct').textContent=T?o.t.pct+'%':'—';
+ $('h-plazo').textContent=plIni?`${fd(plIni)} al ${fd(plFin)}`:'—';
+ const row=(a,b,c,cls)=>`<tr class="${cls||''}"><td>${a}</td><td class="r n">${T?fmt(b):'—'}</td><td class="r n">${T&&i.ut>0?fmt(c/i.ut):'—'}</td></tr>`;
+ $('liq').innerHTML=T?[
+  row('Enriquecimiento neto del ejercicio anterior',i.enr,i.enr),
+  row('Base imponible estimada (80%)',o.baseBs,o.baseBs),
+  `<tr><td>Alícuota Tarifa N° 2 · sustraendo ${fmt(o.t.sust)} U.T.</td><td class="r n">${o.t.pct}%</td><td class="r n">${fmt(o.sustBs/i.ut)}</td></tr>`,
+  row('Impuesto según tarifa',o.det,o.det),
+  row('(−) Rebajas por inversiones y excedentes',o.reb,o.reb),
+  row('Impuesto después de rebajas',o.neto,o.neto),
+  row('Anticipo del 75%',o.ant,o.ant),
+  row('(−) Retenciones, excesos y anticipos acreditables',o.cred,o.cred),
+  row('Total a pagar',o.pagar,o.pagar,'t'),
+  row('Crédito a favor para la declaración definitiva',o.favor,o.favor)].join(''):'<tr><td colspan="3" class="hint">Complete los datos para ver la liquidación.</td></tr>';
+ if(paid.length!==i.porc)paid=Array.from({length:i.porc},(_,k)=>!!paid[k]);
+ const today=new Date();let sum=0;
+ $('cron').innerHTML=T&&prev&&o.pagar>0?o.cuotas.map((m,k)=>{sum=r2(sum+m);const d=eom(prev,6+k);
+  let st='Pendiente',cl='';if(paid[k]){st='Pagada';cl='o'}else if(today>new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)){st='Vencida';cl='v'}
+  else if(today.getMonth()===d.getMonth()&&today.getFullYear()===d.getFullYear()){st='Vence este mes';cl='w'}
+  const wk=d.getDay()===0||d.getDay()===6?' (día inhábil)':'';
+  return `<tr><td>${k+1}${k===0?' · con la declaración':''}</td><td>${fd(d)}${wk} <small>${MES[d.getMonth()]}</small></td><td><span class="tag ${cl}">${st}</span></td><td class="r n">${fmt(m)}</td><td class="noprint"><input type="checkbox" ${paid[k]?'checked':''} onchange="paid[${k}]=this.checked;render()" aria-label="Porción ${k+1} pagada"></td></tr>`}).join('')+
+  `<tr class="t"><td colspan="3">Total (cuadra con el total a pagar: ${sum===o.pagar?'sí':'NO'})</td><td class="r n">${fmt(sum)}</td><td class="noprint"></td></tr>`
+  :'<tr><td colspan="5" class="hint">No hay montos por fraccionar.</td></tr>';
+ $('po-meta').textContent=`${i.razon||'Sin nombre'} · RIF ${i.rif||'—'} · Emitido ${fd(today)} · U.T. ${fmt(i.ut)}`;
+ const stateObj={...i,total:T?o.pagar:0,paid:[...paid]};
+ try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(stateObj))}catch(e){}
+ return stateObj}
+function tab(t){['calc','cli','min','leg'].forEach(x=>{$('p-'+x).classList.toggle('hid',x!==t);$('b-'+x).setAttribute('aria-selected',x===t)});if(t==='cli')renderClients()}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),2600)}
+function doPrint(){tab('calc');setTimeout(()=>window.print(),80)}
+function setF(r){$('razon').value=r.razon||(window.EMPRESA&&window.EMPRESA.nombre)||'';$('rif').value=r.rif||(window.EMPRESA&&window.EMPRESA.rif)||'';$('tipo').value=r.tipo||'ord';$('inicio').value=r.inicio||'2026-01-01';
+ $('ut').value=fmt(r.ut??NORMATIVA.ut);$('porc').value=r.porc||6;['enr','reb','ret','exc'].forEach(k=>$(k).value=fmt(r[k]||0));paid=r.paid||[];render()}
+function demo(){setF({razon:(window.EMPRESA&&window.EMPRESA.nombre)||'Inversiones Ejemplo, C.A.',rif:(window.EMPRESA&&window.EMPRESA.rif)||'J-96325874-6',tipo:'ord',inicio:'2026-01-01',ut:43,porc:6,enr:1000000,reb:0,ret:12000,exc:0});toast('Ejemplo cargado')}
+function clearAll(){setF({ut:NORMATIVA.ut,porc:6});toast('Campos limpios')}
+const getC=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}};
+const setC=l=>{try{localStorage.setItem(KEY,JSON.stringify(l))}catch(e){toast('No se pudo guardar en el navegador')}$('cnt').textContent=getC().length;renderClients()};
+function saveClient(){const s=render();if(!s.razon&&!s.rif){toast('Escriba razón social o RIF para guardar');return}
+ const l=getC(),k=l.findIndex(c=>c.rif&&c.rif===s.rif&&c.inicio===s.inicio);s.id=k>=0?l[k].id:String(Date.now());s.savedAt=new Date().toISOString();
+ k>=0?l[k]=s:l.unshift(s);setC(l);toast(k>=0?'Escenario actualizado':'Escenario guardado')}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderClients(){const q=($('q').value||'').toLowerCase(),l=getC().filter(c=>(c.razon||'').toLowerCase().includes(q)||(c.rif||'').toLowerCase().includes(q));
+ $('cl').innerHTML=l.length?l.map(c=>`<tr><td>${esc(c.razon)||'Sin nombre'}</td><td>${esc(c.rif)}</td><td>${fd(iso(c.inicio))}</td><td class="r n">${fmt(c.total)}</td><td class="r"><button class="btn" onclick="loadC('${esc(c.id)}')">Abrir</button> <button class="btn" onclick="delC('${esc(c.id)}')">Eliminar</button></td></tr>`).join(''):'<tr><td colspan="5" class="hint">Aún no hay escenarios guardados. Use “Guardar en cartera” en la calculadora.</td></tr>'}
+function loadC(id){const c=getC().find(x=>x.id===id);if(c){setF(c);tab('calc')}}
+function delC(id){if(confirm('¿Eliminar este registro de la cartera?'))setC(getC().filter(c=>c.id!==id))}
+function exportClients(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(getC(),null,1)],{type:'application/json'}));a.download='respaldo_clientes_islr.json';a.click()}
+function importClients(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const n=JSON.parse(r.result);if(!Array.isArray(n))throw 0;const m=new Map(getC().map(c=>[c.id,c]));n.forEach(c=>c&&c.id&&m.set(c.id,c));setC([...m.values()]);toast('Respaldo importado')}catch(e){toast('Archivo de respaldo no válido')}};r.readAsText(f);el.value=''}
+$('tar').innerHTML=NORMATIVA.tarifa.map((t,k,a)=>`<tr><td>${k===0?'Hasta '+fmt(t.hasta,0):k===a.length-1?'Más de '+fmt(a[k-1].hasta,0):'De '+fmt(a[k-1].hasta,0)+' a '+fmt(t.hasta,0)}</td><td class="r n">${t.pct}%</td><td class="r n">${fmt(t.sust,0)}</td></tr>`).join('');
+['razon','rif','tipo','inicio','ut','porc','enr','reb','ret','exc'].forEach(id=>$(id).addEventListener('input',render));
+['ut','enr','reb','ret','exc'].forEach(id=>$(id).addEventListener('blur',e=>{e.target.value=fmt(parseVE(e.target.value));render()}));
+
+const MIN={umbral:1000,base:.80,pago:.96,n:12,dias:45,pct:{hid:50,reg:60,min:null}};
+function calcM(i){const o={ok:false};o.enrUT=i.ut>0?i.enr/i.ut:0;
+ if(i.ut<=0){o.k='bad';o.t='Falta el valor de la U.T.';return o}
+ if(i.spe&&!i.reg){o.k='warn';o.t='SPE sin regalías ni exportación: no presenta estimada';o.d='Paga anticipos de ISLR junto con las declaraciones de IVA, según el calendario SPE.';return o}
+ if(!(o.enrUT>MIN.umbral)){o.k='ok';o.t='No está obligado a declarar estimada';o.d=`Su enriquecimiento anterior (${fmt(o.enrUT)} U.T.) no supera ${fmt(MIN.umbral,0)} U.T.`;return o}
+ o.ok=true;o.k='ok';o.t='Obligado a declarar estimada (Art. 158)';o.d=`Su enriquecimiento anterior (${fmt(o.enrUT)} U.T.) supera ${fmt(MIN.umbral,0)} U.T.`;
+ o.base=r2(i.enr*MIN.base);const p=MIN.pct[i.act];
+ if(p===null){const t=taxFor(o.base/i.ut);o.pct=t.pct;o.imp=r2(Math.max(0,o.base*t.pct/100-t.sust*i.ut))}else{o.pct=p;o.imp=r2(o.base*p/100)}
+ o.ant=r2(o.imp*MIN.pago);o.cred=r2(i.ret+i.exc);o.pagar=r2(Math.max(0,o.ant-o.cred));o.favor=r2(Math.max(0,o.cred-o.ant));
+ const c=Math.round(o.pagar*100),b=Math.floor(c/MIN.n),r=c-b*MIN.n;o.cuotas=Array.from({length:MIN.n},(_,k)=>(k?b:b+r)/100);return o}
+function calendarM(cierre){const dl=new Date(cierre.getFullYear(),cierre.getMonth(),cierre.getDate()+MIN.dias),p1=new Date(dl.getFullYear(),dl.getMonth(),dl.getDate()+14);
+ return{dl,porc:Array.from({length:MIN.n},(_,k)=>{if(!k)return{ini:null,fin:p1};const f=eom(p1,k);return{ini:new Date(f.getFullYear(),f.getMonth(),f.getDate()-9),fin:f}})}}
+function renderM(){const i={act:$('m-act').value,spe:$('m-spe').value==='1',reg:$('m-reg').value==='1',ut:Math.max(0,parseVE($('m-ut').value)),enr:Math.max(0,parseVE($('m-enr').value)),ret:Math.max(0,parseVE($('m-ret').value)),exc:Math.max(0,parseVE($('m-exc').value))};
+ const o=calcM(i),ci=iso($('m-cierre').value);$('m-st').innerHTML=`<div class="msg ${o.k}"><b>${o.t}</b>${o.d||''}</div>`;
+ const R=(a,b,t)=>`<tr class="${t||''}"><td>${a}</td><td class="r n">${b}</td></tr>`;
+ $('m-liq').innerHTML=o.ok?[R('Base imponible (80%)',fmt(o.base)),R('Alícuota aplicada',o.pct+'%'),R('Impuesto determinado',fmt(o.imp)),R('Anticipo del 96%',fmt(o.ant)),R('(−) Retenciones y excesos',fmt(o.cred)),R('Total a pagar',fmt(o.pagar),'t'),R('Crédito a favor',fmt(o.favor))].join(''):'<tr><td class="hint">Sin liquidación para estos datos.</td></tr>';
+ if(!o.ok||!ci||o.pagar<=0){$('m-cal').innerHTML='<tr><td colspan="4" class="hint">No hay montos por fraccionar.</td></tr>';return}
+ const c=calendarM(ci),today=new Date();
+ const head=`<tr><td>Declaración</td><td>hasta ${fd(c.dl)}</td><td></td><td class="r"></td></tr>`;
+ $('m-cal').innerHTML=head+c.porc.map((p,k)=>{const late=today>new Date(p.fin.getFullYear(),p.fin.getMonth(),p.fin.getDate()+1);
+  return `<tr><td>${k+1}</td><td>${p.ini?fd(p.ini)+' al ':'hasta '}${fd(p.fin)}</td><td><span class="tag ${late?'v':''}">${late?'Vencida':'Pendiente'}</span></td><td class="r n">${fmt(o.cuotas[k])}</td></tr>`}).join('')}
+['m-act','m-spe','m-reg','m-cierre','m-ut','m-enr','m-ret','m-exc'].forEach(id=>$(id).addEventListener('input',renderM));
+['m-ut','m-enr','m-ret','m-exc'].forEach(id=>$(id).addEventListener('blur',e=>{e.target.value=fmt(parseVE(e.target.value));renderM()}));
+$('cnt').textContent=getC().length;
+(function initEst(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(ACTIVE_KEY))}catch(e){}
+  if(saved){
+    if(window.EMPRESA){saved.razon=window.EMPRESA.nombre||saved.razon;saved.rif=window.EMPRESA.rif||saved.rif}
+    setF(saved);
+  }else{
+    demo();
+  }
+  renderM();
+})();
+
+window.UXMODID='est';
+window.UX={
+  status:function(){
+    var i=read(),o=calc(i);
+    if(i.enr<=0)return{est:'sin',det:'Sin enriquecimiento'};
+    if(o.ok)return{est:'ok',det:'A pagar: Bs '+fmt(o.pagar)+' ('+i.porc+' porc.)'};
+    return{est:'ok',det:o.title};
+  }
+};
+(function(){
+  function report(){
+    if(!window.EMPRESA||!window.EMPRESA.id)return;
+    var st=window.UX.status();
+    try{parent.postMessage({type:'ux-status',emp:window.EMPRESA.id,mod:window.UXMODID,st:{e:st.est,d:st.det}},'*')}catch(e){}
+  }
+  document.addEventListener('input',function(){setTimeout(report,400)},true);
+  setTimeout(report,600);
+})();
+</script>
+<script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
+</html>

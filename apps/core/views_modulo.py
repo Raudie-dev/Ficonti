@@ -20,6 +20,7 @@ from django.views.generic import TemplateView
 
 from apps.empresas.context_processors import fijar_empresa_activa, obtener_empresa_activa
 
+from .bcv import obtener_tasas_bcv
 from .mixins import ContadorRequiredMixin, SuscripcionRequeridaMixin
 from .modulos import obtener_modulo
 
@@ -78,9 +79,14 @@ class ModuloCalculadoraView(ContadorRequiredMixin, SuscripcionRequeridaMixin, Mo
         ctx = super().get_context_data(**kwargs)
         ctx['modulo'] = self.modulo
         ctx['empresa'] = self.empresa
+        bcv = obtener_tasas_bcv(forzar=False, permitir_red=False)
+        emp_data = self.empresa.datos_modulo(self.modulo)
+        emp_data['bcv'] = bcv
         ctx['tv_config'] = {
             'modulo': self.modulo.codigo,
-            'empresa': self.empresa.datos_modulo(self.modulo),
+            'empresa': emp_data,
+            'bcv': bcv,
+            'urlBcv': reverse('core:api_tasa_bcv'),
             'datos': {d.clave: d.valor for d in self.empresa.datos.all()},
             'urlDatos': reverse('empresas:datos_modulo', args=[self.empresa.pk]),
             'csrf': get_token(self.request),

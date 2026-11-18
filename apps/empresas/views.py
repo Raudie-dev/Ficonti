@@ -159,15 +159,39 @@ def totales_resumen(empresas):
 
 @suscripcion_requerida
 def resumen(request):
+    from apps.core.modulos import MODULOS, MODULOS_RESUMEN, menu_agrupado
     todas = list(request.user.empresas.prefetch_related('estados'))
     q = request.GET.get('q', '').strip()
     filtro = request.GET.get('f', 'todas')
     orden = request.GET.get('o', 'nombre')
     compacta = request.GET.get('c', '1' if len(todas) > 30 else '0') == '1'
     filas = construir_resumen(todas, q, filtro, orden)
+    activa = obtener_empresa_activa(request)
+    resumen_activa = activa.resumen_estatus() if activa else None
+    modulos_activa = []
+    estados_activa = {e.modulo: e for e in activa.estados.all()} if activa else {}
+    for m in MODULOS:
+        if activa:
+            est, det = activa.estatus_modulo(m.codigo, estados_activa)
+            url_mod = f'{m.url}?empresa={activa.pk}'
+        else:
+            est, det = ('na' if m.consulta else 'sin'), ''
+            url_mod = m.url
+        modulos_activa.append({
+            'modulo': m,
+            'estado': est,
+            'detalle': det,
+            'celda': {'estado': est, 'detalle': det},
+            'url': url_mod,
+        })
     return render(request, 'empresas/resumen.html', {
         'filas': filas, 'total_empresas': len(todas), 'totales': totales_resumen(todas),
         'q': q, 'f': filtro, 'o': orden, 'compacta': compacta,
+        'modulos_resumen': MODULOS_RESUMEN,
+        'modulos_agrupados': menu_agrupado(),
+        'modulos_activa': modulos_activa,
+        'resumen_activa': resumen_activa,
+        'form_empresa': EmpresaForm(usuario=request.user),
     })
 
 

@@ -6,7 +6,7 @@
     document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
     document.documentElement.setAttribute('data-theme', t);
   }
-  var initT = localStorage.getItem('tv-theme') || 'dark';
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
   setT(initT);
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'tv-theme-change') {
@@ -106,8 +106,26 @@ td.past{color:var(--past)}td.today{background:var(--rd);color:var(--rdt);font-we
 h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
 .x{background:transparent;border:0;color:var(--rdt);cursor:pointer;font-size:16px}.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 18px}.card li{margin:5px 0}
 .only{display:none}.foot{color:var(--mut);font-size:12px;margin-top:18px}
-@media(max-width:640px){.hero{grid-template-columns:1fr}.hero .n{text-align:left}}
+@media screen and (max-width:640px){.hero{grid-template-columns:1fr}.hero .n{text-align:left}}
 @media print{@page{size:A4 landscape;margin:8mm}body{background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11px}.noprint,nav{display:none!important}.only{display:block}header{background:#fff;color:#000;border-bottom:2px solid #14284b}.grid{grid-template-columns:repeat(3,1fr)}.pn{break-inside:avoid}td{padding:2px 8px}.hero{break-inside:avoid}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
 </style>
 
 <style id="tv-modern-ui">
@@ -115,7 +133,7 @@ h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:rep
    TributoVE - Sistema Visual Verde Fintech Moderno
    Espaciado amplio, responsive y PWA Ready
    Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
-           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+           #2D5128 (Verde Base) | #1A6B4A (Lima Acento) | #8B958E (Muted)
    ========================================================================== */
 
 :root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
@@ -129,9 +147,9 @@ h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:rep
   --lt: #1a201c !important;
   --zb: #171c18 !important;
   --ok: #2D5128 !important;
-  --okt: #D2F865 !important;
+  --okt: #1A6B4A !important;
   --wn: #2D5128 !important;
-  --wnt: #D2F865 !important;
+  --wnt: #1A6B4A !important;
   --rd: #3a1c1a !important;
   --rdt: #f87171 !important;
   --past: #525a54 !important;
@@ -142,15 +160,15 @@ h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:rep
   --ink: #ffffff !important;
   --muted: #8b958e !important;
   --rule: rgba(255, 255, 255, 0.08) !important;
-  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --rule-strong: rgba(26, 107, 74, 0.3) !important;
   --royal: #2D5128 !important;
   --royal-deep: #141815 !important;
   --on-royal: #ffffff !important;
-  --focus: #D2F865 !important;
+  --focus: #1A6B4A !important;
   --pnr-bg: rgba(34, 197, 94, 0.15) !important;
   --pnr-ink: #22c55e !important;
-  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
-  --pnnr-ink: #D2F865 !important;
+  --pnnr-bg: rgba(26, 107, 74, 0.15) !important;
+  --pnnr-ink: #1A6B4A !important;
   --pjd-bg: rgba(45, 81, 40, 0.3) !important;
   --pjd-ink: #a7f3d0 !important;
   --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
@@ -168,16 +186,15 @@ h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:rep
   --m: #8b958e !important;
   --l: rgba(255, 255, 255, 0.08) !important;
   --b: rgba(255, 255, 255, 0.08) !important;
-  --a: #D2F865 !important;
+  --a: #1A6B4A !important;
   --tv-bg: #0b0e0c !important;
   --bg: #0b0e0c !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #141815;
   --tv-surface-subtle: #1a201c;
   --tv-surface-hover: #222a24;
   --tv-border: rgba(255, 255, 255, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #ffffff;
 }
 
@@ -220,13 +237,12 @@ h2{font-size:17px;margin:20px 0 8px}.form{display:grid;grid-template-columns:rep
   --a: #537B2F !important;
   --tv-bg: #f2f5f1 !important;
   --bg: #f2f5f1 !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #ffffff;
   --tv-surface-subtle: #f7faf5;
   --tv-surface-hover: #eaf0e6;
   --tv-border: rgba(0, 0, 0, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #0b0e0c;
 }
 
@@ -357,11 +373,10 @@ nav button:hover, .chips button:hover, .chip:hover {
   color: var(--tv-text) !important;
 }
 nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
+  background: #1A6B4A !important; color: #ffffff !important;
   border-color: var(--tv-lime) !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+  box-shadow: 0 2px 10px rgba(26, 107, 74, 0.25) !important;
 }
 
 /* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
@@ -393,9 +408,9 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   font-weight: 700 !important;
 }
 #ux-bar .ux-chip {
-  background: rgba(210, 248, 101, 0.12) !important;
+  background: rgba(26, 107, 74, 0.12) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border: 1px solid rgba(26, 107, 74, 0.25) !important;
   border-radius: 20px !important;
   padding: 0.35rem 0.85rem !important;
   font-size: 0.78rem !important;
@@ -456,7 +471,7 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
 #q:focus, .search input#q:focus, .search-box input:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.2) !important;
 }
 .hint {
   margin: 0.85rem 0 1.25rem !important;
@@ -583,7 +598,7 @@ td.rate {
   font-size: 0.98rem !important;
 }
 td.next {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
 }
@@ -596,10 +611,10 @@ td.past {
   color: var(--past) !important;
 }
 .tot td, tfoot td {
-  background: rgba(210, 248, 101, 0.08) !important;
+  background: rgba(26, 107, 74, 0.08) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
-  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-top: 1px solid rgba(26, 107, 74, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -664,7 +679,7 @@ input, select, textarea, td input, td select {
 input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2) !important;
 }
 
 /* Calendario Hero y Paneles */
@@ -701,7 +716,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 }
 .dig {
   background: #2D5128 !important;
-  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  border: 1px solid rgba(26, 107, 74, 0.35) !important;
   color: var(--tv-lime) !important;
   border-radius: 12px !important;
   font-weight: 800 !important;
@@ -721,15 +736,14 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   gap: 0.45rem !important;
 }
 .b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
-  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  background: #1A6B4A !important; color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(26, 107, 74, 0.2) !important;
   border: 0 !important;
 }
 .b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
-  background: #e0fb80 !important;
+  background: #14573C !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(26, 107, 74, 0.35) !important;
 }
 .b.s, .sec, header .btn, button#rs {
   background: var(--tv-surface-subtle) !important;
@@ -761,9 +775,9 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 .wa, .wr, .tag.PNNR {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+  border: 1px solid rgba(26, 107, 74, 0.3) !important;
 }
 .tag.PJD {
   background: rgba(45, 81, 40, 0.35) !important;
@@ -787,7 +801,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 /* ==========================================================================
    ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
    ========================================================================== */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .wrap, .w, main, #v, #m {
     padding: 0.25rem 0.25rem 2rem !important;
   }
@@ -883,7 +897,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .grid {
     grid-template-columns: 1fr !important;
   }
@@ -920,10 +934,409 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }
 }
 </style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* ==========================================================================
+   MEJORA DE IDENTIDAD VISUAL EN PANTALLA PARA EL CALENDARIO FISCAL
+   ========================================================================== */
+.grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: 1.15rem !important;
+  align-items: stretch !important;
+}
+.pn {
+  background: var(--tv-surface) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+.pn h3 {
+  background: #1A6B4A !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #14573C !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1rem !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+}
+.pn table {
+  width: 100% !important;
+  min-width: 0 !important;
+  border-collapse: collapse !important;
+  margin: 0 !important;
+}
+.pn thead th {
+  padding: 0.55rem 0.9rem !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  border-bottom: 1px solid var(--bd) !important;
+}
+.pn thead th:last-child {
+  text-align: right !important;
+}
+.pn tbody td {
+  padding: 0.52rem 0.9rem !important;
+  font-size: 0.84rem !important;
+  line-height: 1.35 !important;
+  border-bottom: 1px solid var(--bd) !important;
+  white-space: nowrap !important;
+}
+.pn tbody td:first-child {
+  font-weight: 600 !important;
+  color: var(--tv-text) !important;
+}
+.pn tbody td:last-child {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.pn tbody td.past {
+  color: var(--mut) !important;
+  opacity: 0.78 !important;
+}
+.pn tbody td.next {
+  background: rgba(26, 107, 74, 0.16) !important;
+  color: #16a34a !important;
+  font-weight: 800 !important;
+}
+[data-theme="dark"] .pn tbody td.next, html.theme-dark .pn tbody td.next {
+  background: rgba(33, 122, 86, 0.28) !important;
+  color: #6ee7b7 !important;
+}
+.pn tbody td.soon {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+[data-theme="dark"] .pn tbody td.soon, html.theme-dark .pn tbody td.soon {
+  color: #fbbf24 !important;
+}
+.pn tbody td.today {
+  background: rgba(220, 38, 38, 0.16) !important;
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+}
+[data-theme="dark"] .pn tbody td.today, html.theme-dark .pn tbody td.today {
+  color: #fca5a5 !important;
+}
+
+/* Barra de conmutación de vista (Tarjetas vs Tabla Anual) */
+.cal-view-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1rem;
+}
+.cal-view-pills {
+  display: inline-flex;
+  gap: 0.4rem;
+  background: var(--tv-surface);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 0.25rem;
+}
+.cal-view-pills button {
+  background: transparent;
+  border: 0;
+  color: var(--mut);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.42rem 0.85rem;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.cal-view-pills button.on {
+  background: #1A6B4A;
+  color: #ffffff;
+}
+.cal-matrix-card {
+  background: var(--tv-surface);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.cal-matrix-card table {
+  width: 100% !important;
+  min-width: 720px !important;
+  border-collapse: collapse !important;
+}
+.cal-matrix-card th {
+  background: #1A6B4A !important;
+  color: #ffffff !important;
+  font-size: 0.74rem !important;
+  padding: 0.65rem 0.75rem !important;
+  text-align: center !important;
+}
+.cal-matrix-card th:first-child {
+  text-align: left !important;
+}
+.cal-matrix-card td {
+  padding: 0.58rem 0.75rem !important;
+  font-size: 0.82rem !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  border-bottom: 1px solid var(--bd) !important;
+}
+.cal-matrix-card td:first-child {
+  text-align: left !important;
+  font-weight: 700 !important;
+}
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar, #ux-pt {
+  display: none !important;
+}
+header .brand, header h1 {
+  display: none !important;
+}
+header {
+  display: block !important;
+  padding: 0.5rem 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   PLANTILLA FORMAL DE REPORTE / PDF DEL CALENDARIO FISCAL (#cal-print-sheet)
+   ========================================================================== */
+#cal-print-sheet {
+  display: none;
+}
+.cal-doc {
+  background: #ffffff;
+  color: #111827;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+.cal-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 2px solid #1A6B4A;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.cal-doc-kicker {
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1A6B4A;
+  margin-bottom: 2px;
+}
+.cal-doc-title {
+  font-size: 13.5pt;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 2px;
+  letter-spacing: -0.02em;
+}
+.cal-doc-sub {
+  font-size: 8.5pt;
+  color: #4b5563;
+  margin: 0;
+}
+.cal-doc-empbox {
+  text-align: right;
+  background: #f4f7f5;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  min-width: 240px;
+}
+.cal-doc-empname {
+  font-size: 10pt;
+  font-weight: 800;
+  color: #111827;
+}
+.cal-doc-emprif {
+  font-size: 8.5pt;
+  color: #374151;
+  margin-top: 1px;
+}
+.cal-doc-digbadge {
+  display: inline-block;
+  margin-top: 3px;
+  background: #1A6B4A;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 8pt;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.cal-doc-upcoming {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.cal-doc-upcard {
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #1A6B4A;
+  border-radius: 5px;
+  padding: 6px 10px;
+  background: #f9fafb;
+}
+.cal-doc-uplbl {
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #4b5563;
+}
+.cal-doc-update {
+  font-size: 9.5pt;
+  font-weight: 800;
+  color: #111827;
+  margin: 1px 0;
+}
+.cal-doc-updesc {
+  font-size: 7.8pt;
+  color: #374151;
+}
+.cal-doc-section-title {
+  font-size: 9pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #1A6B4A;
+  margin: 8px 0 5px;
+}
+.cal-doc-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 10px !important;
+}
+.cal-doc-table th {
+  background: #1A6B4A !important;
+  color: #ffffff !important;
+  font-size: 7.5pt !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  padding: 5px 7px !important;
+  border: 1px solid #14573C !important;
+  text-align: center !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.cal-doc-table th:first-child {
+  text-align: left !important;
+}
+.cal-doc-table td {
+  padding: 4.5px 7px !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 8pt !important;
+  color: #111827 !important;
+  background: #ffffff !important;
+  text-align: center !important;
+}
+.cal-doc-table td:first-child {
+  text-align: left !important;
+  font-weight: 700 !important;
+  background: #f8faf9 !important;
+}
+.cal-doc-table tbody tr:nth-child(even) td {
+  background: #f9fafb !important;
+}
+.cal-doc-table td.is-next {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  font-weight: 800 !important;
+}
+.cal-doc-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.cal-doc-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 7px 10px;
+  background: #ffffff;
+}
+.cal-doc-box h4 {
+  margin: 0 0 4px;
+  font-size: 8.5pt;
+  font-weight: 800;
+  color: #1A6B4A;
+  text-transform: uppercase;
+}
+.cal-doc-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 7.5pt;
+  color: #4b5563;
+}
+.cal-doc-sigs {
+  display: flex;
+  gap: 32px;
+}
+.cal-doc-sig {
+  border-top: 1px solid #374151;
+  padding-top: 3px;
+  width: 150px;
+  text-align: center;
+  font-weight: 600;
+  color: #111827;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 9mm 10mm 9mm 10mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  header, .wrap > .share, .wrap > #app, .wrap > .foot, #emp-banner, #ux-bar, #ux-top, #ux-pt, nav, .noprint {
+    display: none !important;
+  }
+  #cal-print-sheet {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .cal-doc {
+    border: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head><body>
-<header><div class="wrap"><div class="brand">Numera Soluciones, C.A.</div><h1>Consultor de obligaciones fiscales para contribuyentes especiales 2026</h1>
+<div id="cal-print-sheet"></div>
+<header class="keep-header"><div class="wrap"><div class="brand">Numera Soluciones, C.A.</div><h1>Consultor de obligaciones fiscales para contribuyentes especiales 2026</h1>
 <nav class="noprint" id="nav"></nav></div></header>
-<div class="wrap"><div class="share noprint" id="share"></div><div id="app"></div>
+<div class="wrap"><div id="app"></div><div class="share noprint" id="share"></div>
 <p class="foot">Fechas según las tablas del calendario SPE 2026 (pensiones: Gaceta Oficial 470.333 / 02-12-2025). Verifique siempre con la normativa y el calendario oficial vigentes.</p></div>
 <script>
 const D={"iva1":[[28,20,25,23,20,29,27,31,29,20,27,16],[19,23,20,27,18,26,21,25,18,28,26,29],[21,18,24,21,29,16,30,24,24,29,17,21],[30,18,23,30,22,18,23,18,21,23,23,28],[23,25,26,20,21,19,28,19,30,22,20,22],[22,27,30,22,28,17,22,21,25,30,18,17],[20,19,27,24,19,30,20,28,28,21,25,18],[27,24,18,17,26,22,31,20,22,27,19,18],[26,26,31,29,27,23,17,26,17,26,24,30],[29,27,17,28,25,25,29,27,23,19,30,23]],"iva2":[[15,9,6,1,6,12,8,14,14,5,13,3],[6,10,3,14,4,11,3,13,3,14,12,15],[8,5,9,8,14,3,14,12,10,15,2,4],[16,12,4,16,7,10,7,5,2,7,9,11],[9,2,11,7,13,2,10,6,9,6,5,7],[5,13,12,9,15,8,6,3,15,8,4,10],[13,4,10,13,5,15,9,4,11,2,11,8],[12,11,2,6,11,4,15,10,4,13,3,2],[7,3,13,10,12,5,2,7,8,9,6,9],[14,6,5,15,8,9,13,11,7,1,10,14]],"pens":[[28,20,25,23,20,29,27,17,29,20,27,16],[19,23,20,27,18,26,21,25,18,28,26,29],[21,18,24,21,29,16,30,24,24,29,17,21],[30,12,23,30,22,18,23,18,21,23,23,28],[23,25,26,20,21,19,28,19,16,22,20,22],[22,13,30,22,28,17,22,21,25,16,18,17],[20,19,27,24,19,30,20,28,28,21,25,15],[27,24,18,17,26,22,16,20,22,27,19,18],[26,26,16,29,27,23,17,26,17,26,24,30],[29,27,17,28,25,25,29,27,23,19,16,23]],"islr":[[15,9,6,10,12,5,8,7,8,9,6,9],[9,10,11,7,13,11,10,6,9,6,5,7],[8,5,9,8,7,10,7,12,10,7,9,4],[8,5,9,8,7,10,7,12,10,7,9,4],[9,10,11,7,13,11,10,6,9,6,5,7],[14,6,5,9,8,9,6,11,7,8,10,10],[13,11,10,6,11,4,9,10,4,13,11,8],[13,11,10,6,11,4,9,10,4,13,11,8],[15,9,6,10,12,5,8,7,8,9,6,9],[14,6,5,9,8,9,6,11,7,8,10,10]],"gp":[[9,13],[14,12],[15,9],[15,9],[14,12],[8,10],[13,11],[13,11],[9,13],[8,10]],"aut":[[0,0,6],[0,0,11],[30,0,0],[30,0,0],[0,0,11],[0,27,0],[0,0,16],[0,0,16],[0,0,6],[0,27,0]],"plan":[[22,"ENE",19,"ENE",2,"FEB",31,"ENE"],[18,"FEB",15,"FEB",2,"MAR",27,"FEB"],[17,"MAR",14,"MAR",1,"ABR",30,"MAR"],[17,"ABR",14,"ABR",6,"MAY",3,"MAY"],[21,"MAY",18,"MAY",2,"JUN",30,"MAY"],[17,"JUN",14,"JUN",6,"JUL",3,"JUL"],[22,"JUL",19,"JUL",3,"AGO",31,"JUL"],[18,"AGO",15,"AGO",2,"SEP",30,"AGO"],[21,"SEP",18,"SEP",1,"OCT",29,"SEP"],[19,"OCT",16,"OCT",3,"NOV",31,"OCT"],[18,"NOV",15,"NOV",2,"DIC",30,"NOV"],[16,"DIC",13,"DIC",null,null,null,null]]};const Y=2026;
@@ -933,7 +1346,7 @@ const $=id=>document.getElementById(id);const enc=encodeURIComponent;
 let emps=[{n:"ALEXA INC",rif:"",d:0,em:"",wa:""},{n:"VLAD CONDE",rif:"",d:0,em:"",wa:""}];
 try{const s=localStorage.getItem("spe_emps");if(s)emps=JSON.parse(s)}catch(e){}emps=[Object.assign({d:"",em:"",wa:""},emps.filter(e=>e.rif===EMPRESA.rif)[0]||{},{n:EMPRESA.nombre,rif:EMPRESA.rif})];
 const save=()=>{try{localStorage.setItem("spe_emps",JSON.stringify(emps))}catch(e){}};
-const S={view:"consultor",q:EMPRESA.rif,sel:0,sim:"",to:"",wa:"",toDirty:false,waDirty:false};
+const S={view:"consultor",mode:"cards",q:EMPRESA.rif,sel:0,sim:"",to:"",wa:"",toDirty:false,waDirty:false};
 const VIEWS=[["consultor","Consultor"],["informe","Informe"],["empresas","Empresas"],["ayuda","Ayuda"]];
 const edig=e=>e.d!==""&&e.d!=null&&!isNaN(e.d)?+e.d:(/\d$/.test(e.rif||"")?+e.rif.slice(-1):null);
 const norm=s=>(s||"").toUpperCase().replace(/[-\s]/g,"");
@@ -969,8 +1382,30 @@ const lst=(a)=>a.map(r=>`<tr><td>${cap(r.l)}</td>${cell(r)}</tr>`).join("");
 function planHTML(){const f=(d,m)=>d?f2(d)+"-"+MES[MES.findIndex(x=>x.startsWith(m))].slice(0,3).toLowerCase():"—";
  return pn("Plan de pagos",["Mes","QCNA I","Apart.","QCNA II","Apart."],D.plan.map((r,i)=>`<tr><td>${cap(MES[i])}</td><td>${f(r[0],r[1])}</td><td>${f(r[2],r[3])}</td><td>${r[4]?f(r[4],r[5]):"—"}</td><td>${r[6]?f(r[6],r[7]):"—"}</td></tr>`).join(""))}
 function nextList(c){return c.ev.filter(e=>e.d&&e.d>=H).sort((a,b)=>a.d-b.d||0).slice(0,5)}
-function calHTML(c){return `<div class="grid">${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 1.ª quincena",["Mes","Fecha tope"],lst(c.iva1))}${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 2.ª quincena",["Mes","Fecha tope"],lst(c.iva2))}${pn("Protección de las pensiones",["Mes a declarar","Fecha tope"],lst(c.pens))}${pn("Retenciones de ISLR 2026",["Mes a declarar","Fecha tope"],lst(c.islr))}${pn("Autoliquidación anual ISLR 2025",["Concepto","Fecha tope"],`<tr><td>Fecha tope</td>${cell({d:c.aut})}</tr>`)}${pn("Grandes patrimonios",["Mes a declarar","Fecha tope"],lst(c.gp))}${planHTML()}</div>
- <div class="leg noprint"><span style="color:var(--past)">Vencido</span><span style="background:var(--rd);color:var(--rdt)">Vence hoy</span><span style="background:var(--ok);color:var(--okt)">Próximo vencimiento</span><span style="background:var(--wn);color:var(--wnt)">Vence en 7 días o menos</span></div>`}
+function calMatrixHTML(c){
+ const fPlan=(d,m)=>d?f2(d)+"-"+MES[MES.findIndex(k=>k.startsWith(m))].slice(0,3).toLowerCase():"—";
+ const rows=MES.map((mName,i)=>{
+  const pl=D.plan[i];
+  const planTxt=`I: ${fPlan(pl[0],pl[1])} · II: ${pl[4]?fPlan(pl[4],pl[5]):"—"}`;
+  return `<tr><td>${cap(mName)} ${Y}</td>${cell(c.iva1[i])}${cell(c.iva2[i])}${cell(c.islr[i])}${cell(c.pens[i])}<td>${planTxt}</td></tr>`;
+ }).join("");
+ return `<div class="cal-matrix-card"><div style="overflow-x:auto"><table>
+  <thead><tr><th>Mes</th><th>IVA / Ant. / IGTF (1.ª Q.)</th><th>IVA / Ant. / IGTF (2.ª Q.)</th><th>Retenciones ISLR</th><th>Protección Pensiones</th><th>Plan de Pagos</th></tr></thead>
+  <tbody>${rows}</tbody>
+ </table></div></div>
+ <div class="grid" style="margin-top:1rem">${pn("Autoliquidación anual ISLR 2025",["Concepto","Fecha tope"],`<tr><td>Declaración Definitiva ISLR</td>${cell({d:c.aut})}</tr>`)}${pn("Grandes patrimonios",["Mes a declarar","Fecha tope"],lst(c.gp))}</div>`;
+}
+function calHTML(c){
+ const bar=`<div class="cal-view-bar noprint">
+  <div class="cal-view-pills" role="group" aria-label="Formato de visualización">
+    <button type="button" class="${S.mode==='cards'?'on':''}" onclick="S.mode='cards';resultados()">Vista por Obligación</button>
+    <button type="button" class="${S.mode==='matrix'?'on':''}" onclick="S.mode='matrix';resultados()">Tabla Anual Consolidada</button>
+  </div>
+  <div class="leg" style="margin:0"><span style="color:var(--mut)">Vencido</span><span style="background:rgba(220,38,38,0.16);color:#dc2626">Vence hoy</span><span style="background:rgba(26,107,74,0.16);color:#16a34a">Próximo vencimiento</span><span style="background:rgba(245,158,11,0.16);color:#b45309">En 7 días o menos</span></div>
+ </div>`;
+ if(S.mode==='matrix') return bar+calMatrixHTML(c);
+ return bar+`<div class="grid">${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 1.ª quincena",["Mes","Fecha tope"],lst(c.iva1))}${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 2.ª quincena",["Mes","Fecha tope"],lst(c.iva2))}${pn("Protección de las pensiones",["Mes a declarar","Fecha tope"],lst(c.pens))}${pn("Retenciones de ISLR 2026",["Mes a declarar","Fecha tope"],lst(c.islr))}${pn("Autoliquidación anual ISLR 2025",["Concepto","Fecha tope"],`<tr><td>Fecha tope</td>${cell({d:c.aut})}</tr>`)}${pn("Grandes patrimonios",["Mes a declarar","Fecha tope"],lst(c.gp))}${planHTML()}</div>`;
+}
 function ctx(){const r=resolve();H=hoy();let c=null,nx=[];NEXT=null;if(r.dig!=null){c=calc(r.dig);nx=nextList(c);NEXT=nx[0]?nx[0].d:null}return{r,c,nx}}
 function summary(x){const{r,c,nx}=x;if(!c)return"Consulta de obligaciones fiscales SPE "+Y;
  return"OBLIGACIONES FISCALES "+Y+" · Contribuyentes Especiales\nEmpresa: "+(r.emp?r.emp.n:S.q)+" (RIF terminado en "+r.dig+")\nPróximos vencimientos:\n"+nx.slice(0,3).map(e=>"• "+e.o+" — "+e.p+": "+leg(e.d)).join("\n")}
@@ -987,11 +1422,117 @@ function renderShare(x){const e=x.r.emp;if(!S.toDirty)S.to=e&&e.em||"";if(!S.waD
 function head(x){const{r,nx}=x,n=nx[0];return `<div class="who"><div class="dig">${r.dig==null?"?":r.dig}</div><div><b>${r.emp?r.emp.n:r.dig==null?"—":"Todas las empresas con RIF terminado en "+r.dig}</b><div class="msg">${r.msg}</div></div></div>
  <div class="hero"><div><small>Próximo vencimiento</small><span class="big">${n?leg(n.d):"—"}</span><small>${n?n.o+" · "+n.p:""}</small></div><div><small>Días restantes</small><div class="n">${n?Math.round((n.d-H)/864e5):"—"}</div></div><div><small>Vencen en 7 días</small><div class="n">${x.c?x.c.ev.filter(e=>e.d&&e.d>=H&&e.d-H<=7*864e5).length:"—"}</div></div></div>`}
 function sameDigit(x){if(x.r.dig==null)return"";const l=emps.filter(e=>edig(e)===x.r.dig);return`<h2>Empresas con RIF terminado en ${x.r.dig}</h2><div class="card">${l.length?"<ul>"+l.map(e=>`<li>${e.n}${e.rif?" · "+e.rif:""}</li>`).join("")+"</ul>":"Ninguna registrada."}</div>`}
-function resultados(){const x=ctx();$("res").innerHTML=(x.r.dig==null?`<div class="card">${x.r.msg}</div>`:head(x)+(x.nx.length?"":"")+calHTML(x.c)+sameDigit(x));renderShare(x)}
+function buildCalDocHTML(x){
+ const {r,c,nx}=x;
+ if(!c||r.dig==null)return `<div class="cal-doc"><p>Seleccione una empresa o un dígito de RIF (0-9) para generar el cronograma oficial.</p></div>`;
+ const E=window.EMPRESA||{};
+ const empNombre=(r.emp&&r.emp.n)||E.nombre||("Contribuyentes con RIF terminado en "+r.dig);
+ const empRif=(r.emp&&r.emp.rif)||E.rif||("Terminal de RIF: "+r.dig);
+ const empCond=E.condicion||"Sujeto Pasivo Especial";
+ const fmtCell=(item)=>item&&item.d?fmt(item.d):(item&&item.pub?"Por publicar":"—");
+ const clsCell=(item)=>item&&item.d&&NEXT&&+item.d===+NEXT?"is-next":"";
+ const fPlan=(d,m)=>d?f2(d)+"-"+MES[MES.findIndex(k=>k.startsWith(m))].slice(0,3).toLowerCase():"—";
+
+ const upCards=[0,1,2].map(idx=>{
+  const ev=nx[idx];
+  const titles=["1.º Próximo Vencimiento","2.º Vencimiento Próximo","3.º Vencimiento Próximo"];
+  if(!ev)return `<div class="cal-doc-upcard"><div class="cal-doc-uplbl">${titles[idx]}</div><div class="cal-doc-update">—</div><div class="cal-doc-updesc">Sin vencimiento pendiente</div></div>`;
+  const dias=Math.round((ev.d-H)/864e5);
+  return `<div class="cal-doc-upcard"><div class="cal-doc-uplbl">${titles[idx]} (${dias===0?"Vence hoy":"en "+dias+" días"})</div><div class="cal-doc-update">${leg(ev.d)}</div><div class="cal-doc-updesc">${ev.o} · ${ev.p}</div></div>`;
+ }).join("");
+
+ const rowsMes=MES.map((mName,i)=>{
+  const rIva1=c.iva1[i], rIva2=c.iva2[i], rIslr=c.islr[i], rPens=c.pens[i], pl=D.plan[i];
+  const planTxt=`I: ${fPlan(pl[0],pl[1])} / II: ${pl[4]?fPlan(pl[4],pl[5]):"—"}`;
+  return `<tr>
+    <td>${cap(mName)} 2026</td>
+    <td class="${clsCell(rIva1)}">${fmtCell(rIva1)}</td>
+    <td class="${clsCell(rIva2)}">${fmtCell(rIva2)}</td>
+    <td class="${clsCell(rIslr)}">${fmtCell(rIslr)}</td>
+    <td class="${clsCell(rPens)}">${fmtCell(rPens)} <small style="color:#4b5563">(${cap(rPens.l).slice(0,3)})</small></td>
+    <td style="font-size:7.5pt;color:#374151">${planTxt}</td>
+  </tr>`;
+ }).join("");
+
+ return `<div class="cal-doc">
+  <div class="cal-doc-header">
+    <div>
+      <div class="cal-doc-kicker">República Bolivariana de Venezuela · Control Tributario SENIAT</div>
+      <h2 class="cal-doc-title">CRONOGRAMA ANUAL DE OBLIGACIONES FISCALES ${Y}</h2>
+      <p class="cal-doc-sub">Régimen de Sujetos Pasivos Especiales (SPE) · Calendario Oficial de Vencimientos</p>
+    </div>
+    <div class="cal-doc-empbox">
+      <div class="cal-doc-empname">${empNombre}</div>
+      <div class="cal-doc-emprif">RIF: <strong>${empRif}</strong> · ${empCond}</div>
+      <div><span class="cal-doc-digbadge">TERMINAL DE RIF: DÍGITO ${r.dig}</span></div>
+    </div>
+  </div>
+
+  <div class="cal-doc-upcoming">${upCards}</div>
+
+  <div class="cal-doc-section-title">1. Calendario Consolidado de Obligaciones Mensuales y Quincenales (Ejercicio ${Y})</div>
+  <table class="cal-doc-table">
+    <thead>
+      <tr>
+        <th style="width:14%">Período / Mes</th>
+        <th style="width:18%">IVA / Ant. ISLR / IGTF / Ret. IVA (1.ª Quincena)</th>
+        <th style="width:18%">IVA / Ant. ISLR / IGTF / Ret. IVA (2.ª Quincena)</th>
+        <th style="width:16%">Retenciones ISLR Mensual (Dec. 1.808)</th>
+        <th style="width:18%">Protección de Pensiones (G.O. 470.333)</th>
+        <th style="width:16%">Plan de Pagos SENIAT (QCNA I / II)</th>
+      </tr>
+    </thead>
+    <tbody>${rowsMes}</tbody>
+  </table>
+
+  <div class="cal-doc-section-title">2. Obligaciones Anuales y Especiales del Ejercicio</div>
+  <div class="cal-doc-bottom-grid">
+    <div class="cal-doc-box">
+      <h4>Autoliquidación Anual de ISLR (Ejercicio Fiscal 2025)</h4>
+      <table class="cal-doc-table" style="margin:0 !important">
+        <thead><tr><th>Concepto</th><th>Terminal RIF</th><th>Fecha Tope Oficial</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Declaración Definitiva y Pago ISLR</td>
+            <td>Dígito ${r.dig}</td>
+            <td class="${c.aut&&NEXT&&+c.aut===+NEXT?"is-next":""}"><strong>${c.aut?fmt(c.aut):"—"}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cal-doc-box">
+      <h4>Impuesto a los Grandes Patrimonios (IGP ${Y})</h4>
+      <table class="cal-doc-table" style="margin:0 !important">
+        <thead><tr><th>Período / Porción</th><th>Terminal RIF</th><th>Fecha Tope Oficial</th></tr></thead>
+        <tbody>
+          ${c.gp.map(g=>`<tr><td>${cap(g.l)} ${Y}</td><td>Dígito ${r.dig}</td><td class="${clsCell(g)}"><strong>${fmtCell(g)}</strong></td></tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="cal-doc-footer">
+    <div style="max-width:58%">
+      <strong>Base Legal:</strong> Providencia Administrativa SENIAT de Calendario de Sujetos Pasivos Especiales ${Y} y Gaceta Oficial N.° 470.333 (Contribución Especial de Protección de las Pensiones).<br>
+      Documento emitido el ${new Date().toLocaleString("es-VE")} · Fecha de referencia: ${fmt(H)}.
+    </div>
+    <div class="cal-doc-sigs">
+      <div class="cal-doc-sig">Elaborado por (Administración / Contador)</div>
+      <div class="cal-doc-sig">Recibido Conforme (Contribuyente)</div>
+    </div>
+  </div>
+ </div>`;
+}
+function syncPrintSheet(x){
+ const el=$("cal-print-sheet");
+ if(el)el.innerHTML=buildCalDocHTML(x);
+}
+function resultados(){const x=ctx();syncPrintSheet(x);$("res").innerHTML=(x.r.dig==null?`<div class="card">${x.r.msg}</div>`:head(x)+(x.nx.length?"":"")+calHTML(x.c)+sameDigit(x));renderShare(x)}
 function view(){document.querySelectorAll("#nav button").forEach(b=>b.className=b.dataset.v==S.view?"on":"");const A=$("app");
  if(S.view=="consultor"){A.innerHTML=`<div class="search noprint"><input id="q" placeholder="Buscar empresa, RIF (J-12345678-9) o último dígito" value="${S.q}" autocomplete="off"><label class="msg">Coincidencia n.º<br><input id="sel" type="number" min="1" value="${S.sel+1}" style="width:80px"></label><label class="msg">Simular fecha<br><input id="sim" type="date" value="${S.sim}"></label></div><div id="res"></div>`;
   $("q").oninput=e=>{S.q=e.target.value;S.sel=0;$("sel").value=1;resultados()};$("sel").oninput=e=>{S.sel=Math.max(0,(+e.target.value||1)-1);resultados()};$("sim").oninput=e=>{S.sim=e.target.value;resultados()};resultados()}
- else if(S.view=="informe"){const x=ctx();A.innerHTML=x.r.dig==null?`<div class="card">Primero busque una empresa o un dígito en la pestaña Consultor.</div>`:`<div class="only msg">Informe de obligaciones fiscales · Fecha de consulta: ${fmt(H)}</div>${head(x)}${calHTML(x.c)}${sameDigit(x)}`;renderShare(x)}
+ else if(S.view=="informe"){const x=ctx();syncPrintSheet(x);A.innerHTML=x.r.dig==null?`<div class="card">Primero busque una empresa o un dígito en la pestaña Consultor.</div>`:buildCalDocHTML(x);renderShare(x)}
  else if(S.view=="empresas"){const x=ctx();A.innerHTML=`<h2>Base de datos de empresas</h2><div class="form noprint"><input id="fn" placeholder="Empresa / razón social"><input id="fr" placeholder="RIF (opcional)"><input id="fd" type="number" min="0" max="9" placeholder="Último dígito"><input id="fe" type="email" placeholder="Correo"><input id="fw" placeholder="WhatsApp 584141234567"><button class="b pr" id="add">Agregar empresa</button></div>
   <div class="pn"><table><thead><tr><th>Empresa</th><th>RIF</th><th>Dígito</th><th>Correo</th><th>WhatsApp</th><th class="noprint"></th></tr></thead><tbody>${emps.map((e,i)=>`<tr><td>${e.n}</td><td>${e.rif||""}</td><td>${edig(e)??""}</td><td>${e.em||""}</td><td>${e.wa||""}</td><td class="noprint"><button class="x" data-i="${i}" title="Eliminar">✕</button></td></tr>`).join("")||`<tr><td colspan="6">Aún no hay empresas: agregue la primera arriba.</td></tr>`}</tbody></table></div><p class="msg noprint">Los datos se guardan en este navegador.</p>`;
   $("add").onclick=()=>{const n=$("fn").value.trim();if(!n){$("fn").focus();return}emps.push({n:n.toUpperCase(),rif:$("fr").value.trim(),d:$("fd").value,em:$("fe").value.trim(),wa:$("fw").value.replace(/\D/g,"")});save();view()};
@@ -1132,4 +1673,5 @@ new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:t
 relabel();upd();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-})();</script></body></html>
+})();</script><script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body></html>

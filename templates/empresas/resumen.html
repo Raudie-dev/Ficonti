@@ -1,240 +1,465 @@
 {% extends 'layouts/app.html' %}
 
-{% block title %}Dashboard Overview · TributoVE{% endblock %}
+{% block title %}Panel de Control · TributoVE{% endblock %}
 
 {% block content %}
 <div class="container-fluid p-0">
-  <!-- Encabezado Overview estilo Imagen de Referencia -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-      <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Overview Fiscal</h2>
-      <p class="text-muted small mb-0">Monitoreo en tiempo real de obligaciones tributarias y estado de empresas.</p>
-    </div>
 
-    <!-- Filtros con estilo minimalista -->
-    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
-      <div class="position-relative" style="min-width: 220px;">
-        <input type="text" name="q" class="form-control form-control-sm ps-4" placeholder="Buscar empresa o RIF..." value="{{ q }}" style="font-size: 0.82rem;">
-        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
-      </div>
-
-      <select name="f" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
-        <option value="todas" {% if f == 'todas' %}selected{% endif %}>Todas</option>
-        <option value="pend" {% if f == 'pend' %}selected{% endif %}>Con pendientes</option>
-        <option value="comp" {% if f == 'comp' %}selected{% endif %}>100% Listas</option>
-        <option value="sin" {% if f == 'sin' %}selected{% endif %}>Sin iniciar</option>
-      </select>
-
-      <select name="o" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
-        <option value="nombre" {% if o == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
-        <option value="menor" {% if o == 'menor' %}selected{% endif %}>Menor avance</option>
-        <option value="mayor" {% if o == 'mayor' %}selected{% endif %}>Mayor avance</option>
-      </select>
-
-      <button type="submit" class="btn btn-sm btn-dash-secondary">Filtrar</button>
-      {% if q or f != 'todas' or o != 'nombre' %}
-        <a href="{% url 'empresas:resumen' %}" class="btn btn-sm btn-link text-muted p-0 ms-1">Limpiar</a>
-      {% endif %}
-    </form>
-  </div>
-
-  <!-- Fila de Tarjetas KPI Superiores (Exacto al Dashboard de la Imagen) -->
-  <div class="row g-3 mb-4">
-    <!-- Card 1: Total Empresas -->
-    <div class="col-sm-6 col-xl-3">
-      <div class="card-kpi">
-        <div class="kpi-label">Empresas en Cartera</div>
-        <div class="kpi-value">{{ total_empresas }}</div>
-        <div class="kpi-trend trend-up">
-          <i class="bi bi-arrow-up-right"></i>
-          <span>Activas en sistema</span>
+  <!-- 1. BARRA SUPERIOR DE EMPRESA ACTIVA (Sencilla, Directa y Sin Destellos Neón) -->
+  <div class="active-company-banner mb-3">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="sidebar-user-avatar" style="width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+          {% if empresa_activa %}{{ empresa_activa.nombre|slice:":1"|upper }}{% else %}<i class="bi bi-building"></i>{% endif %}
         </div>
-      </div>
-    </div>
-
-    <!-- Card 2: Obligaciones Listas -->
-    <div class="col-sm-6 col-xl-3">
-      <div class="card-kpi">
-        <div class="kpi-label">Obligaciones Cumplidas</div>
-        <div class="kpi-value text-white">{{ totales.realizados }}</div>
-        <div class="kpi-trend trend-neutral">
-          <i class="bi bi-check2-circle"></i>
-          <span>de {{ totales.aplican }} aplicables</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 3: Nivel de Cumplimiento Goal -->
-    <div class="col-sm-6 col-xl-3">
-      <div class="card-kpi">
-        <div class="kpi-label">Cumplimiento Global</div>
-        <div class="kpi-value" style="color: var(--tv-lime);">{{ totales.pct }}%</div>
-        <div class="progress mt-1" style="height: 6px; background: var(--tv-surface-subtle); border-radius: 999px;">
-          <div class="progress-bar" style="width: {{ totales.pct }}%; background: var(--tv-lime); border-radius: 999px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 4: Empresas con Pendientes -->
-    <div class="col-sm-6 col-xl-3">
-      <div class="card-kpi">
-        <div class="kpi-label">Atención Requerida</div>
-        <div class="kpi-value text-warning">{{ totales.pendientes }}</div>
-        <div class="kpi-trend trend-warn">
-          <i class="bi bi-exclamation-triangle"></i>
-          <span>empresas con trámites</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Grid Principal con Matriz de Estatus y Widget de Suscripción -->
-  <div class="row g-4">
-    <!-- Matriz de Módulos (Estilo Tabla Customer List del Dashboard) -->
-    <div class="col-xl-9">
-      <div class="card-dashboard p-0">
-        <div class="p-4 d-flex justify-content-between align-items-center border-bottom" style="border-color: var(--tv-border-subtle) !important;">
-          <div>
-            <h5 class="fw-bold mb-0">Matriz de Obligaciones por Empresa</h5>
-            <small class="text-muted">Haga clic en cualquier celda para abrir directamente la calculadora de ese módulo.</small>
+        <div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em; color: var(--tv-primary);">
+              Empresa Activa
+            </span>
+            {% if empresa_activa %}
+              <span class="badge {% if empresa_activa.es_sujeto_pasivo_especial %}badge-dash-lime{% else %}badge-dash-dim{% endif %}">
+                {{ empresa_activa.get_condicion_display }}
+              </span>
+            {% endif %}
           </div>
-          <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-secondary">
-            <i class="bi bi-plus-lg me-1"></i> Gestionar
-          </a>
-        </div>
 
-        <div class="table-responsive">
-          <table class="table-dashboard align-middle mb-0 text-center">
-            <thead>
-              <tr>
-                <th class="text-start ps-4" style="min-width: 220px;">Empresa</th>
-                <th style="width: 100px;">Progreso</th>
-                {% for m in modulos_resumen %}
-                <th style="min-width: 90px;" title="{{ m.nombre }}">
-                  <div class="d-flex flex-column align-items-center">
-                    <i class="bi {{ m.icono }} mb-1" style="font-size: 0.95rem; color: var(--tv-lime);"></i>
-                    <span style="font-size: 0.72rem;">{{ m.corto }}</span>
-                  </div>
-                </th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for fila in filas %}
-              <tr>
-                <td class="text-start ps-4">
-                  <div class="d-flex align-items-center gap-3">
-                    <span class="table-avatar">{{ fila.empresa.nombre|slice:":1"|upper }}</span>
-                    <div>
-                      <div class="fw-bold text-white">{{ fila.empresa.nombre }}</div>
-                      <div class="d-flex align-items-center gap-2 small text-muted" style="font-size: 0.75rem;">
-                        <span>{{ fila.empresa.rif }}</span>
-                        <span class="badge {% if fila.empresa.es_sujeto_pasivo_especial %}badge-dash-lime{% else %}badge-dash-dim{% endif %}" style="font-size: 0.65rem;">
-                          {{ fila.empresa.condicion_corta }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="fw-bold">{{ fila.realizados }}/{{ fila.aplican }}</div>
-                  <div class="progress mt-1 mx-auto" style="height: 4px; width: 60px; background: var(--tv-surface-subtle); border-radius: 999px;">
-                    <div class="progress-bar" style="width: {{ fila.pct }}%; background: {% if fila.pct == 100 %}var(--tv-emerald){% else %}var(--tv-lime){% endif %}; border-radius: 999px;"></div>
-                  </div>
-                </td>
-
-                {% for celda in fila.celdas %}
-                <td>
-                  {% if celda.estado == 'na' %}
-                    <span class="badge-dash-dim" title="No aplica a esta condición">N/A</span>
-                  {% elif celda.estado == 'ok' %}
-                    <a href="{{ celda.url }}" class="badge-dash-ok text-decoration-none d-inline-block" title="{{ celda.detalle|default:'Listo' }}">
-                      <i class="bi bi-check2"></i> Listo
-                    </a>
-                  {% elif celda.estado == 'prog' %}
-                    <a href="{{ celda.url }}" class="badge-dash-prog text-decoration-none d-inline-block" title="{{ celda.detalle|default:'En curso' }}">
-                      <i class="bi bi-hourglass-split"></i> Curso
-                    </a>
-                  {% else %}
-                    <a href="{{ celda.url }}" class="badge-dash-dim text-decoration-none d-inline-block" title="Sin iniciar">
-                      <i class="bi bi-dash"></i>
-                    </a>
-                  {% endif %}
-                </td>
-                {% endfor %}
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="{{ modulos_resumen|length|add:2 }}" class="py-5 text-muted text-center">
-                  No se encontraron empresas con los filtros aplicados.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% if empresa_activa %}
+            <h4 class="fw-bold mb-0" style="font-size: 1.2rem; color: var(--tv-text);">
+              {{ empresa_activa.nombre }}
+              <span class="text-muted fw-normal" style="font-size: 0.92rem;">· RIF {{ empresa_activa.rif }}</span>
+            </h4>
+          {% else %}
+            <h5 class="fw-bold mb-0" style="color: var(--tv-text);">Sin empresa registrada</h5>
+            <p class="text-muted small mb-0">Registre su primera empresa (Nombre, RIF y Condición) para activar los módulos.</p>
+          {% endif %}
         </div>
       </div>
-    </div>
 
-    <!-- Columna Lateral Derecha: Widget "Premium Plan" & Actividad -->
-    <div class="col-xl-3">
-      <!-- Widget Suscripción Idéntico a "Premium Plane" de la imagen -->
-      <div class="card-promo-widget mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="promo-pill"><i class="bi bi-lightning-charge-fill text-warning"></i> Plan TributoVE</span>
-          <i class="bi bi-three-dots text-muted"></i>
-        </div>
+      <!-- Selector directo de Empresa + Botón Nueva Empresa -->
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% if empresas_usuario %}
+        <form method="post" action="{% url 'empresas:activar_select' %}" class="d-flex align-items-center gap-2 m-0">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <label for="selectEmpresaActiva" class="small fw-semibold text-muted mb-0 d-none d-sm-inline">Cambiar:</label>
+          <select id="selectEmpresaActiva" name="empresa" class="form-select form-select-sm" style="min-width: 220px; font-size: 0.84rem; font-weight: 600;" onchange="this.form.submit()">
+            {% for emp in empresas_usuario %}
+              <option value="{{ emp.pk }}" {% if empresa_activa and emp.pk == empresa_activa.pk %}selected{% endif %}>
+                {{ emp.nombre }} ({{ emp.rif }})
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+        {% endif %}
 
-        <div class="promo-price">
-          ${{ user.suscripcion.configuracion.monto|default:'10'|floatformat:0 }}
-          <span style="font-size: 0.85rem; font-weight: 500; color: rgba(255, 255, 255, 0.7); display: block;">Mensual / Todas las Empresas</span>
-        </div>
+        <button type="button" class="btn btn-sm btn-dash-primary d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresaDashboard">
+          <i class="bi bi-plus-lg"></i>
+          <span>Nueva Empresa</span>
+        </button>
 
-        <p class="small text-white-50 mb-4" style="font-size: 0.82rem;">
-          Acceso ilimitado a los 9 módulos tributarios SENIAT, conciliación bancaria y libros de retenciones.
-        </p>
-
-        <a href="{% url 'usuarios:mi_cuenta' %}" class="promo-btn text-decoration-none">
-          <i class="bi bi-check-circle-fill"></i> Gestionar Plan
+        <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-secondary d-inline-flex align-items-center gap-1">
+          <i class="bi bi-buildings"></i>
+          <span>Mis Empresas ({{ total_empresas }})</span>
         </a>
       </div>
+    </div>
+  </div>
 
-      <!-- Widget Actividades / Módulos Rápidos -->
-      <div class="card-dashboard">
-        <h6 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
-          <span>Accesos Frecuentes</span>
-          <i class="bi bi-stars text-lime"></i>
-        </h6>
-        <div class="d-flex flex-column gap-2">
-          <a href="{% url 'retenciones_iva:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
-            <div class="table-avatar" style="background: rgba(34, 197, 94, 0.15); color: var(--tv-emerald);"><i class="bi bi-receipt"></i></div>
-            <div class="flex-grow-1">
-              <div class="fw-semibold small">Retenciones de IVA</div>
-              <small class="text-muted" style="font-size: 0.72rem;">Providencia 000054</small>
-            </div>
-            <i class="bi bi-chevron-right text-muted small"></i>
-          </a>
+  <!-- 2. RESUMEN RÁPIDO EN 4 INDICADORES LIMPIOS -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Empresas Registradas</div>
+        <div class="kpi-value">{{ total_empresas }}</div>
+        <div class="kpi-trend"><i class="bi bi-buildings"></i> En su cuenta</div>
+      </div>
+    </div>
 
-          <a href="{% url 'retenciones_islr:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
-            <div class="table-avatar" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-lime);"><i class="bi bi-search"></i></div>
-            <div class="flex-grow-1">
-              <div class="fw-semibold small">Retenciones ISLR</div>
-              <small class="text-muted" style="font-size: 0.72rem;">Decreto 1.808</small>
-            </div>
-            <i class="bi bi-chevron-right text-muted small"></i>
-          </a>
-
-          <a href="{% url 'calendario:index' %}" class="p-2 rounded-3 d-flex align-items-center gap-3 text-decoration-none text-white hover-surface" style="background: var(--tv-surface-subtle);">
-            <div class="table-avatar" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i class="bi bi-calendar2-week"></i></div>
-            <div class="flex-grow-1">
-              <div class="fw-semibold small">Calendario Fiscal</div>
-              <small class="text-muted" style="font-size: 0.72rem;">Sujetos pasivos especiales</small>
-            </div>
-            <i class="bi bi-chevron-right text-muted small"></i>
-          </a>
+    <div class="col-6 col-lg-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Avance Empresa Activa</div>
+        <div class="kpi-value" style="color: var(--tv-primary);">
+          {% if resumen_activa %}{{ resumen_activa.realizados }}/{{ resumen_activa.aplican }}{% else %}0/0{% endif %}
+        </div>
+        <div class="kpi-trend">
+          <i class="bi bi-check2-circle"></i>
+          {% if resumen_activa %}{{ resumen_activa.pct }}% completado{% else %}Seleccione empresa{% endif %}
         </div>
       </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card-kpi">
+        <div class="kpi-label">Cumplimiento Global</div>
+        <div class="kpi-value">{{ totales.pct }}%</div>
+        <div class="progress mt-1" style="height: 6px; background: var(--tv-surface-subtle); border-radius: 999px;">
+          <div class="progress-bar" style="width: {{ totales.pct }}%; background: var(--tv-primary); border-radius: 999px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card-kpi">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="kpi-label mb-0">Tasa Oficial BCV</div>
+          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.72rem; color: var(--tv-primary);" onclick="window.actualizarTasaBcv(true)" title="Actualizar desde BCV">
+            <i class="bi bi-arrow-clockwise"></i> Actualizar
+          </button>
+        </div>
+        <div class="kpi-value" style="color: var(--tv-primary); font-size: 1.45rem;">
+          Bs. <span data-bcv-usd>{{ tasa_bcv.usd|floatformat:2 }}</span>
+        </div>
+        <div class="kpi-trend">
+          <span>EUR: Bs. <strong data-bcv-eur>{{ tasa_bcv.eur|floatformat:2 }}</strong></span>
+          <span class="ms-auto badge-dash-dim" data-bcv-fecha style="font-size: 0.65rem;">{{ tasa_bcv.fecha }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. BARRA DE MODO DE VISTA Y BUSCADOR RÁPIDO -->
+  <div class="card-dashboard mb-3 py-2 px-3">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
+      <!-- Conmutador de Vista Principal -->
+      <div class="d-flex flex-wrap align-items-center gap-2" role="tablist" aria-label="Modo de visualización del panel">
+        <button type="button" class="filter-pill-btn active" role="tab" aria-selected="true" data-panel-view="modulos">
+          <i class="bi bi-grid-1x2"></i> Módulos de la Empresa ({{ modulos_activa|length }})
+        </button>
+        <button type="button" class="filter-pill-btn" role="tab" aria-selected="false" data-panel-view="matriz">
+          <i class="bi bi-table"></i> Tabla Resumen de Empresas ({{ total_empresas }})
+        </button>
+        <button type="button" class="filter-pill-btn" role="tab" aria-selected="false" data-panel-view="ambos">
+          <i class="bi bi-layout-split"></i> Ver Todo
+        </button>
+      </div>
+
+      <!-- Filtro de Categoría y Buscador -->
+      <div class="d-flex flex-wrap align-items-center gap-2" id="controlesFiltroModulos">
+        <select id="filtroMenuSelect" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" aria-label="Filtrar por menú">
+          <option value="todos">Todos los menús ({{ modulos_activa|length }})</option>
+          <option value="Planificación">1. Planificación (1)</option>
+          <option value="Consultas">2. Consultas (3)</option>
+          <option value="Contabilidad fiscal">3. Contabilidad Fiscal (7)</option>
+          <option value="pendientes">Solo pendientes / en curso</option>
+        </select>
+
+        <div class="position-relative" style="min-width: 230px;">
+          <input type="search" id="buscarModuloDash" class="form-control form-control-sm ps-4" placeholder="Buscar módulo (ej. ARI, ISLR)..." aria-label="Buscar módulo fiscal" style="font-size: 0.82rem;">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.78rem;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. SECCIÓN A: MÓDULOS DE LA EMPRESA ACTIVA -->
+  <div id="seccionModulosActiva" class="mb-4">
+    <div class="row g-3" id="gridModulosLaunchpad">
+      {% for item in modulos_activa %}
+      <div class="col-md-6 col-xl-4 modulo-launch-col"
+           data-categoria="{{ item.modulo.categoria }}"
+           data-estado="{{ item.celda.estado }}"
+           data-search="{{ item.modulo.nombre|lower }} {{ item.modulo.corto|lower }} {{ item.modulo.descripcion|lower }} {{ item.modulo.categoria|lower }} {{ item.modulo.codigo|lower }}">
+        <a href="{{ item.url }}" class="module-card-launch">
+          <div>
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="module-card-icon">
+                  <i class="bi {{ item.modulo.icono }}"></i>
+                </span>
+                <div>
+                  <span class="text-uppercase fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.04em; color: var(--tv-text-muted);">
+                    {{ item.modulo.categoria }}
+                  </span>
+                  <h6 class="fw-bold mb-0" style="font-size: 0.95rem; color: var(--tv-text);">
+                    {{ item.modulo.nombre }}
+                  </h6>
+                </div>
+              </div>
+
+              <!-- Estado limpio sin destellos -->
+              <div class="flex-shrink-0">
+                {% if not item.modulo.trackeable %}
+                  <span class="badge-dash-dim">Consulta</span>
+                {% elif item.celda.estado == 'na' %}
+                  <span class="badge-dash-dim">N/A</span>
+                {% elif item.celda.estado == 'ok' %}
+                  <span class="badge-dash-ok"><i class="bi bi-check2 me-1"></i>Listo</span>
+                {% elif item.celda.estado == 'proc' or item.celda.estado == 'prog' %}
+                  <span class="badge-dash-prog"><i class="bi bi-hourglass-split me-1"></i>En curso</span>
+                {% else %}
+                  <span class="badge-dash-dim">Pendiente</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <p class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.4;">
+              {{ item.modulo.descripcion }}
+            </p>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-2 mt-1 border-top" style="border-color: var(--tv-border-subtle) !important;">
+            <span class="small text-truncate pe-2" style="font-size: 0.74rem; color: var(--tv-text-muted);">
+              {% if item.celda.detalle %}
+                {{ item.celda.detalle }}
+              {% else %}
+                Autoguardado por empresa
+              {% endif %}
+            </span>
+            <span class="fw-semibold small d-inline-flex align-items-center gap-1 flex-shrink-0" style="font-size: 0.78rem; color: var(--tv-primary);">
+              Abrir módulo <i class="bi bi-arrow-right-short"></i>
+            </span>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="sinResultadosModulos" class="card-dashboard text-center py-4 text-muted d-none">
+      <i class="bi bi-search fs-4 d-block mb-1"></i>
+      No se encontraron módulos con ese criterio.
+    </div>
+  </div>
+
+  <!-- 5. SECCIÓN B: TABLA RESUMEN DE EMPRESAS -->
+  <div id="seccionMatrizEmpresas" class="card-dashboard p-0 d-none">
+    <div class="p-3 px-4 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 border-bottom" style="border-color: var(--tv-border) !important;">
+      <div>
+        <h5 class="fw-bold mb-0" id="matriz-obligaciones-heading" style="font-size: 1.05rem;">Resumen de Empresas</h5>
+        <small class="text-muted">Haga clic en cualquier estado para abrir el módulo en esa empresa.</small>
+      </div>
+
+      <!-- Filtros de Empresas -->
+      <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+        <div class="position-relative" style="min-width: 190px;">
+          <input type="text" name="q" class="form-control form-control-sm ps-4" placeholder="Buscar empresa o RIF..." value="{{ q }}" style="font-size: 0.8rem;">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.78rem;"></i>
+        </div>
+
+        <select name="f" class="form-select form-select-sm" style="width: auto; font-size: 0.8rem;" onchange="this.form.submit()" aria-label="Filtrar empresas por estado">
+          <option value="todas" {% if f == 'todas' %}selected{% endif %}>Todas</option>
+          <option value="pend" {% if f == 'pend' %}selected{% endif %}>Con pendientes</option>
+          <option value="comp" {% if f == 'comp' %}selected{% endif %}>100% Listas</option>
+          <option value="sin" {% if f == 'sin' %}selected{% endif %}>Sin iniciar</option>
+        </select>
+
+        <select name="o" class="form-select form-select-sm" style="width: auto; font-size: 0.8rem;" onchange="this.form.submit()" aria-label="Ordenar empresas">
+          <option value="nombre" {% if o == 'nombre' %}selected{% endif %}>Nombre (A-Z)</option>
+          <option value="menor" {% if o == 'menor' %}selected{% endif %}>Menor avance</option>
+          <option value="mayor" {% if o == 'mayor' %}selected{% endif %}>Mayor avance</option>
+        </select>
+
+        {% if q or f != 'todas' or o != 'nombre' %}
+          <a href="{% url 'empresas:resumen' %}" class="btn btn-sm btn-dash-secondary" style="font-size: 0.78rem;">Limpiar</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="table-scroll-region" tabindex="0" role="region" aria-labelledby="matriz-obligaciones-heading">
+      <table class="table-dashboard table-dashboard-sticky align-middle mb-0 text-center">
+        <thead>
+          <tr>
+            <th class="text-start ps-4 sticky-col" style="min-width: 240px;">Empresa</th>
+            <th style="min-width: 95px;">Avance</th>
+            {% for m in modulos_resumen %}
+            <th style="min-width: 92px;" title="{{ m.nombre }}">
+              <span style="font-size: 0.72rem;">{{ m.corto }}</span>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in filas %}
+          <tr>
+            <td class="text-start ps-4 sticky-col">
+              <div class="d-flex align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                  <span class="table-avatar">{{ fila.empresa.nombre|slice:":1"|upper }}</span>
+                  <div class="text-truncate">
+                    <div class="fw-bold text-truncate" style="max-width: 150px; color: var(--tv-text);" title="{{ fila.empresa.nombre }}">{{ fila.empresa.nombre }}</div>
+                    <div class="small text-muted" style="font-size: 0.72rem;">
+                      {{ fila.empresa.rif }} · {{ fila.empresa.condicion_corta }}
+                    </div>
+                  </div>
+                </div>
+
+                {% if empresa_activa and fila.empresa.pk == empresa_activa.pk %}
+                  <span class="badge-dash-lime">Activa</span>
+                {% else %}
+                  <form method="post" action="{% url 'empresas:activar' fila.empresa.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-sm btn-dash-secondary py-1 px-2" style="font-size: 0.7rem;">
+                      Activar
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+
+            <td>
+              <div class="fw-bold" style="font-size: 0.8rem;">{{ fila.realizados }}/{{ fila.aplican }}</div>
+              <div class="progress mt-1 mx-auto" style="height: 5px; width: 60px; background: var(--tv-surface-subtle); border-radius: 999px;">
+                <div class="progress-bar" style="width: {{ fila.pct }}%; background: var(--tv-primary); border-radius: 999px;"></div>
+              </div>
+            </td>
+
+            {% for celda in fila.celdas %}
+            <td>
+              {% if celda.estado == 'na' %}
+                <a href="{{ celda.url }}" class="badge-dash-dim text-decoration-none d-inline-block" title="{{ celda.modulo.nombre }}">
+                  {% if celda.modulo.consulta %}Consulta{% else %}N/A{% endif %}
+                </a>
+              {% elif celda.estado == 'ok' %}
+                <a href="{{ celda.url }}" class="badge-dash-ok text-decoration-none d-inline-block" title="{{ celda.modulo.nombre }}: {{ celda.detalle|default:'Listo' }}">
+                  Listo
+                </a>
+              {% elif celda.estado == 'proc' or celda.estado == 'prog' %}
+                <a href="{{ celda.url }}" class="badge-dash-prog text-decoration-none d-inline-block" title="{{ celda.modulo.nombre }}: {{ celda.detalle|default:'En curso' }}">
+                  En curso
+                </a>
+              {% else %}
+                <a href="{{ celda.url }}" class="badge-dash-dim text-decoration-none d-inline-block" title="Abrir {{ celda.modulo.nombre }}">
+                  —
+                </a>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="{{ modulos_resumen|length|add:2 }}" class="py-5 text-muted text-center">
+              No hay empresas registradas.
+              <div class="mt-2">
+                <button type="button" class="btn btn-sm btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresaDashboard">
+                  + Registrar Empresa
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL NUEVA EMPRESA (Solo Nombre, RIF y Condición de Contribuyente) -->
+<div class="modal fade" id="modalNuevaEmpresaDashboard" tabindex="-1" aria-labelledby="modalNuevaEmpresaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 14px; color: var(--tv-text);">
+      <form method="post" action="{% url 'empresas:lista' %}">
+        {% csrf_token %}
+        <div class="modal-header border-bottom" style="border-color: var(--tv-border) !important;">
+          <h5 class="modal-title fw-bold" id="modalNuevaEmpresaLabel">Registrar Nueva Empresa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Nombre o Razón Social</label>
+            {{ form_empresa.nombre }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">RIF</label>
+            {{ form_empresa.rif }}
+            <div class="form-text text-muted" style="font-size: 0.72rem;">Ejemplo: J-12345678-9</div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Condición de Contribuyente</label>
+            {{ form_empresa.condicion }}
+          </div>
+        </div>
+
+        <div class="modal-footer border-top" style="border-color: var(--tv-border) !important;">
+          <button type="button" class="btn btn-sm btn-dash-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-dash-primary">Guardar y Activar</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+
+<script>
+  (function() {
+    var searchInput = document.getElementById('buscarModuloDash');
+    var menuSelect = document.getElementById('filtroMenuSelect');
+    var cols = document.querySelectorAll('.modulo-launch-col');
+    var emptyMsg = document.getElementById('sinResultadosModulos');
+
+    var viewBtns = document.querySelectorAll('[data-panel-view]');
+    var secModulos = document.getElementById('seccionModulosActiva');
+    var secMatriz = document.getElementById('seccionMatrizEmpresas');
+    var controlesFiltro = document.getElementById('controlesFiltroModulos');
+
+    function applyModuleFilters() {
+      var q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+      var activeCat = menuSelect ? menuSelect.value : 'todos';
+      var visibleCount = 0;
+
+      cols.forEach(function(col) {
+        var cat = col.getAttribute('data-categoria') || '';
+        var est = col.getAttribute('data-estado') || '';
+        var text = col.getAttribute('data-search') || '';
+
+        var matchCat = true;
+        if (activeCat === 'pendientes') {
+          matchCat = (est === 'sin' || est === 'proc' || est === 'prog');
+        } else if (activeCat !== 'todos') {
+          matchCat = (cat === activeCat);
+        }
+
+        var matchQuery = !q || text.indexOf(q) !== -1;
+        if (matchCat && matchQuery) {
+          col.classList.remove('d-none');
+          visibleCount++;
+        } else {
+          col.classList.add('d-none');
+        }
+      });
+
+      if (emptyMsg) {
+        emptyMsg.classList.toggle('d-none', visibleCount > 0);
+      }
+    }
+
+    if (menuSelect) menuSelect.addEventListener('change', applyModuleFilters);
+    if (searchInput) searchInput.addEventListener('input', applyModuleFilters);
+
+    function setPanelView(mode) {
+      viewBtns.forEach(function(b) {
+        var isMatch = b.getAttribute('data-panel-view') === mode;
+        b.classList.toggle('active', isMatch);
+        b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+      });
+      if (mode === 'modulos') {
+        secModulos.classList.remove('d-none');
+        secMatriz.classList.add('d-none');
+        controlesFiltro.classList.remove('d-none');
+      } else if (mode === 'matriz') {
+        secModulos.classList.add('d-none');
+        secMatriz.classList.remove('d-none');
+        controlesFiltro.classList.add('d-none');
+      } else {
+        secModulos.classList.remove('d-none');
+        secMatriz.classList.remove('d-none');
+        controlesFiltro.classList.remove('d-none');
+      }
+    }
+
+    viewBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setPanelView(btn.getAttribute('data-panel-view'));
+      });
+    });
+
+    // Si hay parámetros de búsqueda de empresas (?q= o ?f=), mostrar automáticamente la pestaña de Tabla Resumen
+    if (window.location.search.indexOf('q=') !== -1 || window.location.search.indexOf('f=') !== -1) {
+      setPanelView('matriz');
+    }
+  })();
+</script>
 {% endblock %}

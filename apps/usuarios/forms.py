@@ -47,33 +47,29 @@ class ClavesMixin(forms.Form):
 
 
 class RegistroForm(BootstrapFormMixin, ClavesMixin, forms.ModelForm):
-    """Registro público de contadores (quedan pendientes de activación)."""
+    """
+    Registro de usuario:
+    "El Usuario se registra con sus datos: Usuario y clave para recuperar clave usar mail"
+    """
 
     class Meta:
         model = Usuario
-        fields = ['nombre', 'telefono', 'email', 'usuario']
+        fields = ['usuario', 'email', 'nombre', 'telefono']
         widgets = {
-            'nombre': forms.TextInput(attrs={'autocomplete': 'name'}),
-            'telefono': forms.TextInput(attrs={'type': 'tel', 'placeholder': '0414-1234567', 'autocomplete': 'tel'}),
-            'email': forms.EmailInput(attrs={'autocomplete': 'email', 'placeholder': 'opcional'}),
-            'usuario': forms.TextInput(attrs={'autocomplete': 'username', 'placeholder': '4 a 20 letras o números'}),
+            'usuario': forms.TextInput(attrs={'autocomplete': 'username', 'placeholder': 'Usuario (4 a 20 letras o números)'}),
+            'email': forms.EmailInput(attrs={'autocomplete': 'email', 'placeholder': 'Correo electrónico (para recuperar clave)'}),
+            'nombre': forms.TextInput(attrs={'autocomplete': 'name', 'placeholder': 'Nombre completo (opcional)'}),
+            'telefono': forms.TextInput(attrs={'type': 'tel', 'placeholder': '0414-1234567 (opcional)', 'autocomplete': 'tel'}),
         }
 
-    field_order = ['nombre', 'telefono', 'email', 'usuario', 'clave1', 'clave2']
+    field_order = ['usuario', 'email', 'clave1', 'clave2', 'nombre', 'telefono']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['telefono'].required = True
-        self.fields['telefono'].widget.attrs['required'] = 'required'
-
-    def clean_nombre(self):
-        n = self.cleaned_data['nombre'].strip()
-        if len(n) < 3:
-            raise forms.ValidationError('Escriba su nombre completo.')
-        return n
-
-    def clean_telefono(self):
-        return validar_telefono(self.cleaned_data.get('telefono'))
+        self.fields['email'].required = True
+        self.fields['email'].widget.attrs['required'] = 'required'
+        self.fields['nombre'].required = False
+        self.fields['telefono'].required = False
 
     def clean_usuario(self):
         u = self.cleaned_data['usuario'].strip().lower()
@@ -81,16 +77,52 @@ class RegistroForm(BootstrapFormMixin, ClavesMixin, forms.ModelForm):
             raise forms.ValidationError('Ese usuario ya está en uso.')
         return u
 
+    def clean_email(self):
+        e = (self.cleaned_data.get('email') or '').strip().lower()
+        if not e:
+            raise forms.ValidationError('Indique un correo electrónico para poder recuperar su clave.')
+        return e
+
+    def clean_nombre(self):
+        n = (self.cleaned_data.get('nombre') or '').strip()
+        return n
+
+    def clean_telefono(self):
+        t = (self.cleaned_data.get('telefono') or '').strip()
+        return validar_telefono(t) if t else ''
+
     def _post_clean(self):
+        if not self.instance.nombre:
+            self.instance.nombre = self.cleaned_data.get('usuario') or 'Usuario'
         super()._post_clean()
         self._validar_clave(self.instance)
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        if not user.nombre:
+            user.nombre = user.usuario
         user.set_password(self.cleaned_data['clave1'])
         if commit:
             user.save()
         return user
+
+
+class RecuperarClaveMailForm(BootstrapFormMixin, forms.Form):
+    """Formulario para recuperar clave usando correo electrónico."""
+    email = forms.EmailField(
+        label='Correo electrónico registrado',
+        widget=forms.EmailInput(attrs={'autocomplete': 'email', 'placeholder': 'correo@ejemplo.com', 'autofocus': True}),
+    )
+    usuario = forms.CharField(
+        label='Usuario (opcional)',
+        required=False,
+        widget=forms.TextInput(attrs={'autocomplete': 'username', 'placeholder': 'Su nombre de usuario'}),
+    )
+
+
+class RestablecerClaveForm(BootstrapFormMixin, ClavesMixin):
+    """Establece una nueva clave tras validar el enlace de correo."""
+    pass
 
 
 class PerfilForm(BootstrapFormMixin, forms.ModelForm):

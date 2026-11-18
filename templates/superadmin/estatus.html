@@ -114,7 +114,7 @@
                 <span class="badge badge-status-ok py-1 px-2 d-inline-block" title="{{ celda.detalle|default:'Listo' }}">
                   <i class="bi bi-check-circle-fill me-1"></i> Listo
                 </span>
-              {% elif celda.estado == 'prog' %}
+              {% elif celda.estado == 'proc' or celda.estado == 'prog' %}
                 <span class="badge badge-status-prog py-1 px-2 d-inline-block" title="{{ celda.detalle|default:'En curso' }}">
                   <i class="bi bi-hourglass-split me-1"></i> En curso
                 </span>

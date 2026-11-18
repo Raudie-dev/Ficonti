@@ -132,7 +132,7 @@
             <div class="fintech-phone-card card-phone-main">
               <div class="phone-notch"></div>
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge" style="background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); font-size: 0.7rem; font-weight: 700;">
+                <span class="badge" style="background: rgba(26, 107, 74, 0.15); color: var(--tv-primary); font-size: 0.7rem; font-weight: 700;">
                   SENIAT · SPE 2026/27
                 </span>
                 <span class="text-dim small font-monospace"><i class="bi bi-shield-check text-success me-1"></i>Al Día</span>
@@ -150,17 +150,17 @@
                 <svg viewBox="0 0 300 90" class="neon-line-chart">
                   <defs>
                     <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="rgba(210, 248, 101, 0.45)" />
-                      <stop offset="100%" stop-color="rgba(210, 248, 101, 0.0)" />
+                      <stop offset="0%" stop-color="rgba(26, 107, 74, 0.45)" />
+                      <stop offset="100%" stop-color="rgba(26, 107, 74, 0.0)" />
                     </linearGradient>
                   </defs>
                   <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10 L 300,90 L 0,90 Z" fill="url(#chartGrad)"></path>
-                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10" fill="none" stroke="#D2F865" stroke-width="3" stroke-linecap="round"></path>
+                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10" fill="none" stroke="#1A6B4A" stroke-width="3" stroke-linecap="round"></path>
                   <!-- Nodos brillantes -->
-                  <circle cx="80" cy="45" r="4.5" fill="#D2F865" class="chart-node"></circle>
-                  <circle cx="160" cy="55" r="4.5" fill="#D2F865" class="chart-node"></circle>
-                  <circle cx="220" cy="20" r="4.5" fill="#D2F865" class="chart-node"></circle>
-                  <circle cx="300" cy="10" r="5" fill="#D2F865" class="chart-node"></circle>
+                  <circle cx="80" cy="45" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
+                  <circle cx="160" cy="55" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
+                  <circle cx="220" cy="20" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
+                  <circle cx="300" cy="10" r="5" fill="#1A6B4A" class="chart-node"></circle>
                 </svg>
               </div>
 
@@ -292,7 +292,7 @@
             <div class="chart-wave-container position-relative my-4">
               <svg viewBox="0 0 400 120" class="w-100" style="overflow: visible;">
                 <!-- Línea de Onda Verde Neón -->
-                <path d="M 0,90 Q 60,110 120,70 T 240,40 T 360,85 T 400,20" fill="none" stroke="#D2F865" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M 0,90 Q 60,110 120,70 T 240,40 T 360,85 T 400,20" fill="none" stroke="#1A6B4A" stroke-width="3" stroke-linecap="round"></path>
               </svg>
 
               <!-- Nodos Flotantes con Letras como en la Imagen -->
@@ -319,7 +319,7 @@
                   <span class="text-dim d-block" style="font-size: 0.68rem;">Eficiencia Fiscal</span>
                   <strong class="text-white small">+45.66%</strong>
                 </div>
-                <span class="badge" style="background: rgba(210, 248, 101, 0.2); color: var(--tv-primary); font-size: 0.65rem;">SENIAT OK</span>
+                <span class="badge" style="background: rgba(26, 107, 74, 0.2); color: var(--tv-primary); font-size: 0.65rem;">SENIAT OK</span>
               </div>
             </div>
 
@@ -371,7 +371,7 @@
   <section class="py-5 my-4" id="modulos">
     <div class="container">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); border-radius: 999px;">
+        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(26, 107, 74, 0.12); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.25); border-radius: 999px;">
           SUITE CONTABLE INTEGRAL
         </span>
         <h2 class="section-title text-white">9 Módulos diseñados para la normativa venezolana</h2>
@@ -469,7 +469,7 @@
   <section class="py-5 my-4" id="planes">
     <div class="container">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(210, 248, 101, 0.12); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.25); border-radius: 999px;">
+        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(26, 107, 74, 0.12); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.25); border-radius: 999px;">
           PRECIOS TRANSPARENTES
         </span>
         <h2 class="section-title text-white">Elige el plan ideal para tu cartera contable</h2>
@@ -480,14 +480,14 @@
         {% for plan in planes %}
         <div class="col-md-6 col-lg-4">
           <div class="landing-pricing-card h-100 d-flex flex-column justify-content-between p-4"
-               style="{% if plan.codigo == 'PRO' %}border-color: rgba(210, 248, 101, 0.4) !important; box-shadow: 0 10px 30px -5px rgba(210, 248, 101, 0.15);{% endif %}">
+               style="{% if plan.codigo == 'PRO' %}border-color: rgba(26, 107, 74, 0.4) !important; box-shadow: 0 10px 30px -5px rgba(26, 107, 74, 0.15);{% endif %}">
             <div>
               <!-- Badge de categoría -->
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge fw-bold px-2.5 py-1"
                       style="font-size: 0.72rem; border-radius: 8px;
                              {% if plan.etiqueta_badge == 'STARTER' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
-                             {% elif plan.etiqueta_badge == 'PRO' %}background: rgba(210, 248, 101, 0.15); color: var(--tv-primary); border: 1px solid rgba(210, 248, 101, 0.3);
+                             {% elif plan.etiqueta_badge == 'PRO' %}background: rgba(26, 107, 74, 0.15); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.3);
                              {% else %}background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);{% endif %}">
                   {{ plan.etiqueta_badge }}
                 </span>
@@ -602,7 +602,7 @@
   :root {
     --tv-landing-bg: #070A08;
     --tv-landing-surface: #101512;
-    --tv-landing-lime: #D2F865;
+    --tv-landing-lime: #1A6B4A;
   }
 
   body {
@@ -614,7 +614,7 @@
   .landing-wrapper {
     background-color: var(--tv-landing-bg);
     background-image: 
-      radial-gradient(circle at 85% 15%, rgba(210, 248, 101, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(26, 107, 74, 0.12) 0%, transparent 45%),
       radial-gradient(circle at 15% 55%, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
       linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
@@ -634,8 +634,8 @@
   .brand-logo-icon {
     width: 38px;
     height: 38px;
-    background: rgba(210, 248, 101, 0.15);
-    border: 1px solid rgba(210, 248, 101, 0.3);
+    background: rgba(26, 107, 74, 0.15);
+    border: 1px solid rgba(26, 107, 74, 0.3);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -678,12 +678,12 @@
     gap: 0.35rem !important;
     text-decoration: none !important;
     border: none !important;
-    box-shadow: 0 4px 18px rgba(210, 248, 101, 0.35) !important;
+    box-shadow: 0 4px 18px rgba(26, 107, 74, 0.35) !important;
     transition: all 0.2s ease !important;
   }
   .btn-landing-explore:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(210, 248, 101, 0.5) !important;
+    box-shadow: 0 8px 24px rgba(26, 107, 74, 0.5) !important;
     color: #000000 !important;
   }
 
@@ -758,7 +758,7 @@
     text-decoration: none;
     flex-shrink: 0;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 0 20px rgba(210, 248, 101, 0.4);
+    box-shadow: 0 0 20px rgba(26, 107, 74, 0.4);
   }
   .hero-arrow-btn:hover {
     transform: scale(1.1) rotate(45deg);
@@ -782,7 +782,7 @@
     transform: translate(-50%, -50%);
     width: 320px;
     height: 320px;
-    background: radial-gradient(circle, rgba(210, 248, 101, 0.18) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(26, 107, 74, 0.18) 0%, transparent 70%);
     border-radius: 50%;
     filter: blur(40px);
     pointer-events: none;
@@ -814,7 +814,7 @@
     right: 10px;
     z-index: 3;
     transform: rotate(5deg);
-    border-color: rgba(210, 248, 101, 0.3);
+    border-color: rgba(26, 107, 74, 0.3);
   }
   .card-phone-secondary:hover {
     transform: rotate(0deg) scale(1.04);
@@ -829,7 +829,7 @@
   .neon-line-chart {
     width: 100%;
     height: 90px;
-    filter: drop-shadow(0 0 6px rgba(210, 248, 101, 0.6));
+    filter: drop-shadow(0 0 6px rgba(26, 107, 74, 0.6));
   }
 
   /* Sección 2: 3 Tarjetas (Exacta a la imagen) */
@@ -883,7 +883,7 @@
     border: none;
     border-radius: 24px;
     padding: 2.25rem 2rem;
-    box-shadow: 0 15px 40px -10px rgba(210, 248, 101, 0.4);
+    box-shadow: 0 15px 40px -10px rgba(26, 107, 74, 0.4);
     transform: translateY(-8px);
     transition: transform 0.2s ease;
   }
@@ -944,7 +944,7 @@
     justify-content: center;
     font-weight: 900;
     font-size: 0.8rem;
-    box-shadow: 0 0 15px rgba(210, 248, 101, 0.6);
+    box-shadow: 0 0 15px rgba(26, 107, 74, 0.6);
   }
   .node-1 { top: 55%; left: 28%; }
   .node-2 { top: 30%; left: 55%; }
@@ -972,14 +972,14 @@
     transition: transform 0.2s ease, border-color 0.2s ease;
   }
   .module-feature-card:hover {
-    border-color: rgba(210, 248, 101, 0.35);
+    border-color: rgba(26, 107, 74, 0.35);
     transform: translateY(-4px);
   }
   .module-icon-box {
     width: 44px;
     height: 44px;
-    background: rgba(210, 248, 101, 0.12);
-    border: 1px solid rgba(210, 248, 101, 0.25);
+    background: rgba(26, 107, 74, 0.12);
+    border: 1px solid rgba(26, 107, 74, 0.25);
     border-radius: 12px;
     display: flex;
     align-items: center;

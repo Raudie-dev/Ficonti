@@ -9,5 +9,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('registro/', views.registro_view, name='registro'),
     path('recuperar-clave/', views.recuperar_view, name='recuperar'),
+    path('recuperar-clave/<uidb64>/<token>/', views.restablecer_clave_view, name='restablecer_clave'),
     path('mi-cuenta/', views.mi_cuenta_view, name='mi_cuenta'),
 ]

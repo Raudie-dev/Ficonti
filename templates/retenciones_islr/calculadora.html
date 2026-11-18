@@ -8,7 +8,7 @@
     document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
     document.documentElement.setAttribute('data-theme', t);
   }
-  var initT = localStorage.getItem('tv-theme') || 'dark';
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
   setT(initT);
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'tv-theme-change') {
@@ -197,7 +197,7 @@ dl.facts{margin-block:20px 0}
 
 /* Table */
 .table-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:14px}
-table{width:100%;border-collapse:collapse;min-width:980px}
+table{width:100%;border-collapse:collapse;min-width:0}
 thead th{
   background:var(--royal);color:#fff;text-align:left;font-weight:600;font-size:.86rem;line-height:1.25;
   padding:12px 14px;white-space:normal;vertical-align:bottom;
@@ -249,8 +249,8 @@ mark{background:var(--mark);color:var(--mark-ink);border-radius:3px;padding:0 1p
 .card .t2 table{border-top:1px solid var(--rule)}
 footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 
-/* Mobile: filas como tarjetas */
-@media (max-width:760px){
+/* Mobile: filas como tarjetas (Solo en pantalla, nunca en impresión) */
+@media screen and (max-width:760px){
   .wrap{padding:0 14px}
   .masthead{padding-bottom:56px}
   table{min-width:0}
@@ -286,9 +286,9 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 /*mdl*/
 #rows tr[data-r]{cursor:pointer}
 #rows tr[data-r]:focus-visible{outline:2px solid var(--royal);outline-offset:-2px}
-.mdl-bg{position:fixed;inset:0;background:rgba(10,14,30,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px}
+.mdl-bg{position:fixed;inset:0;background:rgba(10,14,30,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
 .mdl-bg[hidden]{display:none}
-.mdl{background:var(--surface);color:var(--ink);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:min(560px,100%);max-height:calc(100vh - 28px);overflow:auto}
+.mdl{background:var(--tv-surface, var(--surface));color:var(--tv-text, var(--ink));border:1px solid var(--bd, var(--rule));border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:min(540px,100%);max-height:85vh;overflow:auto}
 .mh{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--surface);z-index:1}
 .mh b{display:block;margin-top:5px;line-height:1.25}
 .mx{border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--muted);padding:0 4px}
@@ -315,6 +315,24 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 .sugg .sc{flex:1;min-width:0;font-weight:500}.sugg small{color:var(--muted);white-space:nowrap}
 @media (max-width:760px){.sugg small{display:none}.mdl-bg{align-items:flex-end;padding:0}.mdl{border-radius:14px 14px 0 0;max-height:92vh}}
 @media print{.mdl-bg,.sugg{display:none!important}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
 </style>
 
 
@@ -323,7 +341,7 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
    TributoVE - Sistema Visual Verde Fintech Moderno
    Espaciado amplio, responsive y PWA Ready
    Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
-           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+           #2D5128 (Verde Base) | #1A6B4A (Lima Acento) | #8B958E (Muted)
    ========================================================================== */
 
 :root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
@@ -337,9 +355,9 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
   --lt: #1a201c !important;
   --zb: #171c18 !important;
   --ok: #2D5128 !important;
-  --okt: #D2F865 !important;
+  --okt: #1A6B4A !important;
   --wn: #2D5128 !important;
-  --wnt: #D2F865 !important;
+  --wnt: #1A6B4A !important;
   --rd: #3a1c1a !important;
   --rdt: #f87171 !important;
   --past: #525a54 !important;
@@ -350,15 +368,15 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
   --ink: #ffffff !important;
   --muted: #8b958e !important;
   --rule: rgba(255, 255, 255, 0.08) !important;
-  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --rule-strong: rgba(26, 107, 74, 0.3) !important;
   --royal: #2D5128 !important;
   --royal-deep: #141815 !important;
   --on-royal: #ffffff !important;
-  --focus: #D2F865 !important;
+  --focus: #1A6B4A !important;
   --pnr-bg: rgba(34, 197, 94, 0.15) !important;
   --pnr-ink: #22c55e !important;
-  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
-  --pnnr-ink: #D2F865 !important;
+  --pnnr-bg: rgba(26, 107, 74, 0.15) !important;
+  --pnnr-ink: #1A6B4A !important;
   --pjd-bg: rgba(45, 81, 40, 0.3) !important;
   --pjd-ink: #a7f3d0 !important;
   --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
@@ -376,16 +394,15 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
   --m: #8b958e !important;
   --l: rgba(255, 255, 255, 0.08) !important;
   --b: rgba(255, 255, 255, 0.08) !important;
-  --a: #D2F865 !important;
+  --a: #1A6B4A !important;
   --tv-bg: #0b0e0c !important;
   --bg: #0b0e0c !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #141815;
   --tv-surface-subtle: #1a201c;
   --tv-surface-hover: #222a24;
   --tv-border: rgba(255, 255, 255, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #ffffff;
 }
 
@@ -428,13 +445,12 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
   --a: #537B2F !important;
   --tv-bg: #f2f5f1 !important;
   --bg: #f2f5f1 !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #ffffff;
   --tv-surface-subtle: #f7faf5;
   --tv-surface-hover: #eaf0e6;
   --tv-border: rgba(0, 0, 0, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #0b0e0c;
 }
 
@@ -565,11 +581,10 @@ nav button:hover, .chips button:hover, .chip:hover {
   color: var(--tv-text) !important;
 }
 nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
+  background: #1A6B4A !important; color: #ffffff !important;
   border-color: var(--tv-lime) !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+  box-shadow: 0 2px 10px rgba(26, 107, 74, 0.25) !important;
 }
 
 /* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
@@ -601,9 +616,9 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   font-weight: 700 !important;
 }
 #ux-bar .ux-chip {
-  background: rgba(210, 248, 101, 0.12) !important;
+  background: rgba(26, 107, 74, 0.12) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border: 1px solid rgba(26, 107, 74, 0.25) !important;
   border-radius: 20px !important;
   padding: 0.35rem 0.85rem !important;
   font-size: 0.78rem !important;
@@ -664,7 +679,7 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
 #q:focus, .search input#q:focus, .search-box input:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.2) !important;
 }
 .hint {
   margin: 0.85rem 0 1.25rem !important;
@@ -791,7 +806,7 @@ td.rate {
   font-size: 0.98rem !important;
 }
 td.next {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
 }
@@ -804,10 +819,10 @@ td.past {
   color: var(--past) !important;
 }
 .tot td, tfoot td {
-  background: rgba(210, 248, 101, 0.08) !important;
+  background: rgba(26, 107, 74, 0.08) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
-  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-top: 1px solid rgba(26, 107, 74, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -872,7 +887,7 @@ input, select, textarea, td input, td select {
 input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2) !important;
 }
 
 /* Calendario Hero y Paneles */
@@ -909,7 +924,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 }
 .dig {
   background: #2D5128 !important;
-  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  border: 1px solid rgba(26, 107, 74, 0.35) !important;
   color: var(--tv-lime) !important;
   border-radius: 12px !important;
   font-weight: 800 !important;
@@ -929,15 +944,14 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   gap: 0.45rem !important;
 }
 .b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
-  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  background: #1A6B4A !important; color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(26, 107, 74, 0.2) !important;
   border: 0 !important;
 }
 .b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
-  background: #e0fb80 !important;
+  background: #14573C !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(26, 107, 74, 0.35) !important;
 }
 .b.s, .sec, header .btn, button#rs {
   background: var(--tv-surface-subtle) !important;
@@ -969,9 +983,9 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 .wa, .wr, .tag.PNNR {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+  border: 1px solid rgba(26, 107, 74, 0.3) !important;
 }
 .tag.PJD {
   background: rgba(45, 81, 40, 0.35) !important;
@@ -995,7 +1009,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 /* ==========================================================================
    ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
    ========================================================================== */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .wrap, .w, main, #v, #m {
     padding: 0.25rem 0.25rem 2rem !important;
   }
@@ -1091,7 +1105,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .grid {
     grid-template-columns: 1fr !important;
   }
@@ -1127,7 +1141,303 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     gap: 0.75rem !important;
   }
 }
+
+/* Paginación y ajuste horizontal de las 8 columnas en pantalla */
+td.concept {
+  min-width: 170px !important;
+  max-width: 260px !important;
+}
+.ret-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.65rem 0.9rem;
+  border-top: 1px solid var(--tv-border, var(--bd));
+  background: var(--tv-surface-subtle, var(--surface));
+  font-size: 0.8rem;
+}
+.ret-pager-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ret-pager button {
+  background: var(--tv-surface, var(--surface));
+  color: var(--tv-text, var(--ink));
+  border: 1px solid var(--tv-border, var(--bd));
+  border-radius: 6px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ret-pager button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ret-pager select {
+  width: auto !important;
+  min-height: 28px !important;
+  padding: 0.15rem 0.45rem !important;
+  font-size: 0.78rem !important;
+}
+@media print {
+  .ret-pager {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN DE ESPACIO EN PANTALLA Y REPORTE DE IMPRESIÓN PROFESIONAL
+   ========================================================================== */
+#emp-banner, #ux-bar, #ux-top {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+
+/* Cabecera compacta en pantalla (1 sola franja limpia) */
+header.masthead {
+  padding: 0.85rem 1.25rem !important;
+  margin-bottom: 0.85rem !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+header.masthead .wrap {
+  padding: 0 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem 1.5rem !important;
+}
+header.masthead h1 {
+  font-size: 1.1rem !important;
+  margin: 0 !important;
+}
+header.masthead p {
+  font-size: 0.8rem !important;
+  margin: 0.15rem 0 0 !important;
+}
+header.masthead dl.facts {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  width: auto !important;
+  gap: 0.75rem 1.5rem !important;
+}
+
+/* Diseño Ejecutivo de Impresión / PDF para Reporte de Retenciones */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 10mm 12mm 10mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #emp-banner, #ux-bar, #ux-top, header.masthead, section.panel, .bar, .howto, .pop, .sugg, footer, .mx, #btnPrintModal {
+    display: none !important;
+  }
+  .wrap, main.wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Encabezado formal del reporte impreso (#ux-pt) */
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+  }
+  #ux-pt .rpt-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  #ux-pt .rpt-brand {
+    font-size: 13pt !important;
+    font-weight: 800 !important;
+    color: #1A6B4A !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 0 2px !important;
+  }
+  #ux-pt .rpt-emp {
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+  }
+  #ux-pt .rpt-meta {
+    text-align: right !important;
+    font-size: 8pt !important;
+    color: #4b5563 !important;
+    line-height: 1.4 !important;
+  }
+  #ux-pt .rpt-bar {
+    margin-top: 6px !important;
+    padding: 5px 8px !important;
+    background: #f3f6f4 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    font-size: 8pt !important;
+    color: #1f2937 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Tabla principal de retenciones limpia y completa en impresión */
+  .table-scroll, #results {
+    background: #ffffff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 14px !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  #results table, .t2 table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+  }
+  #results thead, .t2 thead {
+    display: table-header-group !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+  }
+  #results tbody, .t2 tbody {
+    display: table-row-group !important;
+  }
+  #results tr, .t2 tr {
+    display: table-row !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background: #ffffff !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #results tbody tr:nth-child(even) td {
+    background: #f9fafb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #results thead th, .t2 thead th {
+    display: table-cell !important;
+    background: #1A6B4A !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 7.5pt !important;
+    text-transform: uppercase !important;
+    padding: 6px 6px !important;
+    border: 1px solid #14573C !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #results tbody td, .t2 tbody td {
+    display: table-cell !important;
+    padding: 5px 6px !important;
+    border: 1px solid #d1d5db !important;
+    color: #111827 !important;
+    font-size: 8pt !important;
+    vertical-align: middle !important;
+  }
+  #results td::before {
+    display: none !important;
+    content: none !important;
+  }
+  #results td.concept {
+    min-width: 170px !important;
+    max-width: none !important;
+    font-weight: 600 !important;
+  }
+  #results td.num, #results th.num {
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  .pill {
+    border: 0 !important;
+    background: transparent !important;
+    color: #111827 !important;
+    padding: 0 !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+  }
+  .tag {
+    padding: 1px 5px !important;
+    font-size: 7.5pt !important;
+    border-radius: 3px !important;
+    border: 1px solid #9ca3af !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Tarjeta de Tarifa N° 2 al pie del reporte */
+  .refs {
+    display: block !important;
+    margin: 10px 0 0 !important;
+  }
+  #t2card {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  #t2card h2 {
+    font-size: 9.5pt !important;
+    color: #1A6B4A !important;
+    padding: 0 0 6px !important;
+    margin: 0 !important;
+  }
+
+  /* Si el modal de cálculo individual está abierto, imprimir solo la hoja de liquidación */
+  body:has(#mdl:not([hidden])) main.wrap {
+    display: none !important;
+  }
+  body:has(#mdl:not([hidden])) #mdl {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  body:has(#mdl:not([hidden])) #mdl .mdl {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+}
 </style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
 
@@ -1195,6 +1505,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
       <strong>Sin resultados</strong>
       Revisa la ortografía, usa menos palabras o quita el filtro de condición.
     </div>
+    <div class="ret-pager noprint" id="retPager"></div>
   </div>
 
   <section class="refs">
@@ -1253,7 +1564,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     return o;
   });
 
-  var state = {q:"", cond:"ALL"};
+  var state = {q:"", cond:"ALL", page:1, pageSize:12, printing:false};
   var $ = function(id){return document.getElementById(id);};
 
   $("utVal").textContent = "Bs " + bs(UT);
@@ -1313,7 +1624,14 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     $("clear").classList.toggle("on", state.q.length > 0);
     $("empty").hidden = shown.length > 0;
 
-    $("rows").innerHTML = shown.map(function(r){
+    var ps = state.printing ? 9999 : state.pageSize;
+    var totalPages = Math.max(1, Math.ceil(shown.length / ps));
+    if(state.page > totalPages) state.page = totalPages;
+    if(state.page < 1) state.page = 1;
+    var startIdx = (state.page - 1) * ps;
+    var pageRows = ps >= 9999 ? shown : shown.slice(startIdx, startIdx + ps);
+
+    $("rows").innerHTML = pageRows.map(function(r){
       var tarifa = r.t2
         ? '<button type="button" class="pill" data-t2="1" aria-label="Tarifa N.º 2, ver tabla">Tarifa N.º 2</button>'
         : cell(r.t, "pct");
@@ -1328,6 +1646,41 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
         '<td class="num" data-label="Sustraendo en Bs">' + cell(r.u) + '</td>' +
         '</tr>';
     }).join("");
+
+    var pagerEl = $("retPager");
+    if(pagerEl){
+      if(!shown.length){
+        pagerEl.innerHTML = "";
+      } else {
+        var fromN = startIdx + 1;
+        var toN = Math.min(startIdx + pageRows.length, shown.length);
+        pagerEl.innerHTML =
+          '<div>Mostrando <strong>' + fromN + '–' + toN + '</strong> de <strong>' + shown.length + '</strong> retenciones</div>' +
+          '<div class="ret-pager-controls">' +
+            '<label for="retPageSize" style="margin:0;">Filas:</label>' +
+            '<select id="retPageSize">' +
+              '<option value="12"' + (state.pageSize===12?' selected':'') + '>12</option>' +
+              '<option value="25"' + (state.pageSize===25?' selected':'') + '>25</option>' +
+              '<option value="50"' + (state.pageSize===50?' selected':'') + '>50</option>' +
+              '<option value="9999"' + (state.pageSize>=9999?' selected':'') + '>Todas</option>' +
+            '</select>' +
+            '<button type="button" id="retPrev" ' + (state.page<=1?'disabled':'') + '>← Anterior</button>' +
+            '<span style="padding:0 4px;">Pág. ' + state.page + ' / ' + totalPages + '</span>' +
+            '<button type="button" id="retNext" ' + (state.page>=totalPages?'disabled':'') + '>Siguiente →</button>' +
+          '</div>';
+        $("retPageSize").addEventListener("change", function(ev){
+          state.pageSize = parseInt(ev.target.value, 10) || 12;
+          state.page = 1;
+          render();
+        });
+        $("retPrev").addEventListener("click", function(){
+          if(state.page > 1){ state.page--; render(); }
+        });
+        $("retNext").addEventListener("click", function(){
+          if(state.page < totalPages){ state.page++; render(); }
+        });
+      }
+    }
   }
 
   /* Chips */
@@ -1337,16 +1690,20 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }).join("");
   $("filters").addEventListener("click", function(e){
     var b = e.target.closest(".chip"); if(!b) return;
-    state.cond = b.getAttribute("data-c"); render();
+    state.cond = b.getAttribute("data-c"); state.page = 1; render();
   });
 
   /* Búsqueda */
-  $("q").addEventListener("input", function(e){ state.q = e.target.value; render(); });
-  $("clear").addEventListener("click", function(){ $("q").value = ""; state.q = ""; render(); $("q").focus(); });
+  $("q").addEventListener("input", function(e){ state.q = e.target.value; state.page = 1; render(); });
+  $("clear").addEventListener("click", function(){ $("q").value = ""; state.q = ""; state.page = 1; render(); $("q").focus(); });
   document.querySelector(".hint").addEventListener("click", function(e){
     var b = e.target.closest("button[data-ex]"); if(!b) return;
-    $("q").value = b.getAttribute("data-ex"); state.q = $("q").value; render(); $("q").focus();
+    $("q").value = b.getAttribute("data-ex"); state.q = $("q").value; state.page = 1; render(); $("q").focus();
   });
+
+  /* Al imprimir o generar PDF, mostrar todas las filas filtradas temporalmente */
+  window.addEventListener("beforeprint", function(){ state.printing = true; render(); });
+  window.addEventListener("afterprint", function(){ state.printing = false; render(); });
 
   /* Tabla Tarifa 2 (misma fuente para el popover y la tarjeta de referencia) */
   function t2html(){
@@ -1440,7 +1797,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     mdl.hidden = true; document.body.style.overflow = ""; curRow = null;
     if(lastFocus && lastFocus.focus){ try{ lastFocus.focus(); }catch(e){} }
   }
-  function openCalc(r){
+  function openCalc(r, anchorEl){
     if(!r) return;
     curRow = r; lastFocus = document.activeElement; hideSugg(); hidePop();
     var vars = [
@@ -1455,10 +1812,29 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     ];
     mbox.innerHTML = '<div class="mh"><div><span class="tag ' + r.k + '">' + r.k + '</span><b id="mdl-t">' + esc(r.c) + '</b></div><button type="button" class="mx" id="mx" aria-label="Cerrar">×</button></div>' +
       '<div class="mb"><dl class="vars">' + vars.map(function(v){ return '<div><dt>' + esc(v[0]) + '</dt><dd>' + esc(v[1]) + '</dd></div>'; }).join("") + '</dl>' +
-      '<label for="mm">Monto pagado o abonado, sin IVA (' + esc(LAB) + ')</label><input id="mm" inputmode="decimal" autocomplete="off" placeholder="0,00"><div id="mres" aria-live="polite"></div></div>';
+      '<label for="mm">Monto pagado o abonado, sin IVA (' + esc(LAB) + ')</label><input id="mm" inputmode="decimal" autocomplete="off" placeholder="0,00"><div id="mres" aria-live="polite"></div>' +
+      '<div style="margin-top:12px;display:flex;justify-content:flex-end;"><button type="button" class="btn" id="btnPrintModal" onclick="window.print()">🖨 Imprimir cálculo</button></div></div>';
+
+    // Posicionar el modal justo en el área visible del usuario (incluso dentro de un iframe alto)
+    var topOffset = 24;
+    try {
+      if (window.frameElement && window.parent) {
+        var frameTop = window.frameElement.getBoundingClientRect().top;
+        var visibleTop = Math.max(0, -frameTop);
+        topOffset = visibleTop + 28;
+      } else if (anchorEl && anchorEl.getBoundingClientRect) {
+        topOffset = Math.max(24, anchorEl.getBoundingClientRect().top + window.scrollY - 60);
+      }
+    } catch (e) {
+      if (anchorEl && anchorEl.getBoundingClientRect) {
+        topOffset = Math.max(24, anchorEl.getBoundingClientRect().top - 40);
+      }
+    }
+    mdl.style.paddingTop = topOffset + "px";
+
     mdl.hidden = false; document.body.style.overflow = "hidden";
     $("mm").addEventListener("input", paintRes); $("mx").addEventListener("click", closeCalc);
-    paintRes(); $("mm").focus();
+    paintRes(); $("mm").focus({ preventScroll: true });
   }
   mdl.addEventListener("mousedown", function(e){ if(e.target === mdl) closeCalc(); });
   document.addEventListener("keydown", function(e){
@@ -1503,10 +1879,10 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   /* Toque en una fila de la tabla */
   rowsEl.addEventListener("click", function(e){
     if(e.target.closest("[data-t2]")) return;
-    var tr = e.target.closest("tr[data-r]"); if(tr) openCalc(rows[+tr.getAttribute("data-r")]);
+    var tr = e.target.closest("tr[data-r]"); if(tr) openCalc(rows[+tr.getAttribute("data-r")], tr);
   });
   rowsEl.addEventListener("keydown", function(e){
-    if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("tr[data-r]")){ e.preventDefault(); openCalc(rows[+e.target.getAttribute("data-r")]); }
+    if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("tr[data-r]")){ e.preventDefault(); openCalc(rows[+e.target.getAttribute("data-r")], e.target); }
   });
 
 
@@ -1546,10 +1922,25 @@ function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.fi
 function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
 var pt=d.createElement('div');pt.id='ux-pt';B.insertBefore(pt,B.firstChild);
 function fill(){
- pt.innerHTML='';
- [(E.nombre||'')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:''),
-  h1text()+(active()?' · '+active():''),
-  'Impreso: '+new Date().toLocaleString('es-VE')].forEach(function(t,i){var x=d.createElement('div');x.textContent=t;if(i==0)x.style.fontWeight='700';pt.appendChild(x)});
+ var qEl=d.getElementById('q'),qTxt=qEl&&qEl.value?qEl.value.trim():'';
+ var cEl=d.querySelector('#filters .chip[aria-pressed="true"]'),cTxt=cEl?cEl.textContent.trim():'Todas';
+ var utEl=d.getElementById('utVal'),utTxt=utEl?utEl.textContent.trim():'Bs 43,00';
+ pt.innerHTML=
+  '<div class="rpt-top">'+
+    '<div>'+
+      '<div class="rpt-brand">REPORTE DE RETENCIONES DE ISLR · DECRETO 1.808</div>'+
+      '<div class="rpt-emp">'+(E.nombre||'Empresa')+(E.rif?' · RIF '+E.rif:'')+(E.condicion?' · '+E.condicion:'')+'</div>'+
+    '</div>'+
+    '<div class="rpt-meta">'+
+      '<div><strong>Gaceta Oficial:</strong> N.º 43.140 (02/06/2025)</div>'+
+      '<div><strong>Impreso:</strong> '+new Date().toLocaleString('es-VE')+'</div>'+
+    '</div>'+
+  '</div>'+
+  '<div class="rpt-bar">'+
+    '<span><strong>Unidad Tributaria:</strong> '+utTxt+'</span>'+
+    '<span><strong>Base Legal:</strong> Decreto 1.808, Art. 9, Parágrafo Segundo</span>'+
+    '<span><strong>Filtro:</strong> '+cTxt+(qTxt?' («'+qTxt+'»)':'')+'</span>'+
+  '</div>';
 }
 function sync(){
  d.querySelectorAll('input,select,textarea').forEach(function(el){
@@ -1622,5 +2013,6 @@ new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:t
 relabel();upd();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-})();</script></body>
+})();</script><script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
 </html>

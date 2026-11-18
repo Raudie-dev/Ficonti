@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auditoría de Ingresos Bancarios — Separación de ingresos ante el SENIAT</title>
+<style>
+:root{--bg:#f6f3ec;--card:#fffdf8;--ink:#1d2b26;--mut:#6b756f;--bd:#d9d3c3;--pri:#1f5c4a;--pri2:#e9f1ed;--ok:#1f7a4d;--okb:#dff2e7;--wr:#9a5b00;--wrb:#fdebc8;--er:#b3261e;--erb:#fbe0dd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121815;--card:#1a231f;--ink:#e9efe9;--mut:#9aa8a0;--bd:#2f3d36;--pri:#6fcfa8;--pri2:#203129;--ok:#7be0a8;--okb:#17382a;--wr:#f2bd5c;--wrb:#3d2c0c;--er:#ff9a92;--erb:#44201d}}
+:root[data-theme="dark"]{--bg:#0b0e0c;--card:#141815;--ink:#ffffff;--mut:#8b958e;--bd:rgba(255,255,255,0.08);--pri:#1A6B4A;--pri2:#1a201c;--ok:#22c55e;--okb:rgba(34,197,94,0.15);--wr:#fbbf24;--wrb:rgba(245,158,11,0.15);--er:#f87171;--erb:rgba(239,68,68,0.15)}
+:root[data-theme="light"]{--bg:#f2f5f1;--card:#ffffff;--ink:#0b0e0c;--mut:#5f6861;--bd:rgba(0,0,0,0.08);--pri:#2D5128;--pri2:#f7faf5;--ok:#16a34a;--okb:#e8f5ec;--wr:#b45309;--wrb:#fef3c7;--er:#dc2626;--erb:#fee2e2}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'Inter',system-ui,-apple-system,"Segoe UI",sans-serif;padding:8px 12px 36px}
+h1,h2,h3{font-family:'Inter',system-ui,sans-serif;margin:0;letter-spacing:-0.02em}
+header{padding:18px 20px;border:1px solid var(--bd);border-radius:16px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;background:var(--card);margin-bottom:14px}
+header h1{font-size:1.35rem;font-weight:800;color:var(--ink)}header small{color:var(--mut);display:block;margin-top:2px}
+nav{display:flex;gap:8px;padding:0 0 8px;flex-wrap:nowrap;overflow-x:auto}
+nav button{background:var(--card);border:1px solid var(--bd);padding:9px 16px;border-radius:12px;color:var(--mut);cursor:pointer;font:600 .86rem 'Inter',system-ui;white-space:nowrap;transition:all .15s}
+nav button.on,nav button[aria-selected="true"]{background:#1A6B4A;border-color:#1A6B4A;color:#ffffff;font-weight:700;box-shadow:0 2px 10px rgba(26, 107, 74,0.25)}
+main{max-width:100%;margin:0 auto;padding:0 0 40px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;margin:0 0 16px;overflow-x:auto}
+.g{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.k{border:1px solid var(--bd);border-left:5px solid var(--pri);border-radius:12px;padding:12px 14px;background:var(--card)}
+.k span{font-size:.72rem;text-transform:uppercase;color:var(--mut);font-weight:700;letter-spacing:.03em}.k b{display:block;font:800 1.4rem 'Inter',system-ui,sans-serif;margin-top:4px;color:var(--pri);font-variant-numeric:tabular-nums}
+.k.b{border-left-color:#f59e0b}.k.w{border-left-color:var(--er)}
+button,.btn{background: #1A6B4A ; color: #ffffff ;border:0;border-radius:10px;padding:8px 14px;font:700 .84rem 'Inter',system-ui;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+button.s,.btn.s{background:var(--pri2);color:var(--ink);border:1px solid var(--bd)}button.x{background:var(--erb);color:var(--er);border:1px solid rgba(239,68,68,0.25);padding:4px 9px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}th,td{border-bottom:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:middle}
+th{font-size:.73rem;text-transform:uppercase;color:var(--mut);white-space:nowrap;background:var(--pri2)}.n{text-align:right;font-variant-numeric:tabular-nums}
+td input,td select,.f input,.f select{width:100%;min-width:75px;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--pri2);color:var(--ink);font:inherit}
+td input.n{text-align:right;min-width:95px}
+.bd{display:inline-block;padding:3px 9px;border-radius:99px;font-size:.74rem;font-weight:700;white-space:nowrap}
+.bd.ok{background:var(--okb);color:var(--ok)}.bd.wr{background:var(--wrb);color:var(--wr)}.bd.er{background:var(--erb);color:var(--er)}
+.bar{display:flex;height:22px;border-radius:8px;overflow:hidden;border:1px solid var(--bd);margin:10px 0}.bar i{display:block}
+.bar+.lg span{margin-right:16px;font-size:.82rem}.lg i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:3px}
+.f{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}.f label{font-size:.72rem;font-weight:700;color:var(--mut);text-transform:uppercase;display:block;margin-bottom:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.row h2{margin-right:auto;font-size:1.05rem;color:var(--ink)}
+.hl{background:var(--pri2)}.tt{font-weight:800;background:var(--pri2)}.note{font-size:.82rem;color:var(--mut)}
+.al{border-left:4px solid var(--er);background:var(--erb);padding:10px 14px;border-radius:8px;margin:8px 0}.al.wr{border-color:var(--wr);background:var(--wrb)}.al.ok{border-color:var(--ok);background:var(--okb)}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:50px;text-align:center}.sig div{border-top:1px solid var(--ink);padding-top:6px;font-size:.85rem}
+@media print{header,nav,.no,#ux-top,#emp-banner{display:none!important}body{background:#fff;color:#000}.card{border:0;padding:0}.pg{display:none!important}#informe{display:block!important}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style><style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head><body>
+<header><div><h1>Auditoría de Ingresos Bancarios · ConciliaIngresos</h1><small>Separe sus ventas de los demás abonos bancarios y demuéstrelo ante el SENIAT</small></div>
+<div class="no row" style="margin:0"><button class="s" onclick="bak()">Guardar respaldo</button><label class="btn s">Cargar respaldo<input type="file" accept=".json" hidden onchange="rest(event)"></label><button class="s" onclick="if(confirm('¿Borrar todo y cargar el ejemplo?')){S=demo();syncEmp();save();R()}">Ejemplo</button></div></header>
+<nav id="nav" class="no" role="tablist" aria-label="Secciones de auditoría de ingresos"></nav><main id="v"></main>
+<script>
+const CATS={venta:{n:'Venta / cobro de factura',s:'N.º de factura'},tras:{n:'Traspaso entre cuentas propias',s:'Referencia'},socio:{n:'Préstamo de socio',s:'Contrato de mutuo y registro contable'},capital:{n:'Aporte de capital',s:'Acta de asamblea inscrita en Registro Mercantil'},banco:{n:'Préstamo / financiamiento bancario',s:'Contrato o tabla de amortización'},devol:{n:'Devolución o reembolso',s:'Nota de crédito o comunicación del emisor'},fin:{n:'Intereses / diferencial cambiario',s:'Estado de cuenta / asiento'},otro:{n:'Otro ingreso (no venta)',s:'Documento que lo explique'},pend:{n:'⚠ Sin clasificar',s:''},egr:{n:'Egreso (pago, gasto, comisión)',s:''}};
+const CR=['venta','tras','socio','capital','banco','devol','fin','otro','pend'],DB=['egr','tras'];
+const TABS=[['inicio','1. Resumen'],['movs','2. Movimientos'],['cuentas','3. Cuentas y tasas'],['ret','4. Retenciones IVA'],['informe','5. Informe']];
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=n=>(+n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+let S=load()||demo(),tab='inicio',flt='all';
+function syncEmp(){
+  if(window.EMPRESA){
+    S.co.name=window.EMPRESA.nombre||S.co.name;
+    S.co.rif=window.EMPRESA.rif||S.co.rif;
+    if(window.EMPRESA.moneda&&+window.EMPRESA.moneda.tasa>0&&S.co.rate===914.0218){
+      S.co.rate=+window.EMPRESA.moneda.tasa;
+    }
+  }
+}
+syncEmp();
+function load(){try{return JSON.parse(localStorage.getItem('ci1'))}catch(e){return null}}
+function save(){try{localStorage.setItem('ci1',JSON.stringify(S))}catch(e){}}
+function demo(){const t=(id,b,date,ref,desc,deb,cre,cat,sup,igtf)=>({id,b,date,ref,desc,deb,cre,cat,sup,igtf:!!igtf});
+return{co:{name:(window.EMPRESA&&window.EMPRESA.nombre)||'INVERSIONES COMERCIALES EJEMPLO, C.A.',rif:(window.EMPRESA&&window.EMPRESA.rif)||'J-40123456-7',period:'Noviembre 2026',rate:914.0218,libro:49240.22,iva:16,igtf:3},
+banks:[{id:1,name:'Banesco Cta. Corriente',acct:'0134-…-4567',cur:'Bs.',ini:25000},{id:2,name:'Mercantil Cta. Corriente',acct:'0105-…-6543',cur:'Bs.',ini:18000},{id:3,name:'Provincial Cuenta USD',acct:'0108-…-6789',cur:'USD',ini:100}],
+rates:[{date:'2026-11-03',usd:910.15},{date:'2026-11-10',usd:912.8},{date:'2026-11-14',usd:914.0218}],
+tx:[t(1,1,'2026-11-03','4512','Pago factura Cliente Alfa',0,28500,'venta','Fact. 00101'),t(2,1,'2026-11-05','4890','Traspaso a Mercantil',10000,0,'tras','TRASP-001'),t(3,2,'2026-11-05','8891','Traspaso desde Banesco',0,10000,'tras','TRASP-001'),t(4,1,'2026-11-10','5120','Préstamo socio director',0,15000,'socio','Contrato mutuo 03'),t(5,2,'2026-11-08','8894','Cobro Cliente Beta (neto de retención)',0,10400,'venta','Fact. 00102'),t(6,2,'2026-11-11','8897','Aporte socio B',0,20000,'capital','Acta 07'),t(7,3,'2026-11-14','7741','Cobro USD 10,30 (incluye IGTF)',0,10.3,'venta','Fact. 00103',true),t(8,2,'2026-11-16','8900','Compra de divisas a Provincial',9140.22,0,'tras','TRASP-002'),t(9,3,'2026-11-16','7750','Recibido desde Mercantil',0,10,'tras','TRASP-002'),t(10,1,'2026-11-12','5401','Pago proveedor insumos',12400,0,'egr',''),t(11,2,'2026-11-18','8910','Reintegro proveedor',0,1500,'devol',''),t(12,1,'2026-11-19','5600','Depósito sin identificar',0,2000,'pend','')],
+ret:[{date:'2026-11-08',comp:'20261100004512',client:'Cliente Beta, C.A.',inv:'00102',base:10000,pct:75}]}}
+const bk=id=>S.banks.find(b=>b.id==id)||{cur:'Bs.',name:'?'};
+function rate(d){const a=S.rates.slice().sort((x,y)=>x.date.localeCompare(y.date)),p=a.filter(x=>x.date<=d).pop()||a[0];return p?+p.usd:+S.co.rate||1}
+const bs=(t,a)=>bk(t.b).cur==='USD'?a*rate(t.date):a;
+function pair(){const m={},u={},c=S.tx.filter(t=>t.cat=='tras'||t.cat=='pend');
+c.filter(t=>t.deb>0).forEach(o=>{const a=bs(o,o.deb);let best=null,bd=9;c.filter(i=>i.cre>0&&!u[i.id]&&i.b!=o.b).forEach(i=>{const d=Math.abs((new Date(i.date)-new Date(o.date))/864e5);if(d<=3&&Math.abs(bs(i,i.cre)-a)<=Math.max(.01,a*.015)&&d<bd){best=i;bd=d}});if(best){m[o.id]=best;m[best.id]=o;u[best.id]=1}});return m}
+function calc(){const M=pair(),r={M,by:{},tot:{},ig:0,cred:0,sinSop:0,pend:0,sinPar:0,ok:0};
+S.tx.forEach(t=>{const c=bs(t,t.cre);if(t.cat=='tras'&&!(M[t.id]&&M[t.id].cat=='tras')&&(t.cre>0||t.deb>0))r.sinPar++;
+if(!(t.cre>0))return;let v=c;if(t.cat=='venta'&&t.igtf){const g=c-c/(1+S.co.igtf/100);r.ig+=g;v=c-g}
+(r.by[t.cat]=r.by[t.cat]||{})[t.b]=((r.by[t.cat]||{})[t.b]||0)+v;r.tot[t.cat]=(r.tot[t.cat]||0)+v;r.cred+=c;
+const s=st(t,M);if(s.k=='ok')r.ok+=c;if(t.cat=='pend')r.pend+=c;if(s.k=='wr')r.sinSop+=c});
+r.A=r.tot.venta||0;r.B=CR.filter(k=>k!='venta').reduce((s,k)=>s+(r.tot[k]||0),0);
+r.ret=S.ret.reduce((s,x)=>s+x.base*S.co.iva/100*x.pct/100,0);r.dif=S.co.libro-r.A-r.ret;return r}
+function st(t,M){if(!(t.cre>0||t.deb>0))return{k:'wr',m:'Sin monto'};const p=M[t.id];
+if(t.cat=='pend')return p?{k:'wr',m:'¿Traspaso con '+esc(bk(p.b).name.split(' ')[0])+'?',sg:p.id}:{k:'er',m:'Clasificar'};
+if(t.cat=='tras')return p&&p.cat=='tras'?{k:'ok',m:'Pareja: '+esc(bk(p.b).name.split(' ')[0])}:{k:'er',m:'Sin contrapartida'};
+if(t.cat=='egr')return{k:'ok',m:'—'};return t.sup?{k:'ok',m:'Sustentado'}:{k:'wr',m:'Falta soporte'}}
+function num(s){s=String(s).replace(/[^\d,.\-]/g,'');const c=s.lastIndexOf(','),d=s.lastIndexOf('.');s=c>d?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');return Math.abs(parseFloat(s))||0}
+function dt(s){s=String(s).trim();let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(m)return(m[3].length==2?'20'+m[3]:m[3])+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');m=s.match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[0]:today()}
+function imp(e,bid){const fl=e.target.files[0];if(!fl)return;const rd=new FileReader();rd.onload=()=>{const L=rd.result.split(/\r?\n/).filter(x=>x.trim());if(!L.length)return;const sp=[';','\t',','].find(x=>L[0].includes(x))||';';
+const sl=l=>{const o=[];let c='',q=0;for(const ch of l){if(ch=='"')q=!q;else if(ch==sp&&!q){o.push(c);c=''}else c+=ch}o.push(c);return o.map(x=>x.trim())};
+let h=sl(L[0]).map(x=>x.toLowerCase()),hd=h.some(x=>/fecha|date|descr|cr[eé]d|d[eé]b|monto/.test(x));const ix=r=>h.findIndex(x=>r.test(x));
+let iF=hd?ix(/fecha|date/):0,iR=hd?ix(/ref/):1,iD=hd?ix(/descr|concepto|detalle/):2,iDe=hd?ix(/d[eé]b|cargo|retiro/):3,iCr=hd?ix(/cr[eé]d|abono|dep[oó]sito/):4,iM=hd?ix(/^monto|importe/):-1;
+let n=0;L.slice(hd?1:0).forEach(l=>{const c=sl(l);let de=iDe>=0?num(c[iDe]):0,cr=iCr>=0?num(c[iCr]):0;if(iM>=0&&!de&&!cr){const raw=c[iM]||'';(/^\s*-|\(/.test(raw)?de=num(raw):cr=num(raw))}if(!de&&!cr)return;
+S.tx.push({id:Date.now()+n++,b:+bid,date:dt(c[iF>=0?iF:0]),ref:c[iR]||'',desc:c[iD]||'',deb:de,cre:cr,cat:cr>0?'pend':'egr',sup:'',igtf:false})});
+save();alert(n+' movimientos importados. Los abonos quedaron “Sin clasificar” para que usted los revise.');R()};rd.readAsText(fl,'utf-8');e.target.value=''}
+function upd(id,k,v){const t=S.tx.find(x=>x.id==id);t[k]=['deb','cre'].includes(k)?num(v):k=='igtf'?v:v;save();if(k=='cat'||k=='deb'||k=='cre'||k=='date'||k=='b')R();else{const C=calc();stat(C)}}
+function stat(C){document.querySelectorAll('[data-s]').forEach(e=>{const t=S.tx.find(x=>x.id==e.dataset.s),s=st(t,C.M);e.innerHTML=`<span class="bd ${s.k}">${s.m}</span>`+(s.sg?` <button class="s" onclick="sug(${t.id},${s.sg})">Sí</button>`:'')})}
+function sug(a,b){[a,b].forEach(i=>{const t=S.tx.find(x=>x.id==i);if(t.cat=='pend')t.cat='tras'});save();R()}
+function sugAll(){const M=pair();let n=0;S.tx.forEach(t=>{if(t.cat=='pend'&&M[t.id]){t.cat='tras';n++}});save();alert(n+' movimientos marcados como traspaso.');R()}
+function add(){S.tx.push({id:Date.now(),b:flt=='all'?S.banks[0].id:+flt,date:today(),ref:'',desc:'',deb:0,cre:0,cat:'pend',sup:'',igtf:false});save();R()}
+function del(id){S.tx=S.tx.filter(x=>x.id!=id);save();R()}
+function bak(){dl(JSON.stringify(S),'respaldo-conciliaingresos.json','application/json')}
+function rest(e){const fl=e.target.files[0];if(!fl)return;const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);syncEmp();save();R()}catch(x){alert('Archivo no válido')}};r.readAsText(fl)}
+function dl(txt,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+txt],{type}));a.download=name;a.click()}
+function csv(){const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';dl('Banco;Fecha;Referencia;Descripción;Débito;Crédito;Moneda;Tasa BCV;Equivalente Bs;Clasificación;Soporte\n'+S.tx.map(t=>[q(bk(t.b).name),t.date,q(t.ref),q(t.desc),t.deb,t.cre,bk(t.b).cur,rate(t.date),bs(t,t.cre||t.deb).toFixed(2),q(CATS[t.cat].n),q(t.sup)].join(';')).join('\n'),'movimientos-clasificados.csv','text/csv')}
+const bsel=(v,fn,all)=>`<select onchange="${fn}">${all?`<option value="all">Todas las cuentas</option>`:''}${S.banks.map(b=>`<option value="${b.id}" ${v==b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select>`;
+function R(){$('#nav').innerHTML=TABS.map(([k,n])=>`<button type="button" role="tab" aria-selected="${tab==k}" class="${tab==k?'on':''}" onclick="tab='${k}';R()">${n}</button>`).join('');const C=calc();$('#v').innerHTML=V[tab](C);if(tab=='movs')stat(C)}
+const V={
+inicio(C){const p=C.cred?Math.round(C.ok/C.cred*100):0,w=x=>C.cred?x/C.cred*100:0;
+return`<div class="card pg"><div class="g"><div class="k"><span>(A) Abonos por ventas</span><b>${f(C.A)} Bs.</b></div><div class="k b"><span>(B) Abonos que no son ventas</span><b>${f(C.B)} Bs.</b></div><div class="k"><span>Total abonos (A+B+IGTF)</span><b>${f(C.cred)} Bs.</b></div><div class="k ${p<100?'w':''}"><span>Sustentado ante el SENIAT</span><b>${p}%</b></div></div>
+<div class="bar"><i style="width:${w(C.A)}%;background:#22c55e"></i><i style="width:${w(C.B-C.pend)}%;background:#f59e0b"></i><i style="width:${w(C.ig)}%;background:#38bdf8"></i><i style="width:${w(C.pend)}%;background:#ef4444"></i></div>
+<div class="lg"><span><i style="background:#22c55e"></i>Ventas</span><span><i style="background:#f59e0b"></i>Otros ingresos</span><span><i style="background:#38bdf8"></i>IGTF percibido</span><span><i style="background:#ef4444"></i>Sin clasificar</span></div></div>
+<div class="card pg"><h2>Pendientes antes de una fiscalización</h2>${C.pend?`<div class="al">${f(C.pend)} Bs. en abonos <b>sin clasificar</b>. Para el fisco, todo abono sin explicación se presume venta.</div>`:''}${C.sinPar?`<div class="al">${C.sinPar} traspaso(s) sin contrapartida en otra cuenta propia.</div>`:''}${C.sinSop?`<div class="al wr">${f(C.sinSop)} Bs. clasificados pero sin soporte (contrato, acta, nota de crédito…).</div>`:''}${!C.pend&&!C.sinPar&&!C.sinSop?'<div class="al ok">Todos los abonos están clasificados y sustentados.</div>':''}
+<p class="note">Cómo usarla: (1) registre sus cuentas y tasas BCV; (2) importe el estado de cuenta CSV o cargue movimientos; (3) clasifique cada abono y anote su soporte; (4) imprima el informe.</p></div>
+<div class="card pg"><h2>Cuadre contra el Libro de Ventas</h2><table><tr><td>Total facturado en el Libro de Ventas (con IVA)</td><td class="n"><input class="n" type="number" step="0.01" value="${S.co.libro}" onchange="S.co.libro=+this.value;save();R()"></td></tr>
+<tr><td>(−) Cobrado por bancos como venta (sin IGTF)</td><td class="n">${f(C.A)}</td></tr><tr><td>(−) IVA retenido por clientes (comprobantes)</td><td class="n">${f(C.ret)}</td></tr>
+<tr class="tt"><td>${C.dif>=0?'Saldo por cobrar a clientes':'Cobros superiores a lo facturado: posibles anticipos o facturas sin registrar'}</td><td class="n">${f(C.dif)}</td></tr></table></div>`},
+movs(C){const L=S.tx.filter(t=>flt=='all'||t.b==flt).sort((a,b)=>a.date.localeCompare(b.date));
+return`<div class="card pg"><div class="row"><h2>Movimientos bancarios</h2>${bsel(flt,"flt=this.value;R()",1)}<button onclick="add()">+ Movimiento</button><label class="btn s">Importar CSV<input type="file" accept=".csv,.txt" hidden onchange="imp(event,flt=='all'?S.banks[0].id:flt)"></label><button class="s" onclick="sugAll()">Aplicar traspasos sugeridos</button><button class="s" onclick="csv()">Exportar CSV</button></div>
+<p class="note">El CSV debe traer fecha, referencia, descripción, débito y crédito (acepta 1.234,56 o 1,234.56 y fechas dd/mm/aaaa). Con filtro “todas”, se importa a la primera cuenta.</p>
+<div tabindex="0" role="region" aria-label="Tabla de movimientos bancarios" style="overflow-x:auto"><table><tr><th>Cuenta</th><th>Fecha</th><th>Ref.</th><th>Descripción</th><th>Débito</th><th>Crédito</th><th>Clasificación</th><th>Soporte</th><th title="El abono incluye IGTF cobrado al cliente">IGTF</th><th>Estado</th><th></th></tr>
+${L.map(t=>{const cr=t.cre>0||!(t.deb>0);return`<tr><td>${bsel(t.b,`upd(${t.id},'b',this.value)`)}</td><td><input type="date" value="${esc(t.date)}" onchange="upd(${t.id},'date',this.value)"></td><td><input value="${esc(t.ref)}" onchange="upd(${t.id},'ref',this.value)"></td><td><input value="${esc(t.desc)}" onchange="upd(${t.id},'desc',this.value)"></td>
+<td><input class="n" type="text" value="${t.deb||''}" onchange="upd(${t.id},'deb',this.value)"></td><td><input class="n" type="text" value="${t.cre||''}" onchange="upd(${t.id},'cre',this.value)"></td>
+<td><select onchange="upd(${t.id},'cat',this.value)">${(cr?CR:DB).map(k=>`<option value="${k}" ${t.cat==k?'selected':''}>${CATS[k].n}</option>`).join('')}</select></td>
+<td><input value="${esc(t.sup)}" placeholder="${esc(CATS[t.cat].s)}" onchange="upd(${t.id},'sup',this.value)"></td><td><input type="checkbox" ${t.igtf?'checked':''} ${bk(t.b).cur=='USD'&&t.cat=='venta'?'':'disabled'} onchange="upd(${t.id},'igtf',this.checked)"></td><td data-s="${t.id}"></td><td><button class="x" onclick="del(${t.id})">×</button></td></tr>`}).join('')}</table></div></div>`},
+cuentas(){const c=S.co,fl=(k,l,ty='text',st='')=>`<div><label>${l}</label><input type="${ty}" ${st} value="${esc(c[k])}" onchange="S.co.${k}=${ty=='number'?'+this.value':'this.value'};save();R()"></div>`;
+return`<div class="card pg"><h2>Datos del contribuyente</h2><div class="f">${fl('name','Razón social')}${fl('rif','RIF')}${fl('period','Período')}${fl('rate','Tasa BCV de respaldo (Bs/USD)','number','step=any')}${fl('iva','IVA %','number','step=any')}${fl('igtf','IGTF % (divisas)','number','step=any')}</div>
+<p class="note">Alícuotas editables porque el Ejecutivo puede modificarlas: IVA general 16 %; IGTF 3 % sobre pagos en divisas (0 % en bolívares para contribuyentes especiales). Verifique su vigencia al cerrar cada período.</p></div>
+<div class="card pg"><div class="row"><h2>Cuentas bancarias (sin límite)</h2><button onclick="S.banks.push({id:Date.now(),name:'Nuevo banco',acct:'',cur:'Bs.',ini:0});save();R()">+ Cuenta</button></div><table><tr><th>Banco</th><th>N.º de cuenta</th><th>Moneda</th><th>Saldo inicial</th><th>Saldo final</th><th></th></tr>
+${S.banks.map((b,i)=>{const sf=+b.ini+S.tx.filter(t=>t.b==b.id).reduce((s,t)=>s+t.cre-t.deb,0);return`<tr><td><input value="${esc(b.name)}" onchange="S.banks[${i}].name=this.value;save();R()"></td><td><input value="${esc(b.acct)}" onchange="S.banks[${i}].acct=this.value;save()"></td><td><select onchange="S.banks[${i}].cur=this.value;save();R()"><option ${b.cur=='Bs.'?'selected':''}>Bs.</option><option ${b.cur=='USD'?'selected':''}>USD</option></select></td><td><input class="n" type="number" step="any" value="${b.ini}" onchange="S.banks[${i}].ini=+this.value;save();R()"></td><td class="n">${f(sf)} ${b.cur}</td><td>${S.banks.length>1?`<button class="x" onclick="if(confirm('¿Eliminar cuenta y sus movimientos?')){S.tx=S.tx.filter(t=>t.b!=${b.id});S.banks.splice(${i},1);save();R()}">×</button>`:''}</td></tr>`}).join('')}</table></div>
+<div class="card pg"><div class="row"><h2>Tasas BCV por fecha</h2><button onclick="S.rates.push({date:today(),usd:S.co.rate});save();R()">+ Fecha</button></div><p class="note">Cada movimiento en USD usa la tasa de su fecha; si no hay, la última anterior (cubre fines de semana y feriados).</p><table><tr><th>Fecha</th><th>Bs/USD</th><th></th></tr>${S.rates.map((r,i)=>`<tr><td><input type="date" value="${r.date}" onchange="S.rates[${i}].date=this.value;save();R()"></td><td><input class="n" type="number" step="any" value="${r.usd}" onchange="S.rates[${i}].usd=+this.value;save();R()"></td><td><button class="x" onclick="S.rates.splice(${i},1);save();R()">×</button></td></tr>`).join('')}</table></div>`},
+ret(){return`<div class="card pg"><div class="row"><h2>Comprobantes de retención de IVA recibidos</h2><button onclick="S.ret.push({date:today(),comp:'',client:'',inv:'',base:0,pct:75});save();R()">+ Comprobante</button></div>
+<p class="note">Explican por qué el banco recibió menos que lo facturado. Retención 75 % general; 100 % en los supuestos de la providencia (p. ej. factura que incumple requisitos).</p><table><tr><th>Fecha</th><th>N.º comprobante</th><th>Cliente</th><th>Factura</th><th>Base imponible</th><th>IVA facturado</th><th>%</th><th>IVA retenido</th><th>Neto a cobrar</th><th></th></tr>
+${S.ret.map((r,i)=>{const iv=r.base*S.co.iva/100,rt=iv*r.pct/100,s=(k,t)=>`<td><input ${t||''} value="${esc(r[k])}" onchange="S.ret[${i}].${k}=${t?'+this.value':'this.value'};save();R()"></td>`;return`<tr>${s('date','type=date')}${s('comp')}${s('client')}${s('inv')}<td><input class="n" type="number" step="any" value="${r.base}" onchange="S.ret[${i}].base=+this.value;save();R()"></td><td class="n">${f(iv)}</td><td><select onchange="S.ret[${i}].pct=+this.value;save();R()"><option ${r.pct==75?'selected':''}>75</option><option ${r.pct==100?'selected':''}>100</option></select></td><td class="n">${f(rt)}</td><td class="n">${f(r.base+iv-rt)}</td><td><button class="x" onclick="S.ret.splice(${i},1);save();R()">×</button></td></tr>`}).join('')}</table></div>`},
+informe(C){const c=S.co,row=k=>`<tr><td>${CATS[k].n}</td>${S.banks.map(b=>`<td class="n">${f((C.by[k]||{})[b.id])}</td>`).join('')}<td class="n">${f(C.tot[k])}</td><td class="n">${C.cred?(100*(C.tot[k]||0)/C.cred).toFixed(1):0}%</td></tr>`;
+const pend=S.tx.filter(t=>t.cre>0&&t.cat!='venta'&&t.cat!='tras'&&t.cat!='pend');
+return`<div class="card" id="informe"><div class="row no"><h2>Informe de clasificación de ingresos bancarios</h2><button onclick="window.print()">Imprimir / PDF</button></div>
+<div style="text-align:center;border-bottom:1px solid var(--bd);padding-bottom:10px;margin-bottom:12px"><h2 style="font-size:1.2rem">CONCILIACIÓN Y CLASIFICACIÓN DE ABONOS BANCARIOS</h2><div>${esc(c.name)} · RIF ${esc(c.rif)} · ${esc(c.period)}</div><div class="note">Montos en bolívares; cuentas en USD convertidas a la tasa BCV de cada fecha.</div></div>
+<h3>1. Abonos por cuenta</h3><table><tr><th>Concepto</th>${S.banks.map(b=>`<th class="n">${esc(b.name)}</th>`).join('')}<th class="n">Total</th><th class="n">%</th></tr>
+<tr class="tt"><td>(A) VENTAS</td>${S.banks.map(b=>`<td class="n">${f((C.by.venta||{})[b.id])}</td>`).join('')}<td class="n">${f(C.A)}</td><td class="n">${C.cred?(100*C.A/C.cred).toFixed(1):0}%</td></tr>
+<tr class="tt"><td>(B) NO SON VENTAS</td><td colspan="${S.banks.length}"></td><td class="n">${f(C.B)}</td><td class="n">${C.cred?(100*C.B/C.cred).toFixed(1):0}%</td></tr>${CR.filter(k=>k!='venta'&&C.tot[k]).map(row).join('')}
+<tr><td>IGTF percibido de clientes (no es ingreso)</td><td colspan="${S.banks.length}"></td><td class="n">${f(C.ig)}</td><td class="n">${C.cred?(100*C.ig/C.cred).toFixed(1):0}%</td></tr><tr class="tt"><td>TOTAL ABONOS (A+B+IGTF)</td><td colspan="${S.banks.length}"></td><td class="n">${f(C.cred)}</td><td class="n">100%</td></tr></table>
+<h3 style="margin-top:16px">2. Cuadre con el Libro de Ventas</h3><table><tr><td>Total Libro de Ventas</td><td class="n">${f(c.libro)}</td></tr><tr><td>(−) Cobros bancarios por ventas</td><td class="n">${f(C.A)}</td></tr><tr><td>(−) IVA retenido por clientes</td><td class="n">${f(C.ret)}</td></tr><tr class="tt"><td>Diferencia (por cobrar / anticipos)</td><td class="n">${f(C.dif)}</td></tr></table>
+<h3 style="margin-top:16px">3. Detalle de abonos que no son ventas y su soporte</h3><table><tr><th>Fecha</th><th>Cuenta</th><th>Descripción</th><th>Clasificación</th><th>Soporte</th><th class="n">Bs.</th></tr>${pend.map(t=>`<tr><td>${t.date}</td><td>${esc(bk(t.b).name)}</td><td>${esc(t.desc)}</td><td>${CATS[t.cat].n}</td><td>${esc(t.sup)||'<b>SIN SOPORTE</b>'}</td><td class="n">${f(bs(t,t.cre))}</td></tr>`).join('')||'<tr><td colspan=6>Sin partidas</td></tr>'}</table>
+<h3 style="margin-top:16px">4. Traspasos entre cuentas propias</h3><table><tr><th>Fecha</th><th>Origen → Destino</th><th class="n">Bs.</th></tr>${S.tx.filter(t=>t.deb>0&&t.cat=='tras').map(t=>{const p=C.M[t.id];return`<tr><td>${t.date}</td><td>${esc(bk(t.b).name)} → ${p?esc(bk(p.b).name):'<b>SIN CONTRAPARTIDA</b>'}</td><td class="n">${f(bs(t,t.deb))}</td></tr>`}).join('')||'<tr><td colspan=3>Sin traspasos</td></tr>'}</table>
+<div class="sig"><div>Elaborado por (Contador público colegiado)</div><div>Representante legal</div></div>
+<p class="note" style="margin-top:18px">Herramienta de apoyo; no sustituye el criterio profesional. Marco de referencia: COT, Ley del IVA, Ley del IGTF y providencia de retenciones de IVA (G.O. 43.171). La Providencia SNAT/2026/00093 regula la emisión de facturas (vigente desde el 19/04/2027), no las auditorías bancarias.</p></div>`}};
+R();
+
+window.UXMODID='ing';
+window.UX={
+  status:function(){
+    var C=calc();
+    if(!S.tx.length||C.cred<=0)return{est:'sin',det:'Sin movimientos'};
+    var p=C.cred?Math.round(C.ok/C.cred*100):0;
+    if(C.pend>0||C.sinPar>0||C.sinSop>0)return{est:'proc',det:p+'% sustentado · Ventas Bs '+f(C.A)};
+    return{est:'ok',det:'100% sustentado · Ventas Bs '+f(C.A)};
+  }
+};
+(function(){
+  function report(){
+    if(!window.EMPRESA||!window.EMPRESA.id)return;
+    var st=window.UX.status();
+    try{parent.postMessage({type:'ux-status',emp:window.EMPRESA.id,mod:window.UXMODID,st:{e:st.est,d:st.det}},'*')}catch(e){}
+  }
+  document.addEventListener('change',function(){setTimeout(report,300)},true);
+  setTimeout(report,600);
+})();
+</script><script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body></html>

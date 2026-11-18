@@ -3,23 +3,24 @@
  * Manejo de Modo Claro/Oscuro, Toasts, Sidebar y Sincronización
  */
 
-// 1. Gestión de Tema Claro / Oscuro
+// 1. Gestión de Tema Claro / Oscuro (Claro Institucional por defecto, sin destellos neón)
 (function () {
   function getTemaGuardado() {
-    return localStorage.getItem('tv-theme') || 'dark'; // Por defecto estilo Dashboard oscuro
+    return localStorage.getItem('tv-theme-mode') || 'light';
   }
 
   window.aplicarTema = function (tema) {
     document.documentElement.setAttribute('data-bs-theme', tema);
+    localStorage.setItem('tv-theme-mode', tema);
     localStorage.setItem('tv-theme', tema);
 
     // Actualizar icono de todos los toggles en la página
     var icons = document.querySelectorAll('.theme-toggle-icon');
     icons.forEach(function (icon) {
       if (tema === 'dark') {
-        icon.className = 'bi bi-moon-stars-fill theme-toggle-icon text-warning';
+        icon.className = 'bi bi-moon-stars-fill theme-toggle-icon';
       } else {
-        icon.className = 'bi bi-sun-fill theme-toggle-icon text-warning';
+        icon.className = 'bi bi-sun-fill theme-toggle-icon';
       }
     });
 
@@ -39,7 +40,7 @@
 
 document.addEventListener('DOMContentLoaded', function () {
   // Inicializar tema en UI
-  var temaActual = localStorage.getItem('tv-theme') || 'dark';
+  var temaActual = localStorage.getItem('tv-theme-mode') || 'light';
   window.aplicarTema(temaActual);
 
   // Toggle buttons
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
   toggleBtns.forEach(function (btn) {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
-      var actual = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+      var actual = document.documentElement.getAttribute('data-bs-theme') || 'light';
       var nuevo = actual === 'dark' ? 'light' : 'dark';
       window.aplicarTema(nuevo);
     });
@@ -90,28 +91,9 @@ document.addEventListener('DOMContentLoaded', function () {
     backdrop.addEventListener('click', closeSidebar);
   }
 
-  // 3.1 Buscador rápido del Sidebar y atajo Cmd/Ctrl + K
+  // 3.1 Atajo Cmd/Ctrl + K para el buscador del Sidebar
   var searchInput = document.getElementById('sidebarSearchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', function() {
-      var q = this.value.trim().toLowerCase();
-      var navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-      var headings = document.querySelectorAll('.sidebar-nav .sidebar-heading');
-
-      navLinks.forEach(function(link) {
-        var txt = link.textContent.trim().toLowerCase();
-        if (!q || txt.indexOf(q) !== -1) {
-          link.style.display = 'flex';
-        } else {
-          link.style.display = 'none';
-        }
-      });
-
-      headings.forEach(function(h) {
-        h.style.display = q ? 'none' : 'block';
-      });
-    });
-
     document.addEventListener('keydown', function(e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -122,9 +104,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // 4. Sincronización de tema y dimensionamiento al cargar el iframe
+  // 4. Sincronización de tema, animación de carga y dimensionamiento del iframe
   var iframe = document.getElementById('moduloFrame');
+  var moduloOverlay = document.getElementById('moduloLoaderOverlay');
   if (iframe) {
+    var hideModuloLoader = function () {
+      iframe.style.opacity = '1';
+      if (moduloOverlay) moduloOverlay.classList.add('is-hidden');
+    };
+
     var resizeIframe = function () {
       try {
         if (iframe.contentWindow && iframe.contentDocument) {
@@ -138,14 +126,17 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     iframe.addEventListener('load', function () {
-      var t = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+      var t = document.documentElement.getAttribute('data-bs-theme') || 'light';
       try {
         iframe.contentWindow.postMessage({ type: 'tv-theme-change', theme: t }, '*');
       } catch (e) {}
-      setTimeout(resizeIframe, 300);
-      setTimeout(resizeIframe, 1200);
+      hideModuloLoader();
+      setTimeout(resizeIframe, 200);
+      setTimeout(resizeIframe, 1000);
     });
 
+    // Respaldo por si el navegador usa caché instantánea
+    setTimeout(hideModuloLoader, 3500);
     window.addEventListener('resize', resizeIframe);
   }
 
@@ -215,4 +206,179 @@ document.addEventListener('DOMContentLoaded', function () {
   if (pwaInstallBtn) pwaInstallBtn.addEventListener('click', triggerPwaInstall);
   var sidebarPwaInstallBtn = document.getElementById('sidebarPwaInstallBtn');
   if (sidebarPwaInstallBtn) sidebarPwaInstallBtn.addEventListener('click', triggerPwaInstall);
+
+  // 7. Sincronización de Tasa Oficial del Banco Central de Venezuela (BCV)
+  window.TASA_BCV = window.TASA_BCV || { usd: 65.0, eur: 70.2 };
+
+  function fmtVe(n, dec) {
+    var num = Number(n) || 0;
+    return num.toLocaleString('es-VE', {
+      minimumFractionDigits: dec,
+      maximumFractionDigits: dec
+    });
+  }
+
+  function pintarTasaBcv(data) {
+    if (!data || !data.usd) return;
+    window.TASA_BCV = data;
+
+    document.querySelectorAll('[data-bcv-usd]').forEach(function (el) {
+      el.textContent = fmtVe(data.usd, 2);
+    });
+    document.querySelectorAll('[data-bcv-eur]').forEach(function (el) {
+      el.textContent = fmtVe(data.eur, 2);
+    });
+    document.querySelectorAll('[data-bcv-usd-full]').forEach(function (el) {
+      el.textContent = fmtVe(data.usd, 4);
+    });
+    document.querySelectorAll('[data-bcv-eur-full]').forEach(function (el) {
+      el.textContent = fmtVe(data.eur, 4);
+    });
+    document.querySelectorAll('[data-bcv-fecha]').forEach(function (el) {
+      el.textContent = data.fecha || '';
+    });
+    document.querySelectorAll('[data-bcv-fuente]').forEach(function (el) {
+      el.textContent = data.fuente || 'BCV';
+    });
+
+    var frame = document.getElementById('moduloFrame');
+    if (frame && frame.contentWindow) {
+      try {
+        frame.contentWindow.postMessage({ type: 'tv-bcv-update', bcv: data }, '*');
+      } catch (e) {}
+    }
+  }
+
+  window.actualizarTasaBcv = function (forzar) {
+    var btn = document.getElementById('btnRefreshBcv');
+    var icon = document.getElementById('iconRefreshBcv');
+    var labelSpan = btn ? btn.querySelector('span') : null;
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('tv-spin-icon');
+    if (forzar && labelSpan) labelSpan.textContent = 'Consultando BCV…';
+    var url = '/api/tasa-bcv/' + (forzar ? '?forzar=1' : '');
+    return fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        pintarTasaBcv(data);
+        if (forzar && labelSpan) {
+          labelSpan.textContent = 'Tasa actualizada';
+          setTimeout(function () {
+            labelSpan.textContent = 'Consultar BCV en vivo';
+          }, 1800);
+        }
+        return data;
+      })
+      .catch(function (err) {
+        console.warn('No se pudo consultar tasa BCV:', err);
+        if (forzar && labelSpan) labelSpan.textContent = 'Consultar BCV en vivo';
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+        if (icon) icon.classList.remove('tv-spin-icon');
+      });
+  };
+
+  window.aplicarTasaBcvEmpresa = function (moneda) {
+    var url = '/api/tasa-bcv/?forzar=1&aplicar=' + encodeURIComponent(moneda || 'USD');
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        pintarTasaBcv(data);
+        if (data && data.empresa_actualizada) {
+          window.location.reload();
+        }
+      })
+      .catch(function (err) {
+        console.warn('Error aplicando tasa BCV a la empresa:', err);
+      });
+  };
+
+  window.syncInputTasaConBcv = function (moneda) {
+    var inp = document.getElementById('id_tasa_nav');
+    if (inp) inp.style.display = moneda === 'VES' ? 'none' : 'block';
+    if (moneda === 'USD' || moneda === 'EUR') {
+      window.rellenarInputConBcv(moneda);
+    }
+  };
+
+  window.rellenarInputConBcv = function (monedaForzada) {
+    var sel = document.getElementById('id_moneda_nav');
+    var inp = document.getElementById('id_tasa_nav');
+    if (!inp) return;
+    var mon = monedaForzada || (sel ? sel.value : 'USD');
+    var val = mon === 'EUR' ? window.TASA_BCV.eur : window.TASA_BCV.usd;
+    if (val) {
+      inp.value = Number(val).toFixed(4);
+    }
+  };
+
+  // Consulta automática no bloqueante de la tasa BCV al cargar el panel
+  if (document.querySelector('[data-bcv-usd]')) {
+    setTimeout(function () {
+      window.actualizarTasaBcv(false);
+    }, 250);
+  }
+
+  // 8. Animación de carga en botones de formularios, enlaces del menú y barra superior
+  var topLoader = document.createElement('div');
+  topLoader.id = 'tv-top-loader';
+  document.body.appendChild(topLoader);
+
+  function activateTopLoader() {
+    topLoader.classList.remove('is-active');
+    void topLoader.offsetWidth;
+    topLoader.classList.add('is-active');
+  }
+
+  window.setButtonLoading = function (btn, loadingText) {
+    if (!btn || btn.classList.contains('tv-btn-loading')) return;
+    btn.dataset.tvOrigHtml = btn.innerHTML;
+    btn.classList.add('tv-btn-loading');
+    btn.disabled = true;
+    var label = loadingText || btn.getAttribute('data-loading-text') || btn.textContent.trim() || 'Procesando…';
+    btn.innerHTML = '<span class="tv-btn-spinner" aria-hidden="true"></span><span>' + label + '</span>';
+  };
+
+  function resetAllLoadingButtons() {
+    topLoader.classList.remove('is-active');
+    document.querySelectorAll('.tv-btn-loading').forEach(function (btn) {
+      if (btn.dataset.tvOrigHtml) {
+        btn.innerHTML = btn.dataset.tvOrigHtml;
+      }
+      btn.classList.remove('tv-btn-loading');
+      btn.disabled = false;
+    });
+  }
+
+  // Animación automática al enviar formularios
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.hasAttribute('data-no-loader')) return;
+    var submitBtn = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+    if (submitBtn && submitBtn.tagName === 'BUTTON') {
+      window.setButtonLoading(submitBtn);
+    }
+    activateTopLoader();
+  });
+
+  // Barra de progreso superior al navegar entre módulos o páginas del sistema
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download')) {
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    activateTopLoader();
+  });
+
+  // Animación sutil de entrada en el contenido principal
+  var mainEl = document.querySelector('.app-content > main');
+  if (mainEl) {
+    mainEl.classList.add('tv-fade-in');
+  }
+
+  window.addEventListener('pageshow', resetAllLoadingButtons);
 });

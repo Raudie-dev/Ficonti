@@ -26,29 +26,31 @@
 
           <div class="row g-3">
             <div class="col-sm-6">
-              <div class="p-3 border rounded-3 cursor-pointer d-flex align-items-center gap-3 theme-card"
+              <div class="p-3 border rounded-3 d-flex align-items-center gap-3 tv-theme-card-dark"
                    onclick="window.aplicarTema('dark'); document.getElementById('theme_dark').checked = true;"
-                   style="cursor: pointer; background: #152218; border-color: #25392a !important;">
-                <input class="form-check-input mt-0" type="radio" name="theme_select" id="theme_dark" value="dark">
+                   style="cursor: pointer; background-color: #151c19 !important; border-color: #2c3834 !important; color: #f3f4f6 !important;">
+                <input class="form-check-input mt-0 flex-shrink-0" type="radio" name="theme_select" id="theme_dark" value="dark">
                 <div>
-                  <div class="fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="bi bi-moon-stars-fill text-warning"></i> Modo Oscuro
+                  <div class="fw-bold d-flex align-items-center gap-2" style="color: #f3f4f6 !important;">
+                    <i class="bi bi-moon-stars-fill" style="color: #fbbf24 !important;"></i>
+                    <span style="color: #f3f4f6 !important;">Modo Oscuro</span>
                   </div>
-                  <small class="text-muted" style="font-size: 0.75rem;">Estilo Dashboard Fintech (Recomendado)</small>
+                  <small style="font-size: 0.75rem; color: #9ca3af !important;">Tono pizarra mate para baja iluminación</small>
                 </div>
               </div>
             </div>
 
             <div class="col-sm-6">
-              <div class="p-3 border rounded-3 cursor-pointer d-flex align-items-center gap-3 theme-card"
+              <div class="p-3 border rounded-3 d-flex align-items-center gap-3 tv-theme-card-light"
                    onclick="window.aplicarTema('light'); document.getElementById('theme_light').checked = true;"
-                   style="cursor: pointer; background: #ffffff; border-color: #d4e2cd !important;">
-                <input class="form-check-input mt-0" type="radio" name="theme_select" id="theme_light" value="light">
+                   style="cursor: pointer; background-color: #ffffff !important; border-color: #cbd5e1 !important; color: #111827 !important;">
+                <input class="form-check-input mt-0 flex-shrink-0" type="radio" name="theme_select" id="theme_light" value="light">
                 <div>
-                  <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="bi bi-sun-fill text-warning"></i> Modo Claro
+                  <div class="fw-bold d-flex align-items-center gap-2" style="color: #111827 !important;">
+                    <i class="bi bi-sun-fill" style="color: #d97706 !important;"></i>
+                    <span style="color: #111827 !important;">Modo Claro</span>
                   </div>
-                  <small class="text-muted" style="font-size: 0.75rem;">Contraste alto para ambientes iluminados</small>
+                  <small style="font-size: 0.75rem; color: #4b5563 !important;">Contraste ejecutivo para oficina (Recomendado)</small>
                 </div>
               </div>
             </div>
@@ -249,9 +251,18 @@
 
 {% block extra_js %}
 <script>
-  // Marcar radio button según tema activo
-  var actual = localStorage.getItem('tv-theme') || 'dark';
-  var r = document.getElementById('theme_' + actual);
-  if (r) r.checked = true;
+  (function() {
+    function syncRadioTema() {
+      var actual = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+      var r = document.getElementById('theme_' + actual);
+      if (r) r.checked = true;
+    }
+    syncRadioTema();
+    document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setTimeout(syncRadioTema, 20);
+      });
+    });
+  })();
 </script>
 {% endblock %}

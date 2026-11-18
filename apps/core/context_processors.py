@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from .bcv import obtener_tasas_bcv
 from .modulos import MODULOS, MODULOS_RESUMEN, menu_agrupado
 
 
@@ -13,6 +14,8 @@ def sistema(request):
         'MENU_MODULOS': menu_agrupado(),
         'MODULOS': MODULOS,
         'MODULOS_RESUMEN': MODULOS_RESUMEN,
+        'modulos_resumen': MODULOS_RESUMEN,
+        'tasa_bcv': obtener_tasas_bcv(forzar=False, permitir_red=False),
         'url_actual': match.view_name if match else '',
         'namespace_actual': match.namespace if match else '',
     }

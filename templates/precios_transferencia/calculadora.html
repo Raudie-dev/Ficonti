@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Precios de Transferencia e ISLR · TributoVE</title>
+<style>
+:root, [data-theme="dark"], html.theme-dark{--ink:#ffffff;--mut:#8b958e;--pap:#0b0e0c;--card:#141815;--sub:#1a201c;--ln:rgba(255,255,255,0.08);--ac:#1A6B4A;--ac-txt:#0b0e0c;--ac2:rgba(26, 107, 74,0.1);--bad:#f87171;--bad2:rgba(239,68,68,0.15);--ok:#22c55e;--ok2:rgba(34,197,94,0.15);--warn:#fbbf24;--warn2:rgba(245,158,11,0.15)}
+[data-theme="light"], html.theme-light{--ink:#0b0e0c;--mut:#5f6861;--pap:#f2f5f1;--card:#ffffff;--sub:#f7faf5;--ln:rgba(0,0,0,0.08);--ac:#2D5128;--ac-txt:#ffffff;--ac2:#eaf0e6;--bad:#dc2626;--bad2:#fee2e2;--ok:#16a34a;--ok2:#e8f5ec;--warn:#b45309;--warn2:#fef3c7}
+*{box-sizing:border-box}body{margin:0;background:var(--pap);color:var(--ink);font:14.5px/1.45 'Inter',system-ui,-apple-system,"Segoe UI",sans-serif;padding:8px 12px 36px}
+h1,h2,h3{font-family:'Inter',system-ui,sans-serif;margin:0 0 .4em;letter-spacing:-0.02em}
+header{background:var(--card);border:1px solid var(--ln);border-radius:16px;color:var(--ink);padding:16px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+header h1{font-size:20px;font-weight:800;margin:0}header small{color:var(--mut);display:block;font-size:12.5px;margin-top:2px}
+nav{display:flex;gap:8px;overflow-x:auto;padding:0 0 8px;margin-bottom:14px}
+nav button{border:1px solid var(--ln);background:var(--card);padding:9px 15px;border-radius:12px;cursor:pointer;font:600 13.5px 'Inter',system-ui;color:var(--mut);white-space:nowrap;transition:all .15s}
+nav button.on{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A;font-weight:700;box-shadow:0 2px 10px rgba(26, 107, 74,0.25)}
+main{max-width:100%;margin:auto}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:18px;margin-bottom:14px}
+.g{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--sub);color:var(--ink)}
+:focus-visible{outline:2px solid #1A6B4A;outline-offset:1px}
+.btn{background: #1A6B4A ; color: #ffffff ;border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.s{background:var(--sub);color:var(--ink);border:1px solid var(--ln)}.btn.d{background:var(--bad2);color:var(--bad);border:1px solid rgba(239,68,68,0.25)}
+.kpi b{display:block;font:800 22px 'Inter',system-ui,sans-serif;color:var(--ac);margin-top:4px;font-variant-numeric:tabular-nums}.kpi span{color:var(--mut);font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:middle}
+th{font-size:11.5px;color:var(--mut);font-weight:700;text-transform:uppercase;background:var(--sub)}td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:700}
+.ok{background:var(--ok2);color:var(--ok)}.no{background:var(--bad2);color:var(--bad)}.wn{background:var(--warn2);color:var(--warn)}
+.res{background:var(--ac2);border:1px solid rgba(26, 107, 74,0.2);border-radius:12px;padding:12px 14px;margin-top:12px;font-size:13px}
+.res div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:10px}.row>*{flex:1;min-width:130px}.row>.n{flex:0 0 auto;min-width:0}
+.note{background:var(--warn2);color:var(--warn);padding:10px 14px;border-radius:10px;font-size:13px;margin-top:10px}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px}.sig div{border-top:1px solid var(--ink);padding-top:6px;text-align:center}
+.sig input{border:0;text-align:center;font-weight:600;padding:2px;background:transparent}
+.legal li{margin-bottom:6px}.hid{display:none}
+@media print{header,nav,.noprint,#emp-banner{display:none!important}body{background:#fff;color:#000}.card{border:0}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head>
+<body>
+<header>
+  <div><h1>Precios de Transferencia e ISLR</h1><small>Operaciones con partes vinculadas · Métodos OCDE / LISLR Cap. III Título VII · Análisis FAR</small></div>
+  <div class="row noprint" style="margin:0;flex:0 1 auto">
+    <select id="sel" aria-label="Empresa activa" class="hid"></select>
+    <button class="btn s n" id="bDemo">Cargar caso demo</button>
+    <button class="btn s n" id="bExp">Exportar JSON</button>
+    <button class="btn s n" id="bImp">Importar JSON</button>
+    <input type="file" id="fImp" accept=".json" class="hid">
+  </div>
+</header>
+<nav id="nav" role="tablist" aria-label="Secciones de Precios de Transferencia">
+  <button type="button" data-t="res" class="on">1. Resumen</button>
+  <button type="button" data-t="ops">2. Operaciones y métodos</button>
+  <button type="button" data-t="far">3. Análisis funcional (FAR)</button>
+  <button type="button" data-t="leg">4. Marco legal y deberes</button>
+  <button type="button" data-t="inf">5. Informe</button>
+</nav>
+<main>
+<section id="t-res">
+  <div class="card"><h2>Datos de la empresa y del ejercicio</h2>
+    <div class="g">
+      <div><label>Razón social</label><input data-c="name"></div>
+      <div><label>RIF</label><input data-c="rif" placeholder="J-12345678-9"></div>
+      <div><label>Ejercicio fiscal</label><input data-c="year" type="number"></div>
+      <div><label>Moneda de las cifras</label><select data-c="cur"><option>USD</option><option>VES</option></select></div>
+      <div><label>Tasa de cambio BCV (VES por USD)</label><input data-c="fx" type="number" step="0.0001"></div>
+      <div><label>Tasa de ISLR aplicable (%)</label><input data-c="rate" type="number" step="0.1"></div>
+      <div><label>Renta neta gravable declarada, antes del ajuste</label><input data-c="renta" type="number"></div>
+    </div>
+    <p class="note" style="margin-bottom:0">La tasa es editable: la Ley de ISLR prevé 34% como tasa general de personas jurídicas y regímenes distintos (tarifa progresiva, hidrocarburos, minería). Verifique cuál corresponde al contribuyente.</p>
+  </div>
+  <div class="g" id="kpis"></div>
+  <div class="card" style="margin-top:14px"><h2>Resultado por operación</h2><div tabindex="0" role="region" aria-label="Resultado por operación" style="overflow-x:auto"><table><thead><tr><th>Operación</th><th>Método</th><th class="r">Indicador real</th><th class="r">Rango Q1 – Q3 (mediana)</th><th>Estado</th><th class="r">Efecto en renta</th></tr></thead><tbody id="sumb"></tbody></table></div><div id="warns"></div></div>
+</section>
+
+<section id="t-ops" class="hid">
+  <div class="card noprint"><div class="row"><div><label>Método para la nueva operación</label><select id="newm"><option value="cup">CUP – Precio comparable no controlado</option><option value="rp">RP – Precio de reventa</option><option value="ca">CA – Costo adicionado</option><option value="mnt">MNT – Margen neto transaccional</option><option value="pu">PU – Partición de utilidades</option></select></div><div class="n"><button class="btn" id="bOp">+ Agregar operación</button></div></div>
+  <p class="note" style="margin:0">Pegue los indicadores de las comparables (uno por línea, con punto decimal) y la app calcula Q1, mediana y Q3. Si prefiere, escriba los tres valores a mano.</p></div>
+  <div id="ops"></div>
+</section>
+
+<section id="t-far" class="hid">
+  <div class="card"><div class="row"><div><h2 style="margin:0">Funciones, activos y riesgos</h2></div><div class="n noprint"><button class="btn" id="bFar">+ Agregar elemento</button></div></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Categoría</th><th>Descripción</th><th>Empresa local</th><th>Parte vinculada</th><th></th></tr></thead><tbody id="farb"></tbody></table></div>
+  <div class="res" id="farr"></div></div>
+</section>
+
+<section id="t-leg" class="hid"><div class="card legal">
+  <h2>Marco legal aplicable en Venezuela</h2>
+  <div class="note">Referencias para orientación. Confirme numeración, vigencia y providencias en la Gaceta Oficial y el portal del SENIAT antes de usarlas en un expediente.</div>
+  <ul>
+    <li><b>Ley de ISLR</b> (Decreto con Rango, Valor y Fuerza de Ley, G.O.E. 6.210 del 30-12-2015), Título VII, Capítulo III “Precios de transferencia”: principio de plena competencia (art. 111); vinculación por control y supuestos de vinculación (arts. 114 y 117–119); metodologías y ajuste al rango o mediana; documentación de respaldo (art. 167); deberes formales (arts. 168–170).</li>
+    <li><b>Métodos reconocidos:</b> precio comparable no controlado, precio de reventa, costo adicionado, partición de utilidades y margen neto transaccional. Se debe justificar por qué el método elegido es el más apropiado.</li>
+    <li><b>Rango de plena competencia:</b> si el resultado cae fuera del rango intercuartil, se ajusta a la mediana.</li>
+    <li><b>Reglamento de la Ley de ISLR</b> (2003): faculta a la Administración Tributaria a dictar providencias para aplicar las normas de precios de transferencia.</li>
+    <li><b>Código Orgánico Tributario:</b> intereses moratorios, multas por disminución de ingresos tributarios y sanciones por incumplir deberes formales de precios de transferencia (verifique la numeración de la edición vigente).</li>
+    <li><b>Declaración informativa de operaciones con partes vinculadas (PT-99):</b> presentación anual ante el SENIAT; confirme el plazo y el formato en la providencia vigente.</li>
+    <li><b>Directrices de la OCDE:</b> referencia interpretativa; no sustituyen a la Ley.</li>
+  </ul>
+  <h3>Lista de control del expediente</h3>
+  <ul id="chk" style="list-style:none;padding:0"></ul>
+</div></section>
+
+<section id="t-inf" class="hid"><div class="card" id="rep"></div>
+  <div class="noprint"><button class="btn" id="bPrint">Imprimir o guardar PDF</button> <button class="btn s" id="bWa">Compartir por WhatsApp</button> <button class="btn s" id="bMail">Enviar por correo</button></div></section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const nf=new Intl.NumberFormat('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const M={cup:'CUP',rp:'RP',ca:'CA',mnt:'MNT',pu:'PU'};
+const FLD={cup:[['units','Unidades'],['price','Precio unitario intragrupo']],rp:[['sales','Ventas netas a terceros'],['cogs','Costo de ventas (compras a la vinculada)']],ca:[['costs','Costos totales de producción o servicio'],['rev','Ingresos facturados a la vinculada']],mnt:[['rev','Ingresos'],['cogs','Costo de ventas'],['opex','Gastos operativos']],pu:[['rev','Ingresos combinados'],['cost','Costos y gastos combinados'],['act','Utilidad asignada hoy a la local'],['far','% que corresponde a la local según FAR']]};
+const LV=['Alta','Media','Baja','Nula'],W={Alta:3,Media:2,Baja:1,Nula:0};
+let S=load(),tab='res';
+function mk(n,r){
+ const emp=window.EMPRESA||{};
+ const tasa=(emp.moneda&&+emp.moneda.tasa>0)?+emp.moneda.tasa:914.02;
+ return{id:uid(),name:n||emp.nombre||'Empresa, C.A.',rif:r||emp.rif||'J-00000000-0',year:new Date().getFullYear()-1,cur:'USD',fx:tasa,rate:34,renta:0,ops:[],far:[],s1:'',s2:''}
+}
+function load(){
+ try{const j=localStorage.getItem('tpve2');if(j){const o=JSON.parse(j);if(o&&o.cs&&o.cs.length)return o}}catch(e){}
+ const c=mk();return{cs:[c],a:c.id}
+}
+function syncActiveCompany(){
+ const c=C();
+ if(window.EMPRESA){
+  if(window.EMPRESA.nombre)c.name=window.EMPRESA.nombre;
+  if(window.EMPRESA.rif)c.rif=window.EMPRESA.rif;
+  if(window.EMPRESA.moneda&&+window.EMPRESA.moneda.tasa>0&&c.fx===1)c.fx=+window.EMPRESA.moneda.tasa;
+ }
+}
+syncActiveCompany();
+function save(){try{localStorage.setItem('tpve2',JSON.stringify(S))}catch(e){}}
+const C=()=>S.cs.find(c=>c.id===S.a)||S.cs[0];
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const money=(v,c)=>nf.format(v)+' '+(c||C()).cur;
+const pct=v=>nf.format(v)+'%';
+function pctl(a,p){a=[...a].sort((x,y)=>x-y);const i=(a.length-1)*p,l=Math.floor(i),h=Math.ceil(i);return a[l]+(a[h]-a[l])*(i-l)}
+function Q(o){const f=o.f,arr=String(f.comps||'').split(/[\s;]+/).map(num).filter((x,i,a)=>String(f.comps||'').trim()!=='').filter(x=>isFinite(x));
+ if(String(f.comps||'').trim()&&arr.length>=4)return{q1:pctl(arr,.25),med:pctl(arr,.5),q3:pctl(arr,.75),n:arr.length};
+ return{q1:num(f.q1),med:num(f.med),q3:num(f.q3),n:0}}
+function calc(o){const f=o.f,n=k=>num(f[k]);
+ if(o.m==='pu'){const cp=n('rev')-n('cost'),req=cp*n('far')/100,e=req-n('act');return{pu:1,real:money(n('act')),rng:'Requerida: '+money(req),ok:Math.abs(e)<.005,eff:e,w:cp<0?'La utilidad combinada es negativa: la partición no aplica de forma directa.':''}}
+ const q=Q(o);let real,e,w='';
+ if(o.m==='cup'){real=n('price');e=(o.dir==='cos'?-1:1)*n('units')*(q.med-real)}
+ else if(o.m==='rp'){const s=n('sales');real=s>0?(s-n('cogs'))/s*100:0;e=n('cogs')-s*(1-q.med/100)}
+ else if(o.m==='ca'){const c=n('costs');real=c>0?(n('rev')-c)/c*100:0;e=c*(1+q.med/100)-n('rev')}
+ else{const eb=n('rev')-n('cogs')-n('opex'),b=o.pli==='ncp'?n('cogs')+n('opex'):n('rev');real=b>0?eb/b*100:0;e=b*q.med/100-eb}
+ real=Math.round(real*1e4)/1e4;
+ if(!(q.q1<=q.med&&q.med<=q.q3))w='Q1, mediana y Q3 deben cumplir Q1 ≤ mediana ≤ Q3.';
+ const ok=real>=q.q1&&real<=q.q3,u=o.m==='cup';
+ return{real:u?money(real):pct(real),rng:(u?money(q.q1)+' – '+money(q.q3)+' ('+money(q.med)+')':pct(q.q1)+' – '+pct(q.q3)+' ('+pct(q.med)+')')+(q.n?' · '+q.n+' comp.':''),ok,eff:ok?0:e,w}}
+function totals(c){let pos=0,neg=0,rows=c.ops.map(o=>{const r=calc(o);if(r.eff>0)pos+=r.eff;else neg+=r.eff;return{o,r}});
+ const t=num(c.rate)/100,re=num(c.renta),extra=(Math.max(0,re+pos)-Math.max(0,re))*t;return{rows,pos,neg,extra}}
+function badge(r){return r.ok?'<span class="tag ok">Dentro del rango</span>':'<span class="tag no">Fuera del rango</span>'}
+function effTxt(c,e){return e>0?money(e,c)+' (se suma a la renta)':e<0?money(e,c)+' (a favor; evaluar)':money(0,c)}
+
+function renderSel(){$('#sel').innerHTML=S.cs.map(c=>`<option value="${c.id}" ${c.id===S.a?'selected':''}>${E(c.name)} (${E(c.rif)})</option>`).join('')}
+function renderCfg(){const c=C();$$('[data-c]').forEach(i=>i.value=c[i.dataset.c])}
+function renderOps(){const c=C();$('#ops').innerHTML=c.ops.length?c.ops.map(o=>{const pu=o.m==='pu';
+ return`<div class="card"><div class="row"><div><label>Descripción de la operación</label><input data-o="${o.id}" data-k="desc" value="${E(o.desc)}"></div>
+ <div><label>Método</label><select data-o="${o.id}" data-k="m" data-re="1">${Object.keys(M).map(k=>`<option value="${k}" ${o.m===k?'selected':''}>${M[k]}</option>`).join('')}</select></div>
+ ${o.m==='cup'?`<div><label>La parte probada…</label><select data-o="${o.id}" data-k="dir"><option value="ing" ${o.dir!=='cos'?'selected':''}>Vende (ingreso)</option><option value="cos" ${o.dir==='cos'?'selected':''}>Compra (costo)</option></select></div>`:''}
+ ${o.m==='mnt'?`<div><label>Indicador de rentabilidad</label><select data-o="${o.id}" data-k="pli"><option value="ros" ${o.pli!=='ncp'?'selected':''}>Margen operativo sobre ventas</option><option value="ncp" ${o.pli==='ncp'?'selected':''}>Retorno sobre costos totales</option></select></div>`:''}
+ <div class="n"><button class="btn d" data-del="${o.id}">Eliminar</button></div></div>
+ <div class="g">${FLD[o.m].map(([k,l])=>`<div><label>${l}</label><input type="number" step="any" data-o="${o.id}" data-f="${k}" value="${E(o.f[k]||'')}"></div>`).join('')}</div>
+ ${pu?'':`<div class="g" style="margin-top:10px"><div><label>Q1</label><input type="number" step="any" data-o="${o.id}" data-f="q1" value="${E(o.f.q1||'')}"></div><div><label>Mediana</label><input type="number" step="any" data-o="${o.id}" data-f="med" value="${E(o.f.med||'')}"></div><div><label>Q3</label><input type="number" step="any" data-o="${o.id}" data-f="q3" value="${E(o.f.q3||'')}"></div>
+ <div style="grid-column:span 2"><label>Indicadores de comparables (mín. 4; reemplazan a Q1, mediana y Q3)</label><textarea rows="2" data-o="${o.id}" data-f="comps">${E(o.f.comps||'')}</textarea></div></div>`}
+ <div class="res" id="r-${o.id}"></div></div>`}).join(''):'<div class="card">Aún no hay operaciones. Elija un método y agregue la primera, o cargue el caso demo.</div>';refresh()}
+function refresh(){const c=C(),T=totals(c);
+ T.rows.forEach(({o,r})=>{const el=$('#r-'+o.id);if(el)el.innerHTML=`<div><span>Indicador real</span><b>${r.real}</b></div><div><span>${r.pu?'Utilidad requerida':'Rango (mediana)'}</span><b>${r.rng}</b></div><div><span>Estado</span>${badge(r)}</div><div><span>Efecto en la renta gravable</span><b>${effTxt(c,r.eff)}</b></div>${r.w?`<div class="note">${r.w}</div>`:''}`});
+ const ves=c.cur==='USD'?num(c.fx):1,extra=T.extra;
+ $('#kpis').innerHTML=`<div class="card kpi"><span>Ajuste que aumenta la renta</span><b>${money(T.pos)}</b></div><div class="card kpi"><span>Ajustes a favor (informativo)</span><b>${money(T.neg)}</b></div><div class="card kpi"><span>ISLR adicional estimado</span><b>${money(extra)}</b><span>${c.cur==='USD'?nf.format(extra*ves)+' VES al cambio indicado':'Sin intereses ni multas'}</span></div><div class="card kpi"><span>Operaciones fuera del rango</span><b>${T.rows.filter(x=>!x.r.ok).length} de ${T.rows.length}</b></div>`;
+ $('#sumb').innerHTML=T.rows.length?T.rows.map(({o,r})=>`<tr><td>${E(o.desc||'Sin descripción')}</td><td>${M[o.m]}</td><td class="r">${r.real}</td><td class="r">${r.rng}</td><td>${badge(r)}</td><td class="r">${effTxt(c,r.eff)}</td></tr>`).join(''):'<tr><td colspan="6">Agregue operaciones en la pestaña “Operaciones y métodos”.</td></tr>';
+ const w=[];if(c.cur==='USD'&&num(c.fx)<=0)w.push('Indique la tasa BCV para convertir a bolívares.');if(!/^[JGVEPC]-?\d{8}-?\d$/i.test(c.rif.trim()))w.push('El RIF no tiene el formato esperado (letra y 9 dígitos).');
+ $('#warns').innerHTML=w.map(x=>`<p class="note">${E(x)}</p>`).join('');
+ renderRep(T);renderChk()}
+function renderFar(){const c=C();$('#farb').innerHTML=c.far.map(r=>`<tr><td><select data-r="${r.id}" data-k="t">${['Función','Activo','Riesgo'].map(x=>`<option ${r.t===x?'selected':''}>${x}</option>`).join('')}</select></td><td><input data-r="${r.id}" data-k="d" value="${E(r.d)}"></td><td><select data-r="${r.id}" data-k="l">${LV.map(x=>`<option ${r.l===x?'selected':''}>${x}</option>`).join('')}</select></td><td><select data-r="${r.id}" data-k="v">${LV.map(x=>`<option ${r.v===x?'selected':''}>${x}</option>`).join('')}</select></td><td><button class="btn d" data-rd="${r.id}">Quitar</button></td></tr>`).join('')||'<tr><td colspan="5">Agregue funciones, activos y riesgos para caracterizar a la empresa.</td></tr>';farRes()}
+function farRes(){const c=C();let l=0,v=0;c.far.forEach(r=>{l+=W[r.l];v+=W[r.v]});const p=l+v?l/(l+v)*100:0;
+ const k=!c.far.length?'Sin datos suficientes.':p>=60?'Perfil de entidad con funciones y riesgos completos. Evalúe CUP o partición de utilidades si hay intangibles propios.':p>=35?'Perfil intermedio (riesgo limitado). Suele probarse con la parte menos compleja usando RP, CA o MNT.':'Perfil de entidad rutinaria o de riesgo limitado. Suele aplicarse MNT, RP o CA con la local como parte probada.';
+ $('#farr').innerHTML=`<div><span>Peso de la local en la matriz</span><b>${nf.format(p)}%</b></div><div>${E(k)} Es una orientación: la caracterización definitiva requiere el análisis funcional completo.</div>`}
+function renderChk(){const c=C(),i=[['Contratos con partes vinculadas en el exterior',0],['Estados financieros del ejercicio y estados de costos',0],['Control de inventarios y lista de activos fijos',0],['Análisis funcional y justificación del método',0],['Búsqueda y soporte de comparables',0],['Declaración informativa presentada al SENIAT',0],['Documentación disponible para fiscalización',0]];
+ const saved=c.chk||{};$('#chk').innerHTML=i.map((x,n)=>`<li><label style="font-size:14px;color:var(--ink)"><input type="checkbox" style="width:auto" data-chk="${n}" ${saved[n]?'checked':''}> ${x[0]}</label></li>`).join('')}
+function repText(T){const c=C(),ops=T.rows.map(({o,r})=>`- ${o.desc||'Operación'} (${M[o.m]}): ${r.ok?'dentro del rango':'fuera del rango'}; efecto ${money(r.eff)}`).join('\n');
+ return`Informe de precios de transferencia e ISLR\n${c.name} · RIF ${c.rif} · Ejercicio ${c.year}\n\n${ops}\n\nAjuste que aumenta la renta: ${money(T.pos)}\nISLR adicional estimado: ${money(T.extra)}\n\nCálculo preliminar sujeto a revisión profesional.`}
+function renderRep(T){const c=C();$('#rep').innerHTML=`<h2>${E(c.name)}</h2><p style="color:var(--mut)">RIF ${E(c.rif)} · Ejercicio fiscal ${E(c.year)} · Emitido el ${new Date().toLocaleDateString('es-VE')}</p>
+ <h3>Dictamen preliminar</h3><p>Se evaluaron ${T.rows.length} operación(es) con partes vinculadas conforme al principio de plena competencia de la Ley de ISLR. ${T.rows.filter(x=>!x.r.ok).length?`${T.rows.filter(x=>!x.r.ok).length} operación(es) quedaron fuera del rango intercuartil y se ajustan a la mediana.`:'Todas las operaciones se encuentran dentro del rango.'}</p>
+ <table><thead><tr><th>Operación</th><th>Método</th><th>Estado</th><th class="r">Efecto</th></tr></thead><tbody>${T.rows.map(({o,r})=>`<tr><td>${E(o.desc||'—')}</td><td>${M[o.m]}</td><td>${badge(r)}</td><td class="r">${effTxt(c,r.eff)}</td></tr>`).join('')}</tbody></table>
+ <div class="res"><div><span>Ajuste que aumenta la renta gravable</span><b>${money(T.pos)}</b></div><div><span>ISLR adicional estimado (tasa ${nf.format(num(c.rate))}%)</span><b>${money(T.extra)}</b></div></div>
+ <p class="note" style="margin-top:12px">Estimación preliminar: no incluye intereses moratorios, multas, ajuste por inflación ni compensación de pérdidas distintas a la renta declarada indicada.</p>
+ <div class="sig"><div><input data-c="s1" value="${E(c.s1)}" placeholder="Elaborado por (nombre y cargo)"></div><div><input data-c="s2" value="${E(c.s2)}" placeholder="Revisado por (nombre y cargo)"></div></div>`}
+function show(t){tab=t;$$('main>section').forEach(s=>s.classList.toggle('hid',s.id!=='t-'+t));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t))}
+function full(){renderSel();renderCfg();renderOps();renderFar()}
+
+document.addEventListener('input',e=>{const t=e.target,c=C();
+ if(t.dataset.c){const k=t.dataset.c;c[k]=t.type==='number'?num(t.value):t.value;if(k==='name'||k==='rif')renderSel();save();if(!['s1','s2'].includes(k))refresh();else save()}
+ else if(t.dataset.o){const o=c.ops.find(x=>x.id===t.dataset.o);if(!o)return;if(t.dataset.f)o.f[t.dataset.f]=t.value;else{o[t.dataset.k]=t.value;if(t.dataset.k==='m')o.f={}}save();t.dataset.re?renderOps():refresh()}
+ else if(t.dataset.r){const r=c.far.find(x=>x.id===t.dataset.r);r[t.dataset.k]=t.value;save();farRes()}
+ else if(t.dataset.chk!==undefined){c.chk=c.chk||{};c.chk[t.dataset.chk]=t.checked;save()}});
+document.addEventListener('click',e=>{const t=e.target,c=C();
+ if(t.dataset.del){c.ops=c.ops.filter(o=>o.id!==t.dataset.del);save();renderOps()}
+ if(t.dataset.rd){c.far=c.far.filter(r=>r.id!==t.dataset.rd);save();renderFar()}});
+$('#nav').onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};
+$('#bOp').onclick=()=>{C().ops.push({id:uid(),desc:'',m:$('#newm').value,dir:'ing',pli:'ros',f:{}});save();renderOps()};
+$('#bFar').onclick=()=>{C().far.push({id:uid(),t:'Función',d:'',l:'Media',v:'Media'});save();renderFar()};
+$('#bDemo').onclick=()=>{const c=C();c.ops=[
+ {id:uid(),desc:'Venta de mercancía a casa matriz',m:'cup',dir:'ing',f:{units:'15000',price:'78',q1:'88',med:'95',q3:'102'}},
+ {id:uid(),desc:'Compra de producto terminado a vinculada',m:'rp',f:{sales:'800000',cogs:'620000',q1:'20',med:'24',q3:'28'}},
+ {id:uid(),desc:'Servicios de manufactura por contrato',m:'ca',f:{costs:'450000',rev:'465000',q1:'8',med:'14',q3:'18'}},
+ {id:uid(),desc:'Resultado operativo global de la local',m:'mnt',pli:'ros',f:{rev:'2500000',cogs:'1900000',opex:'520000',comps:'4.1\n5.0\n6.2\n7.5\n8.8\n9.5'}},
+ {id:uid(),desc:'Utilidad combinada de proyecto conjunto',m:'pu',f:{rev:'2000000',cost:'1400000',act:'150000',far:'40'}}];
+ c.far=[['Función','Mercadeo y ventas locales','Alta','Baja'],['Función','Investigación y desarrollo','Nula','Alta'],['Activo','Marcas y patentes','Nula','Alta'],['Activo','Almacenes y red de distribución','Alta','Nula'],['Riesgo','Crédito y cobranza','Baja','Alta'],['Riesgo','Obsolescencia de inventario','Baja','Alta']].map(a=>({id:uid(),t:a[0],d:a[1],l:a[2],v:a[3]}));
+ c.renta=500000;syncActiveCompany();save();full();show('res')};
+$('#bExp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='precios-transferencia-datos.json';a.click()};
+$('#bImp').onclick=()=>$('#fImp').click();
+$('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(!o.cs||!o.cs.length)throw 0;S=o;syncActiveCompany();save();full()}catch(x){alert('El archivo no es una exportación válida de esta aplicación.')}})};
+$('#bPrint').onclick=()=>window.print();
+$('#bWa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(repText(totals(C()))),'_blank');
+$('#bMail').onclick=()=>{location.href='mailto:?subject='+encodeURIComponent('Precios de transferencia e ISLR - '+C().name)+'&body='+encodeURIComponent(repText(totals(C())))};
+full();
+
+window.UXMODID='pt';
+window.UX={
+  status:function(){
+    var c=C(),T=totals(c);
+    if(!c.ops.length)return{est:'sin',det:'Sin operaciones'};
+    var out=T.rows.filter(function(x){return !x.r.ok}).length;
+    return{est:'ok',det:c.ops.length+' op. ('+out+' fuera de rango) · ISLR +'+money(T.extra,c)};
+  }
+};
+(function(){
+  function report(){
+    if(!window.EMPRESA||!window.EMPRESA.id)return;
+    var st=window.UX.status();
+    try{parent.postMessage({type:'ux-status',emp:window.EMPRESA.id,mod:window.UXMODID,st:{e:st.est,d:st.det}},'*')}catch(e){}
+  }
+  document.addEventListener('input',function(){setTimeout(report,400)},true);
+  document.addEventListener('click',function(){setTimeout(report,400)},true);
+  setTimeout(report,600);
+})();
+</script>
+<script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
+</html>

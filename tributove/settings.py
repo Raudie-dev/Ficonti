@@ -87,14 +87,21 @@ SISTEMA_APPS = [
 # Un módulo fiscal = una aplicación
 MODULOS_APPS = [
     'apps.planificacion',
+    'apps.calculo_ari',
+    'apps.estimada_islr',
     'apps.retenciones_islr',
     'apps.retenciones_iva',
     'apps.calendario',
+    'apps.sanciones_cot',
     'apps.impuesto_diferido',
     'apps.grandes_patrimonios',
     'apps.conciliacion',
+    'apps.auditoria_ingresos',
+    'apps.control_bancario',
     'apps.ajuste_inicial',
     'apps.cedula_fiscal',
+    'apps.conciliacion_islr',
+    'apps.precios_transferencia',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + SISTEMA_APPS + MODULOS_APPS

@@ -152,3 +152,53 @@ class TributoVETestSuite(TestCase):
         res_offline = client.get(reverse('core:offline'))
         self.assertEqual(res_offline.status_code, 200)
         self.assertContains(res_offline, 'Sin Conexión')
+
+    def test_dashboard_resumen_y_11_modulos_ajustados(self):
+        """Verifica que el panel ajustado renderiza los 11 módulos en los 4 menús desplegables, registro con usuario+mail y empresas con nombre+rif+condición."""
+        self.assertEqual(len(MODULOS), 11)
+        client = Client()
+        client.login(usuario='contador_test', password='ContadorPass123!')
+
+        res = client.get(reverse('empresas:resumen'))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, '1. PLANIFICACIÓN')
+        self.assertContains(res, '2. CONSULTAS')
+        self.assertContains(res, '3. CONTABILIDAD FISCAL')
+        self.assertContains(res, '4. CUENTA')
+        for m in MODULOS:
+            self.assertContains(res, m.nombre)
+
+        # Registro de empresa solo con nombre, rif y condición
+        res_emp = client.post(reverse('empresas:lista'), {
+            'nombre': 'Comercial Beta C.A.',
+            'rif': 'J-98765432-1',
+            'condicion': 'Contribuyente ordinario',
+        })
+        self.assertEqual(res_emp.status_code, 302)
+        self.assertTrue(Empresa.objects.filter(rif='J-98765432-1').exists())
+
+        # Registro de usuario solo con usuario, email y clave
+        client_anon = Client()
+        res_reg = client_anon.post(reverse('usuarios:registro'), {
+            'usuario': 'nuevo_user',
+            'email': 'nuevo@test.com',
+            'clave1': 'ClaveSegura123!',
+            'clave2': 'ClaveSegura123!',
+        })
+        self.assertEqual(res_reg.status_code, 302)
+        self.assertTrue(Usuario.objects.filter(usuario='nuevo_user', email='nuevo@test.com').exists())
+
+        # Recuperación de clave por correo
+        res_rec = client_anon.post(reverse('usuarios:recuperar'), {
+            'email': 'nuevo@test.com',
+        })
+        self.assertEqual(res_rec.status_code, 200)
+        self.assertContains(res_rec, 'Restablecer mi clave ahora')
+
+        # API de Tasa del Banco Central de Venezuela (BCV)
+        res_bcv = client.get(reverse('core:api_tasa_bcv'))
+        self.assertEqual(res_bcv.status_code, 200)
+        data_bcv = res_bcv.json()
+        self.assertTrue(data_bcv['ok'])
+        self.assertGreater(float(data_bcv['usd']), 0)
+        self.assertGreater(float(data_bcv['eur']), 0)

@@ -1,10 +1,14 @@
 import os
+from decimal import Decimal
 from django.conf import settings
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 
+from apps.empresas.context_processors import obtener_empresa_activa
 from apps.superadmin.mixins import obtener_superadmin
 from apps.suscripciones.models import ConfiguracionPago, MODULOS_DISPONIBLES, PlanSuscripcion
+
+from .bcv import obtener_tasas_bcv
 
 
 def landing(request):
@@ -60,3 +64,29 @@ def service_worker_view(request):
 def offline_view(request):
     """Pantalla mostrada cuando el usuario está sin conexión."""
     return render(request, 'offline.html')
+
+
+def api_tasa_bcv(request):
+    """
+    Endpoint API de la Tasa Oficial del Banco Central de Venezuela (BCV):
+    GET /api/tasa-bcv/
+      - ?forzar=1 -> fuerza consulta fresca al BCV / DolarApi
+      - ?aplicar=USD|EUR -> aplica la tasa BCV a la empresa activa del usuario
+    """
+    forzar = request.GET.get('forzar') in ('1', 'true', 'si') or request.method == 'POST'
+    datos = dict(obtener_tasas_bcv(forzar=forzar, permitir_red=True))
+
+    aplicar = (request.GET.get('aplicar') or request.POST.get('aplicar') or '').strip().upper()
+    empresa_actualizada = False
+    if aplicar in ('USD', 'EUR') and getattr(request, 'user', None) and request.user.is_authenticated:
+        emp = obtener_empresa_activa(request)
+        if emp:
+            tasa_val = datos.get('eur') if aplicar == 'EUR' else datos.get('usd')
+            if tasa_val:
+                emp.moneda = aplicar
+                emp.tasa = Decimal(str(tasa_val))
+                emp.save(update_fields=['moneda', 'tasa', 'actualizado'])
+                empresa_actualizada = True
+
+    datos['empresa_actualizada'] = empresa_actualizada
+    return JsonResponse(datos)

@@ -1,6 +1,6 @@
 {% extends 'layouts/auth.html' %}
 
-{% block title %}Crear Cuenta · TributoVE{% endblock %}
+{% block title %}Crear Cuenta · Gestión Fiscal Venezuela{% endblock %}
 
 {% block content %}
 <div class="auth-form-header mb-3">
@@ -11,7 +11,9 @@
     <span class="fw-bold" style="letter-spacing: -0.02em;">TributoVE</span>
   </div>
   <h1 class="auth-title" style="font-size: 1.85rem;">Crear Cuenta</h1>
-  <p class="auth-subtitle mb-3">Únete a la plataforma líder de gestión tributaria en Venezuela.</p>
+  <p class="auth-subtitle mb-3">
+    Plataforma para contadores públicos, administradores, economistas y quienes gestionen empresas e impuestos en Venezuela.
+  </p>
 </div>
 
 <form method="post" novalidate>
@@ -26,38 +28,32 @@
   {% endif %}
 
   <div class="mb-2">
-    <input type="text" name="nombre" id="{{ form.nombre.id_for_label }}" class="form-control auth-pill-input {% if form.nombre.errors %}is-invalid{% endif %}" placeholder="Nombre completo" value="{{ form.nombre.value|default:'' }}" required>
-    {% if form.nombre.errors %}<div class="text-danger small ps-3 mt-1">{{ form.nombre.errors.0 }}</div>{% endif %}
-  </div>
-
-  <div class="mb-2">
-    <input type="tel" name="telefono" id="{{ form.telefono.id_for_label }}" class="form-control auth-pill-input {% if form.telefono.errors %}is-invalid{% endif %}" placeholder="Teléfono móvil (0414-1234567)" value="{{ form.telefono.value|default:'' }}" required>
-    {% if form.telefono.errors %}<div class="text-danger small ps-3 mt-1">{{ form.telefono.errors.0 }}</div>{% endif %}
-  </div>
-
-  <div class="mb-2">
-    <input type="email" name="email" id="{{ form.email.id_for_label }}" class="form-control auth-pill-input {% if form.email.errors %}is-invalid{% endif %}" placeholder="Correo electrónico (opcional)" value="{{ form.email.value|default:'' }}">
-    {% if form.email.errors %}<div class="text-danger small ps-3 mt-1">{{ form.email.errors.0 }}</div>{% endif %}
-  </div>
-
-  <div class="mb-2">
-    <input type="text" name="usuario" id="{{ form.usuario.id_for_label }}" class="form-control auth-pill-input {% if form.usuario.errors %}is-invalid{% endif %}" placeholder="Nombre de usuario deseado" value="{{ form.usuario.value|default:'' }}" required>
+    <label for="{{ form.usuario.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Usuario</label>
+    <input type="text" name="usuario" id="{{ form.usuario.id_for_label }}" class="form-control auth-pill-input {% if form.usuario.errors %}is-invalid{% endif %}" placeholder="Nombre de usuario (4 a 20 caracteres)" value="{{ form.usuario.value|default:'' }}" autocomplete="username" required autofocus>
     {% if form.usuario.errors %}<div class="text-danger small ps-3 mt-1">{{ form.usuario.errors.0 }}</div>{% endif %}
+  </div>
+
+  <div class="mb-2">
+    <label for="{{ form.email.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Correo electrónico (para recuperar clave)</label>
+    <input type="email" name="email" id="{{ form.email.id_for_label }}" class="form-control auth-pill-input {% if form.email.errors %}is-invalid{% endif %}" placeholder="correo@ejemplo.com" value="{{ form.email.value|default:'' }}" autocomplete="email" required>
+    {% if form.email.errors %}<div class="text-danger small ps-3 mt-1">{{ form.email.errors.0 }}</div>{% endif %}
   </div>
 
   <div class="row g-2 mb-3">
     <div class="col-sm-6">
-      <input type="password" name="clave1" id="{{ form.clave1.id_for_label }}" class="form-control auth-pill-input {% if form.clave1.errors %}is-invalid{% endif %}" placeholder="Contraseña" required>
+      <label for="{{ form.clave1.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Clave</label>
+      <input type="password" name="clave1" id="{{ form.clave1.id_for_label }}" class="form-control auth-pill-input {% if form.clave1.errors %}is-invalid{% endif %}" placeholder="Mín. 8 (letras y números)" autocomplete="new-password" required>
       {% if form.clave1.errors %}<div class="text-danger small ps-3 mt-1">{{ form.clave1.errors.0 }}</div>{% endif %}
     </div>
     <div class="col-sm-6">
-      <input type="password" name="clave2" id="{{ form.clave2.id_for_label }}" class="form-control auth-pill-input {% if form.clave2.errors %}is-invalid{% endif %}" placeholder="Confirmar" required>
+      <label for="{{ form.clave2.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Confirmar clave</label>
+      <input type="password" name="clave2" id="{{ form.clave2.id_for_label }}" class="form-control auth-pill-input {% if form.clave2.errors %}is-invalid{% endif %}" placeholder="Repetir clave" autocomplete="new-password" required>
       {% if form.clave2.errors %}<div class="text-danger small ps-3 mt-1">{{ form.clave2.errors.0 }}</div>{% endif %}
     </div>
   </div>
 
   <button type="submit" class="btn btn-auth-submit w-100">
-    Crear mi cuenta gratis
+    Registrarme
   </button>
 </form>
 

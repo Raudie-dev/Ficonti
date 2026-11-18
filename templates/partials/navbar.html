@@ -1,59 +1,127 @@
 {% load humanize %}
 <header class="app-navbar">
-  <!-- Breadcrumb estilo Imagen de Referencia -->
+  <!-- Izquierda: Botón Menú Móvil + Título de la Sección Actual -->
   <div class="d-flex align-items-center gap-2">
     <button class="action-circle-btn d-lg-none" id="sidebarToggle" aria-label="Abrir menú">
       <i class="bi bi-list"></i>
     </button>
 
-    <div class="navbar-breadcrumb d-none d-sm-flex">
-      <div class="nav-icon-box">
-        <i class="bi bi-layers-half"></i>
-      </div>
-      <span>TributoVE</span>
-      <span class="text-dim">/</span>
-      <span class="breadcrumb-item active">
-        {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}
-          Overview &amp; Estatus
+    <div class="navbar-breadcrumb d-flex align-items-center gap-2">
+      <a href="{% url 'empresas:resumen' %}" class="nav-icon-box" title="Ir a Resumen de empresas">
+        <i class="bi {% if modulo %}{{ modulo.icono }}{% else %}bi-layers-half{% endif %}" style="color: var(--tv-primary);"></i>
+      </a>
+      <span class="breadcrumb-item active" style="font-size: 0.9rem;">
+        {% if modulo %}
+          {{ modulo.nombre }}
+        {% elif request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}
+          Resumen de empresas
         {% elif request.resolver_match.app_name == 'empresas' %}
-          Mis Empresas
+          Mis empresas
         {% elif request.resolver_match.app_name == 'usuarios' %}
-          Configuración
+          Mi cuenta
         {% else %}
-          {{ request.resolver_match.app_name|title }}
+          Panel Fiscal
         {% endif %}
       </span>
     </div>
-
-    <!-- Título compacto en pantallas móviles -->
-    <span class="d-sm-none fw-bold small text-truncate" style="max-width: 130px; color: var(--tv-text);">
-      {% if request.resolver_match.app_name == 'empresas' and request.resolver_match.url_name == 'resumen' %}
-        Estatus
-      {% elif request.resolver_match.app_name == 'empresas' %}
-        Empresas
-      {% elif request.resolver_match.app_name == 'usuarios' %}
-        Ajustes
-      {% else %}
-        {{ request.resolver_match.app_name|title }}
-      {% endif %}
-    </span>
   </div>
 
-  <!-- Barra de Herramientas Derecha (Acciones Circulares) -->
+  <!-- Derecha: Control Unificado BCV + Moneda, Empresa Activa, Imprimir y Tema -->
   <div class="navbar-actions">
-    <!-- Botón Instalar PWA (Se muestra cuando está disponible) -->
-    <button type="button" id="pwaInstallBtn" class="action-circle-btn d-none" title="Instalar TributoVE en este dispositivo">
-      <i class="bi bi-download" style="color: var(--tv-lime);"></i>
-    </button>
+
+    <!-- Control Unificado: Tasa Oficial BCV + Moneda de Trabajo -->
+    <div class="dropdown">
+      <button class="bcv-nav-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Tasa Oficial BCV y Moneda">
+        <i class="bi bi-bank" style="color: var(--tv-primary);"></i>
+        <span class="d-none d-sm-inline text-muted fw-semibold">BCV:</span>
+        <span>$ <strong data-bcv-usd>{{ tasa_bcv.usd|floatformat:2 }}</strong></span>
+        <span class="bcv-sep d-none d-lg-inline">|</span>
+        <span class="d-none d-lg-inline text-muted">€ <strong data-bcv-eur style="color: var(--tv-text);">{{ tasa_bcv.eur|floatformat:2 }}</strong></span>
+        {% if empresa_activa %}
+          <span class="bcv-sep">·</span>
+          <span class="fw-bold" style="color: var(--tv-primary);">{{ empresa_activa.moneda_simbolo }}</span>
+        {% endif %}
+      </button>
+
+      <div class="dropdown-menu dropdown-menu-end bcv-dropdown-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-bank2" style="color: var(--tv-primary); font-size: 0.95rem;"></i>
+            <span class="text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.04em; color: var(--tv-text);">Tasa Oficial BCV</span>
+          </div>
+          <span class="badge-dash-lime" data-bcv-fecha style="font-size: 0.7rem;">{{ tasa_bcv.fecha }}</span>
+        </div>
+
+        <div class="bcv-rate-list">
+          <div class="bcv-rate-item">
+            <div class="bcv-rate-left">
+              <span class="bcv-currency-tag">USD</span>
+              <div class="min-w-0 overflow-hidden">
+                <div class="bcv-rate-title">Dólar Oficial</div>
+                <div class="bcv-rate-sub">Tasa BCV</div>
+              </div>
+            </div>
+            <div class="bcv-rate-value">Bs. <span data-bcv-usd-full>{{ tasa_bcv.usd|floatformat:4 }}</span></div>
+          </div>
+
+          <div class="bcv-rate-item">
+            <div class="bcv-rate-left">
+              <span class="bcv-currency-tag">EUR</span>
+              <div class="min-w-0 overflow-hidden">
+                <div class="bcv-rate-title">Euro Oficial</div>
+                <div class="bcv-rate-sub">Tasa TCMMV</div>
+              </div>
+            </div>
+            <div class="bcv-rate-value">Bs. <span data-bcv-eur-full>{{ tasa_bcv.eur|floatformat:4 }}</span></div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between text-muted mb-2" style="font-size: 0.7rem;">
+          <span>Fuente: <strong data-bcv-fuente class="fw-semibold">{{ tasa_bcv.fuente }}</strong></span>
+        </div>
+
+        <button type="button" class="btn btn-sm btn-dash-primary w-100 d-flex align-items-center justify-content-center gap-2 py-1.5" id="btnRefreshBcv" onclick="window.actualizarTasaBcv(true)">
+          <i class="bi bi-arrow-clockwise" id="iconRefreshBcv"></i>
+          <span>Consultar BCV en vivo</span>
+        </button>
+
+        {% if empresa_activa %}
+        <hr class="my-2.5" style="border-color: var(--tv-border);">
+        <form method="post" action="{% url 'empresas:moneda' empresa_activa.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-uppercase fw-bold text-muted" style="font-size: 0.66rem;">Moneda de la empresa</span>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem; color: var(--tv-primary);" onclick="window.aplicarTasaBcvEmpresa('USD')">Usar USD</button>
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem; color: var(--tv-primary);" onclick="window.aplicarTasaBcvEmpresa('EUR')">Usar EUR</button>
+            </div>
+          </div>
+          <div class="d-flex gap-1.5">
+            <select name="moneda" class="form-select form-select-sm" id="id_moneda_nav" onchange="window.syncInputTasaConBcv && window.syncInputTasaConBcv(this.value)">
+              <option value="VES" {% if empresa_activa.moneda == 'VES' %}selected{% endif %}>Bs (Bolívares)</option>
+              <option value="USD" {% if empresa_activa.moneda == 'USD' %}selected{% endif %}>USD</option>
+              <option value="EUR" {% if empresa_activa.moneda == 'EUR' %}selected{% endif %}>EUR</option>
+              <option value="COP" {% if empresa_activa.moneda == 'COP' %}selected{% endif %}>COP</option>
+              <option value="CNY" {% if empresa_activa.moneda == 'CNY' %}selected{% endif %}>CNY</option>
+            </select>
+            <input type="number" step="0.0001" name="tasa" id="id_tasa_nav" class="form-control form-control-sm" style="max-width: 105px; display: {% if empresa_activa.es_bolivares %}none{% else %}block{% endif %};" value="{{ empresa_activa.tasa|default_if_none:'' }}" placeholder="Tasa">
+            <button type="submit" class="btn btn-dash-secondary btn-sm px-2.5">OK</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
 
     <!-- Selector Rápido de Empresa Activa -->
     {% if empresa_activa %}
     <div class="dropdown">
-      <button class="btn btn-sm btn-dash-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.82rem;">
-        <span class="table-avatar" style="width: 22px; height: 22px; font-size: 0.7rem;">{{ empresa_activa.nombre|slice:":1"|upper }}</span>
-        <span class="fw-bold text-truncate d-none d-md-inline" style="max-width: 170px;">{{ empresa_activa.nombre }}</span>
+      <button class="btn btn-sm btn-dash-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.78rem;">
+        <span class="table-avatar" style="width: 22px; height: 22px; font-size: 0.68rem;">{{ empresa_activa.nombre|slice:":1"|upper }}</span>
+        <span class="fw-bold text-truncate" style="max-width: 155px;">{{ empresa_activa.nombre }}</span>
+        <span class="text-muted d-none d-xl-inline" style="font-size: 0.72rem;">· {{ empresa_activa.rif }}</span>
       </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 14px; min-width: 250px;">
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 12px; min-width: 270px;">
         <li class="dropdown-header text-uppercase fw-bold text-muted" style="font-size: 0.68rem;">Cambiar empresa activa</li>
         {% for emp in user.empresas.all %}
         <li>
@@ -61,8 +129,11 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if emp.pk == empresa_activa.pk %}active fw-bold{% endif %}">
-              <span class="text-truncate">{{ emp.nombre }}</span>
-              {% if emp.pk == empresa_activa.pk %}<i class="bi bi-check2 text-lime ms-2"></i>{% endif %}
+              <div class="text-truncate me-2">
+                <div class="text-truncate">{{ emp.nombre }}</div>
+                <small class="opacity-75" style="font-size: 0.7rem;">{{ emp.rif }} · {{ emp.condicion_corta }}</small>
+              </div>
+              {% if emp.pk == empresa_activa.pk %}<i class="bi bi-check2-circle ms-2"></i>{% endif %}
             </button>
           </form>
         </li>
@@ -70,57 +141,33 @@
         <li><span class="dropdown-item text-muted">No tiene empresas</span></li>
         {% endfor %}
         <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item fw-bold" href="{% url 'empresas:lista' %}" style="color: var(--tv-lime);"><i class="bi bi-plus-circle me-1"></i> Gestionar empresas</a></li>
+        <li><a class="dropdown-item fw-bold" href="{% url 'empresas:lista' %}" style="color: var(--tv-primary);"><i class="bi bi-plus-circle me-1"></i> Mis empresas</a></li>
       </ul>
     </div>
-
-    <!-- Selector de Moneda Rápido -->
-    <div class="dropdown d-none d-md-block">
-      <button class="action-circle-btn" type="button" data-bs-toggle="dropdown" title="Moneda de cálculo">
-        <span class="fw-bold" style="font-size: 0.72rem; color: var(--tv-lime);">{{ empresa_activa.moneda_simbolo }}</span>
-      </button>
-      <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border" style="min-width: 260px; border-radius: 14px;">
-        <h6 class="dropdown-header px-0 pt-0 text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">Moneda de trabajo</h6>
-        <form method="post" action="{% url 'empresas:moneda' empresa_activa.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <div class="mb-2">
-            <select name="moneda" class="form-select form-select-sm" id="id_moneda_nav" onchange="document.getElementById('tasa_nav_wrap').style.display = this.value === 'VES' ? 'none' : 'block'">
-              <option value="VES" {% if empresa_activa.moneda == 'VES' %}selected{% endif %}>Bolívares (Bs)</option>
-              <option value="USD" {% if empresa_activa.moneda == 'USD' %}selected{% endif %}>Dólares (USD)</option>
-              <option value="EUR" {% if empresa_activa.moneda == 'EUR' %}selected{% endif %}>Euros (EUR)</option>
-              <option value="COP" {% if empresa_activa.moneda == 'COP' %}selected{% endif %}>Pesos (COP)</option>
-              <option value="CNY" {% if empresa_activa.moneda == 'CNY' %}selected{% endif %}>Yuan (CNY)</option>
-            </select>
-          </div>
-          <div class="mb-2" id="tasa_nav_wrap" style="display: {% if empresa_activa.es_bolivares %}none{% else %}block{% endif %};">
-            <label class="form-label small text-muted mb-1">Tasa en Bs:</label>
-            <input type="number" step="0.0001" name="tasa" class="form-control form-control-sm" value="{{ empresa_activa.tasa|default_if_none:'' }}" placeholder="Ej. 65.50">
-          </div>
-          <button type="submit" class="btn btn-dash-primary btn-sm w-100">Aplicar moneda</button>
-        </form>
-      </div>
-    </div>
+    {% else %}
+    <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-primary py-1 px-3" style="font-size: 0.78rem;">
+      <i class="bi bi-plus-lg me-1"></i> Registrar Empresa
+    </a>
     {% endif %}
 
-    <!-- Botón Toggle de Modo Claro / Oscuro -->
-    <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)">
-      <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
+    {% if modulo %}
+    <!-- Botón Imprimir Formal -->
+    <button type="button" class="btn btn-sm btn-dash-secondary py-1 px-2.5 d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;"
+            onclick="var f=document.getElementById('moduloFrame');if(f&&f.contentWindow){f.contentWindow.postMessage({type:'ux-do-print'},'*');}"
+            title="Imprimir reporte formal del módulo">
+      <i class="bi bi-printer"></i>
+      <span class="d-none d-md-inline">Imprimir</span>
+    </button>
+    {% endif %}
+
+    <!-- Botón Instalar PWA (solo visible si el navegador permite instalar) -->
+    <button type="button" id="pwaInstallBtn" class="action-circle-btn d-none" title="Instalar aplicación">
+      <i class="bi bi-download" style="color: var(--tv-primary);"></i>
     </button>
 
-    <!-- Notificaciones / Estatus Suscripción -->
-    <a href="{% url 'usuarios:mi_cuenta' %}" class="action-circle-btn position-relative" title="Estado de cuenta">
-      <i class="bi bi-bell"></i>
-      {% if user.suscripcion_activa %}
-        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle"></span>
-      {% else %}
-        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"></span>
-      {% endif %}
-    </a>
-
-    <!-- Idioma / Región -->
-    <button class="action-circle-btn d-none d-sm-inline-flex" title="Venezuela (SENIAT)">
-      <i class="bi bi-globe"></i>
+    <!-- Botón Toggle de Modo Claro / Oscuro -->
+    <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)" aria-label="Cambiar tema">
+      <i class="bi bi-sun-fill theme-toggle-icon"></i>
     </button>
   </div>
 </header>

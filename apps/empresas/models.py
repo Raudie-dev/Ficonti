@@ -70,6 +70,39 @@ class Empresa(models.Model):
         return self.condicion == SPE
 
     @property
+    def es_sujeto_pasivo_especial(self):
+        return self.es_spe
+
+    @property
+    def condicion_corta(self):
+        if self.es_spe:
+            return 'SPE'
+        if 'ordinario' in (self.condicion or '').lower():
+            return 'Ordinario'
+        return 'Formal'
+
+    @property
+    def es_bolivares(self):
+        return (self.moneda or 'VES') == 'VES'
+
+    @property
+    def moneda_simbolo(self):
+        return {
+            'VES': 'Bs',
+            'USD': 'USD',
+            'EUR': 'EUR',
+            'COP': 'COP',
+            'CNY': 'CNY',
+        }.get(self.moneda or 'VES', self.moneda or 'Bs')
+
+    @property
+    def actualizada(self):
+        est = self.estados.order_by('-fecha').first()
+        if est and est.fecha:
+            return est.fecha
+        return self.creado
+
+    @property
     def falta_tasa(self):
         return self.moneda != 'VES' and not (self.tasa and self.tasa > 0)
 
@@ -109,7 +142,12 @@ class Empresa(models.Model):
                 aplican += 1
                 if est == 'ok':
                     realizados += 1
-            celdas.append({'modulo': m, 'estado': est, 'detalle': det})
+            celdas.append({
+                'modulo': m,
+                'estado': est,
+                'detalle': det,
+                'url': f'{m.url}?empresa={self.pk}',
+            })
         pct = round(realizados / aplican * 100) if aplican else 0
         return {'celdas': celdas, 'aplican': aplican, 'realizados': realizados, 'pct': pct}
 

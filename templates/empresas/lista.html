@@ -6,8 +6,10 @@
 <div class="container-fluid p-0">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
-      <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Cartera de Empresas</h2>
-      <p class="text-muted small mb-0">Gestione los clientes sobre los cuales liquida tributos y elabora libros fiscales.</p>
+      <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Mis Empresas</h2>
+      <p class="text-muted small mb-0">
+        El registro de empresas solo requiere nombre, RIF y condición de contribuyente.
+      </p>
     </div>
     <div>
       <button class="btn btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresa">
@@ -16,7 +18,20 @@
     </div>
   </div>
 
-  <!-- Lista de Empresas estilo "Customer List" del Dashboard -->
+  {% if not empresas %}
+  <div class="alert border-0 mb-4 d-flex align-items-center gap-3 p-3" style="background: rgba(210, 248, 101, 0.12); border: 1px solid rgba(210, 248, 101, 0.3) !important; border-radius: 16px;">
+    <i class="bi bi-info-circle-fill fs-4" style="color: var(--tv-lime);"></i>
+    <div class="flex-grow-1">
+      <div class="fw-bold text-white">Active los módulos de la aplicación</div>
+      <div class="small text-muted">Cada usuario debe registrar al menos una empresa (nombre, RIF y condición de contribuyente) para activar los módulos fiscales.</div>
+    </div>
+    <button class="btn btn-sm btn-dash-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresa">
+      <i class="bi bi-plus-lg me-1"></i> Registrar ahora
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Lista de Empresas -->
   <div class="card-dashboard p-0">
     <div class="table-responsive">
       <table class="table-dashboard align-middle mb-0">
@@ -24,10 +39,9 @@
           <tr>
             <th class="ps-4">Empresa</th>
             <th>RIF</th>
-            <th>Condición</th>
-            <th>Moneda</th>
+            <th>Condición de Contribuyente</th>
             <th>Última Actividad</th>
-            <th class="text-center">Estado Obligaciones</th>
+            <th class="text-center">Avance Módulos</th>
             <th class="text-end pe-4">Acciones</th>
           </tr>
         </thead>
@@ -53,19 +67,11 @@
                 <span class="badge badge-dash-dim">Contribuyente Ordinario</span>
               {% endif %}
             </td>
-            <td>
-              <span class="badge bg-body-tertiary text-white border" style="border-radius: 6px;">
-                {{ emp.moneda_simbolo }}
-                {% if not emp.es_bolivares and emp.tasa %}
-                  <small class="text-muted">({{ emp.tasa }} Bs)</small>
-                {% endif %}
-              </span>
-            </td>
             <td class="small text-muted">{{ emp.actualizada|date:"d/m/Y H:i" }}</td>
             <td class="text-center">
               {% with st=emp.resumen_estatus %}
                 <span class="badge {% if st.realizados == st.aplican and st.aplican > 0 %}badge-dash-ok{% elif st.realizados > 0 %}badge-dash-prog{% else %}badge-dash-dim{% endif %}">
-                  {{ st.realizados }}/{{ st.aplican }} oblig.
+                  {{ st.realizados }}/{{ st.aplican }} módulos
                 </span>
               {% endwith %}
             </td>
@@ -93,9 +99,9 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="text-center py-5 text-muted">
+            <td colspan="6" class="text-center py-5 text-muted">
               <i class="bi bi-buildings fs-1 d-block mb-2 text-muted"></i>
-              <p class="mb-2">Aún no tiene empresas registradas en su cartera tributaria.</p>
+              <p class="mb-2">Aún no tiene empresas registradas. Registre al menos una empresa para activar los módulos.</p>
               <button class="btn btn-sm btn-dash-primary" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresa">
                 <i class="bi bi-plus"></i> Registrar la primera empresa
               </button>
@@ -108,7 +114,7 @@
   </div>
 </div>
 
-<!-- Modal para Nueva Empresa con estilo Dashboard -->
+<!-- Modal para Nueva Empresa (Solo Nombre, RIF y Condición de Contribuyente) -->
 <div class="modal fade" id="modalNuevaEmpresa" tabindex="-1" aria-labelledby="modalNuevaEmpresaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background: var(--tv-surface); border: 1px solid var(--tv-border); border-radius: 20px;">
@@ -126,35 +132,21 @@
           {% endif %}
 
           <div class="mb-3">
-            <label for="{{ form.nombre.id_for_label }}" class="form-label small fw-bold">Razón Social</label>
+            <label for="{{ form.nombre.id_for_label }}" class="form-label small fw-bold">Nombre o Razón Social</label>
             {{ form.nombre }}
             {% if form.nombre.errors %}<div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>{% endif %}
           </div>
 
-          <div class="row g-2 mb-3">
-            <div class="col-sm-6">
-              <label for="{{ form.rif.id_for_label }}" class="form-label small fw-bold">RIF (Ej. J-12345678-9)</label>
-              {{ form.rif }}
-              {% if form.rif.errors %}<div class="text-danger small mt-1">{{ form.rif.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label for="{{ form.condicion.id_for_label }}" class="form-label small fw-bold">Condición Fiscal</label>
-              {{ form.condicion }}
-              {% if form.condicion.errors %}<div class="text-danger small mt-1">{{ form.condicion.errors.0 }}</div>{% endif %}
-            </div>
+          <div class="mb-3">
+            <label for="{{ form.rif.id_for_label }}" class="form-label small fw-bold">RIF (Ej. J-12345678-9)</label>
+            {{ form.rif }}
+            {% if form.rif.errors %}<div class="text-danger small mt-1">{{ form.rif.errors.0 }}</div>{% endif %}
           </div>
 
-          <div class="row g-2 mb-3">
-            <div class="col-sm-6">
-              <label for="{{ form.moneda.id_for_label }}" class="form-label small fw-bold">Moneda de Cálculo</label>
-              {{ form.moneda }}
-              {% if form.moneda.errors %}<div class="text-danger small mt-1">{{ form.moneda.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6" id="wrap_tasa_modal">
-              <label for="{{ form.tasa.id_for_label }}" class="form-label small fw-bold">Tasa de cambio (Bs)</label>
-              {{ form.tasa }}
-              {% if form.tasa.errors %}<div class="text-danger small mt-1">{{ form.tasa.errors.0 }}</div>{% endif %}
-            </div>
+          <div class="mb-2">
+            <label for="{{ form.condicion.id_for_label }}" class="form-label small fw-bold">Condición de Contribuyente</label>
+            {{ form.condicion }}
+            {% if form.condicion.errors %}<div class="text-danger small mt-1">{{ form.condicion.errors.0 }}</div>{% endif %}
           </div>
         </div>
         <div class="modal-footer border-top" style="border-color: var(--tv-border-subtle) !important;">

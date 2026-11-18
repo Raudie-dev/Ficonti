@@ -1,0 +1,50 @@
+{% extends 'layouts/auth.html' %}
+
+{% block title %}Nueva Clave · TributoVE{% endblock %}
+
+{% block content %}
+<div class="auth-form-header mb-3">
+  <div class="brand-badge mb-2">
+    <div class="brand-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <span class="fw-bold" style="letter-spacing: -0.02em;">TributoVE</span>
+  </div>
+  <h1 class="auth-title" style="font-size: 1.85rem;">Definir Nueva Clave</h1>
+  {% if token_valido %}
+    <p class="auth-subtitle mb-3">
+      Cree una nueva clave para el usuario <strong>{{ usuario_obj.usuario }}</strong> ({{ usuario_obj.email }}).
+    </p>
+  {% else %}
+    <p class="auth-subtitle mb-3 text-danger">
+      El enlace de recuperación es inválido o ya fue utilizado.
+    </p>
+  {% endif %}
+</div>
+
+{% if token_valido %}
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="mb-3">
+    <label for="{{ form.clave1.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Nueva clave</label>
+    <input type="password" name="clave1" id="{{ form.clave1.id_for_label }}" class="form-control auth-pill-input {% if form.clave1.errors %}is-invalid{% endif %}" placeholder="Mínimo 8 caracteres (letras y números)" required autofocus>
+    {% if form.clave1.errors %}<div class="text-danger small ps-3 mt-1">{{ form.clave1.errors.0 }}</div>{% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.clave2.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Confirmar nueva clave</label>
+    <input type="password" name="clave2" id="{{ form.clave2.id_for_label }}" class="form-control auth-pill-input {% if form.clave2.errors %}is-invalid{% endif %}" placeholder="Repetir nueva clave" required>
+    {% if form.clave2.errors %}<div class="text-danger small ps-3 mt-1">{{ form.clave2.errors.0 }}</div>{% endif %}
+  </div>
+
+  <button type="submit" class="btn btn-auth-submit w-100">
+    Guardar nueva clave
+  </button>
+</form>
+{% else %}
+<a href="{% url 'usuarios:recuperar' %}" class="btn btn-auth-submit w-100 text-center d-inline-block text-decoration-none">
+  Solicitar nuevo enlace
+</a>
+{% endif %}
+{% endblock %}

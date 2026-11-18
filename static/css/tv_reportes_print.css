@@ -1,0 +1,370 @@
+/* ==========================================================================
+   TributoVE - Sistema Unificado de Reportes Formales e Impresión PDF
+   Diseño Ejecutivo de Papel de Trabajo / Dictamen Tributario Corporativo
+   ========================================================================== */
+
+#tv-rpt-header,
+#tv-rpt-footer {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 11mm 11mm 13mm 11mm;
+  }
+
+  /* Forzar paleta clara de papel blanco en impresión aunque la pantalla esté en Modo Oscuro */
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"],
+  html.theme-dark,
+  html.theme-light {
+    --tv-bg: #ffffff !important;
+    --tv-surface: #ffffff !important;
+    --tv-surface-subtle: #f8faf9 !important;
+    --tv-surface-hover: #f8faf9 !important;
+    --tv-border: #cbd5e1 !important;
+    --tv-text: #111827 !important;
+    --tv-muted: #4b5563 !important;
+    --tv-accent: #1A6B4A !important;
+    --bg: #ffffff !important;
+    --pap: #ffffff !important;
+    --paper: #ffffff !important;
+    --card: #ffffff !important;
+    --surface: #ffffff !important;
+    --s: #ffffff !important;
+    --c: #ffffff !important;
+    --sub: #f8faf9 !important;
+    --ink: #111827 !important;
+    --tx: #111827 !important;
+    --mut: #4b5563 !important;
+    --muted: #4b5563 !important;
+    --bd: #cbd5e1 !important;
+    --rule: #cbd5e1 !important;
+    color-scheme: light !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+    font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif !important;
+    font-size: 9pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ocultar elementos interactivos de interfaz */
+  #emp-banner,
+  #ux-bar,
+  #ux-top,
+  #ux-pt,
+  nav,
+  .top-nav,
+  .tabs,
+  .chips,
+  .filters,
+  .search,
+  .share,
+  .acts,
+  .np,
+  .noprint,
+  .no-print,
+  .no,
+  button,
+  .btn,
+  .b,
+  input[type="file"],
+  label:has(input[type="file"]),
+  #toast-container,
+  .toast,
+  .mx,
+  .clear,
+  .sugg {
+    display: none !important;
+  }
+
+  /* Encabezado Formal Corporativo */
+  #tv-rpt-header {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 9px !important;
+    margin-bottom: 14px !important;
+    color: #111827 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .tv-rpt-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+  .tv-rpt-kicker {
+    font-size: 7.5pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #1A6B4A !important;
+    margin-bottom: 2px !important;
+  }
+  .tv-rpt-title {
+    font-size: 13.5pt !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    margin: 0 0 2px !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.18 !important;
+  }
+  .tv-rpt-subtitle {
+    font-size: 8.5pt !important;
+    color: #4b5563 !important;
+    margin: 0 !important;
+  }
+  .tv-rpt-empbox {
+    text-align: right !important;
+    background: #f4f7f5 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 5px !important;
+    padding: 6px 11px !important;
+    min-width: 230px !important;
+    max-width: 310px !important;
+  }
+  .tv-rpt-empname {
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    line-height: 1.2 !important;
+  }
+  .tv-rpt-emprif {
+    font-size: 8pt !important;
+    color: #374151 !important;
+    margin-top: 2px !important;
+  }
+  .tv-rpt-meta {
+    margin-top: 8px !important;
+    padding: 5px 9px !important;
+    background: #f8faf9 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    gap: 4px 12px !important;
+    font-size: 7.8pt !important;
+    color: #374151 !important;
+  }
+
+  /* Contenedores y Tarjetas limpias sobre papel blanco */
+  .wrap, .w, main, #v, #m {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .card, .c, .pn, .hero, .total, .luxury-card, .panel, section.c, div.card, .table-scroll, .sc {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    padding: 10px 12px !important;
+    margin-bottom: 10px !important;
+    overflow: visible !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .card h2, .card h3, .c h2, .c h3, .pn h3 {
+    color: #1A6B4A !important;
+    background: #f4f7f5 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+    padding: 5px 8px !important;
+    margin: -10px -12px 8px -12px !important;
+  }
+  .hero, .total {
+    border-left: 4px solid #1A6B4A !important;
+    background: #f8faf9 !important;
+  }
+  .hero .big, .total .big, .k b, .kpi-val, .kpi-val.accent {
+    color: #1A6B4A !important;
+  }
+  .hero .n, .kpi-label, .kpi-sub, .note, .hint, small, .muted, .mut {
+    color: #374151 !important;
+  }
+
+  /* Tablas Ejecutivas */
+  table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+    margin: 4px 0 !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  thead th, table th {
+    background: #1A6B4A !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 7.5pt !important;
+    text-transform: uppercase !important;
+    padding: 5px 6px !important;
+    border: 1px solid #14573C !important;
+  }
+  tbody td, table td {
+    background: #ffffff !important;
+    color: #111827 !important;
+    padding: 4.5px 6px !important;
+    border: 1px solid #d1d5db !important;
+    font-size: 8pt !important;
+  }
+  tbody tr:nth-child(even) td {
+    background: #f9fafb !important;
+  }
+  .tot td, tfoot td, tr.t td {
+    background: #eef5f1 !important;
+    color: #111827 !important;
+    font-weight: 800 !important;
+    border-top: 1.5px solid #1A6B4A !important;
+  }
+
+  /* Modales de liquidación individual (ej. Retención ISLR) */
+  .mdl-bg {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .mdl {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .mh {
+    background: #f4f7f5 !important;
+    color: #111827 !important;
+    border-bottom: 1.5px solid #1A6B4A !important;
+    padding: 10px 14px !important;
+    position: static !important;
+  }
+  .mh b, #mdl-t {
+    color: #111827 !important;
+    font-size: 11pt !important;
+  }
+  .mb {
+    background: #ffffff !important;
+    color: #111827 !important;
+    padding: 12px 14px !important;
+  }
+  .vars dt {
+    color: #4b5563 !important;
+    font-size: 7.5pt !important;
+  }
+  .vars dd {
+    color: #111827 !important;
+    font-size: 9pt !important;
+  }
+  #mm,
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #94a3b8 !important;
+    border-radius: 0 !important;
+    padding: 2px 4px !important;
+    box-shadow: none !important;
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+
+  /* Badges legibles en impresión */
+  .pill, .badge, .tag, .bd, .tg {
+    border: 1px solid #9ca3af !important;
+    padding: 1px 5px !important;
+    border-radius: 3px !important;
+    font-size: 7.2pt !important;
+    color: #111827 !important;
+    background: #f3f4f6 !important;
+  }
+  .pill.ok, .badge-ok, .bd.ok, .ok {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    border-color: #86efac !important;
+  }
+  .pill.wa, .badge-warn, .bd.wr, .wa {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    border-color: #fcd34d !important;
+  }
+  .pill.ba, .bd.er, .ba {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: #fca5a5 !important;
+  }
+
+  /* Pie de Página Formal con Firmas */
+  #tv-rpt-footer {
+    display: block !important;
+    margin-top: 16px !important;
+    padding-top: 10px !important;
+    border-top: 1.5px solid #94a3b8 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    color: #374151 !important;
+  }
+  .tv-rpt-legal {
+    font-size: 7.5pt !important;
+    line-height: 1.35 !important;
+    margin-bottom: 24px !important;
+  }
+  .tv-rpt-sigs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+    text-align: center !important;
+  }
+  .tv-rpt-sigline {
+    border-top: 1px solid #111827 !important;
+    padding-top: 4px !important;
+    font-size: 7.8pt !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+  }
+  .tv-rpt-sigsub {
+    font-size: 7pt !important;
+    font-weight: 400 !important;
+    color: #4b5563 !important;
+  }
+
+  /* Si existe plantilla especializada de calendario, evitar doble membrete */
+  body:has(#cal-print-sheet:not(:empty)) #tv-rpt-header,
+  body:has(#cal-print-sheet:not(:empty)) #tv-rpt-footer {
+    display: none !important;
+  }
+}

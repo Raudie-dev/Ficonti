@@ -3,15 +3,36 @@
 {% block title %}{{ modulo.nombre }} · TributoVE{% endblock %}
 
 {% block content %}
-<div class="w-100 p-0 m-0" style="background-color: var(--tv-bg, #0b0e0c); min-height: calc(100vh - 70px);">
-  <iframe
-    src="{{ url_calculadora }}"
-    id="moduloFrame"
-    title="{{ modulo.nombre }}"
-    allow="clipboard-write"
-    allowtransparency="true"
-    style="width: 100%; min-height: calc(100vh - 70px); border: 0; background-color: var(--tv-bg, #0b0e0c); display: block; overflow-x: hidden;">
-  </iframe>
+<div class="d-flex flex-column w-100">
+  <!-- Contenedor con estado de carga animado y transición suave del módulo -->
+  <div class="modulo-stage w-100 p-0 m-0" style="background-color: var(--tv-bg);">
+    <div id="moduloLoaderOverlay" class="modulo-loader-overlay" aria-live="polite">
+      <div class="tv-loader-banner">
+        <span class="tv-btn-spinner" style="color: var(--tv-primary);"></span>
+        <span>Cargando {{ modulo.nombre }}…</span>
+      </div>
+      <div class="d-flex gap-2">
+        <div class="tv-skeleton-box" style="height: 32px; width: 110px;"></div>
+        <div class="tv-skeleton-box" style="height: 32px; width: 110px;"></div>
+        <div class="tv-skeleton-box" style="height: 32px; width: 110px;"></div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4"><div class="tv-skeleton-box" style="height: 92px;"></div></div>
+        <div class="col-md-4"><div class="tv-skeleton-box" style="height: 92px;"></div></div>
+        <div class="col-md-4"><div class="tv-skeleton-box" style="height: 92px;"></div></div>
+      </div>
+      <div class="tv-skeleton-box" style="height: 260px;"></div>
+    </div>
+
+    <iframe
+      src="{{ url_calculadora }}"
+      id="moduloFrame"
+      title="{{ modulo.nombre }}"
+      allow="clipboard-write"
+      allowtransparency="true"
+      style="width: 100%; min-height: calc(100vh - 64px); border: 0; background-color: var(--tv-bg); display: block; overflow-x: hidden; opacity: 0; transition: opacity 0.22s ease;">
+    </iframe>
+  </div>
 </div>
 {% endblock %}
 

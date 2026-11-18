@@ -1,36 +1,57 @@
 {% extends 'layouts/auth.html' %}
 
-{% block title %}Recuperar Acceso · TributoVE{% endblock %}
+{% block title %}Recuperar Clave por Correo · TributoVE{% endblock %}
 
 {% block content %}
-<div class="auth-form-header mb-4">
-  <div class="brand-badge mb-3">
+<div class="auth-form-header mb-3">
+  <div class="brand-badge mb-2">
     <div class="brand-dots">
       <span></span><span></span><span></span>
     </div>
     <span class="fw-bold" style="letter-spacing: -0.02em;">TributoVE</span>
   </div>
-  <h1 class="auth-title" style="font-size: 1.85rem;">Recuperar Acceso</h1>
-  <p class="auth-subtitle mb-4">Por políticas de seguridad y protección de datos fiscales, el restablecimiento de claves es canalizado por el equipo administrativo.</p>
+  <h1 class="auth-title" style="font-size: 1.85rem;">Recuperar Clave</h1>
+  <p class="auth-subtitle mb-3">
+    Ingrese el correo electrónico registrado en su cuenta para restablecer su clave de acceso.
+  </p>
 </div>
 
-{% if config_pago %}
-<div class="card-custom p-3 mb-3 small" style="border-radius: 18px;">
-  <span class="fw-bold text-uppercase d-block mb-2 text-muted" style="font-size: 0.72rem;">Canales de atención:</span>
-  {% if config_pago.pago_movil_telefono %}
-    <div class="mb-1"><i class="bi bi-whatsapp text-success me-1"></i> WhatsApp: <strong>{{ config_pago.pago_movil_telefono }}</strong></div>
-  {% endif %}
-  {% if config_pago.zelle_correo %}
-    <div class="mb-1"><i class="bi bi-envelope text-primary me-1"></i> Correo: <strong>{{ config_pago.zelle_correo }}</strong></div>
-  {% endif %}
-</div>
+{% if enviado and enlace_recuperacion %}
+  <div class="p-3 mb-3 rounded-4" style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.85rem;">
+    <div class="fw-bold mb-1" style="color: var(--tv-emerald);">
+      <i class="bi bi-envelope-check-fill me-1"></i> Solicitud de recuperación procesada
+    </div>
+    <p class="small mb-2 text-muted">
+      Se ha enviado el enlace de restablecimiento a su correo electrónico. También puede continuar directamente desde aquí:
+    </p>
+    <a href="{{ enlace_recuperacion }}" class="btn btn-sm btn-dash-primary w-100 text-center">
+      <i class="bi bi-key-fill me-1"></i> Restablecer mi clave ahora
+    </a>
+  </div>
 {% endif %}
 
-<div class="p-3 mb-4 rounded-4" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border); font-size: 0.85rem; color: var(--tv-text-muted);">
-  Indique su <strong>nombre de usuario</strong> y <strong>teléfono</strong> para verificar su identidad y emitir una credencial temporal.
-</div>
+<form method="post" novalidate>
+  {% csrf_token %}
 
-<a href="{% url 'usuarios:login' %}" class="btn btn-auth-submit w-100 text-center d-inline-block text-decoration-none">
-  Volver al Inicio de Sesión
-</a>
+  <div class="mb-3">
+    <label for="{{ form.email.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Correo electrónico registrado</label>
+    <input type="email" name="email" id="{{ form.email.id_for_label }}" class="form-control auth-pill-input {% if form.email.errors %}is-invalid{% endif %}" placeholder="correo@ejemplo.com" value="{{ form.email.value|default:'' }}" required autofocus>
+    {% if form.email.errors %}<div class="text-danger small ps-3 mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.usuario.id_for_label }}" class="form-label small fw-semibold ps-2 mb-1">Usuario (opcional)</label>
+    <input type="text" name="usuario" id="{{ form.usuario.id_for_label }}" class="form-control auth-pill-input" placeholder="Su nombre de usuario" value="{{ form.usuario.value|default:'' }}">
+  </div>
+
+  <button type="submit" class="btn btn-auth-submit w-100 mb-3">
+    <i class="bi bi-envelope-paper me-1"></i> Recuperar clave por correo
+  </button>
+</form>
+
+<div class="text-center mt-2">
+  <a href="{% url 'usuarios:login' %}" class="small fw-bold text-decoration-none" style="color: var(--tv-text);">
+    <i class="bi bi-arrow-left me-1"></i> Volver al Inicio de Sesión
+  </a>
+</div>
 {% endblock %}

@@ -73,6 +73,10 @@ class Usuario(AbstractBaseUser):
     def get_short_name(self):
         return self.nombre.split(' ')[0] if self.nombre else self.usuario
 
+    @property
+    def nombre_mostrar(self):
+        return self.nombre or self.usuario
+
     # --- suscripción --------------------------------------------------------
     @property
     def suscripcion_activa(self):

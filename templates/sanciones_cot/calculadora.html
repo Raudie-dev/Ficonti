@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.setItem = function(key, val) {
+    origSet.call(this, key, val);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    origRemove.call(this, key);
+    if (key && key.indexOf(prefix) === 0) {
+      var kSin = key.slice(prefix.length);
+      saveQueue[kSin] = null;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(syncToServer, 600);
+    }
+  };
+})();
+</script>
+<script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+var st=document.createElement("style");st.textContent="@media print{#emp-banner{display:none!important}}";document.head.appendChild(st);
+document.addEventListener("DOMContentLoaded",function(){var b=document.createElement("div");b.id="emp-banner";
+b.style.cssText="background:#e6f0fa;color:#0b3d73;border-bottom:1px solid #b9d4ee;padding:7px 14px;font:13px system-ui,sans-serif";
+var t="Empresa activa: "+E.nombre+" · RIF "+E.rif+" · "+E.condicion;
+if(E.soloSPE&&!window.EMP_ES)t+=" · ⚠ Este módulo está pensado para sujetos pasivos especiales: verifica si aplica a esta empresa.";
+if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.moneda&&+E.moneda.tasa>0?" · tasa: "+MON.tasa.toLocaleString("es-VE")+" Bs por 1 "+MON.lab:" · ⚠ falta indicar la tasa de cambio"));if(E.soloBs)t+=" · ⚠ Este módulo trabaja en bolívares: la moneda elegida no cambia sus cifras"}b.textContent=t;document.body.insertBefore(b,document.body.firstChild)})})();</script><script id="mon-js">window.MON=(function(){var E=window.EMPRESA||{},m=E.moneda||{},T={VES:["Bs","Bolívares"],USD:["USD","Dólares americanos"],EUR:["EUR","Euros"],COP:["COP","Pesos colombianos"],CNY:["CNY","Yuan chino"]};var cod=T[m.cod]?m.cod:"VES",es=cod==="VES",tasa=es?1:(+m.tasa>0?+m.tasa:1);return{cod:cod,lab:T[cod][0],nom:T[cod][1],tasa:tasa,esBs:es,utEf:function(u){return u/tasa},aBs:function(v){return v*tasa}}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e0c">
+<title>Consultor de sanciones SENIAT (COT 2020)</title>
+<style>
+:root, [data-theme="dark"], html.theme-dark{--ink:#ffffff;--bg:#0b0e0c;--card:#141815;--sub:#1a201c;--ln:rgba(255,255,255,0.08);--mu:#8b958e;--red:#f87171;--amb:#fbbf24;--blu:#38bdf8;--grn:#22c55e;--lime:#1A6B4A;color-scheme:dark}
+[data-theme="light"], html.theme-light{--ink:#0b0e0c;--bg:#f2f5f1;--card:#ffffff;--sub:#f7faf5;--ln:rgba(0,0,0,0.08);--mu:#5f6861;--red:#dc2626;--amb:#b45309;--blu:#0284c7;--grn:#16a34a;--lime:#2D5128;color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 12px 40px}
+h1,h2,.big{font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.02em}
+h1{font-size:20px;font-weight:800;margin:0}h2{font-size:16px;font-weight:700;margin:0 0 12px}
+.top{background:var(--card);border:1px solid var(--ln);border-radius:16px;color:var(--ink);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.top small{display:block;color:var(--mu);font-size:13px;margin-top:2px}.mini{font-weight:800;font-variant-numeric:tabular-nums;font-size:17px;text-align:right;color:var(--lime)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.tabs button{border:1px solid var(--ln);background:var(--card);border-radius:12px;padding:10px 16px;font:600 13.5px 'Inter',system-ui,sans-serif;color:var(--mu);cursor:pointer;white-space:nowrap;transition:all .15s}
+.tabs button[aria-selected=true]{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A;font-weight:700;box-shadow:0 2px 10px rgba(26, 107, 74,0.25)}
+.wrap{max-width:100%;margin:0 auto}
+.g{display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:18px}
+label{display:block;font-weight:600;font-size:13px;color:var(--mu);margin:12px 0 4px}label:first-child{margin-top:0}
+input,select{width:100%;min-height:42px;font:inherit;padding:8px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--sub);color:var(--ink)}
+input[type=checkbox],input[type=radio]{width:18px;min-height:18px;height:18px;flex:none;accent-color:#1A6B4A}
+:focus-visible{outline:2px solid #1A6B4A;outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:0;font-weight:500;cursor:pointer;min-height:44px;background:var(--sub);color:var(--ink)}
+.opt small{display:block;color:var(--mu);font-weight:400;font-size:12.5px}
+.hint{color:var(--mu);font-size:12.5px;margin:4px 0 0}
+a{color:var(--blu)}
+.btn{min-height:40px;border-radius:10px;border:1px solid var(--ln);background:var(--sub);color:var(--ink);font:700 13.5px 'Inter',system-ui,sans-serif;padding:8px 14px;cursor:pointer}
+.btn.p{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A}.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.total{background:linear-gradient(145deg,#18281d,#0f1c13);border:1px solid rgba(26, 107, 74,0.25);color:#fff;border-radius:16px;padding:20px}
+.total .big{font-size:clamp(26px,6vw,36px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;word-break:break-word;color:#1A6B4A;margin:4px 0}
+.total small{color:#b8c3d3}
+.pill{display:inline-block;border-radius:99px;padding:3px 12px;font-size:12.5px;font-weight:700;background:rgba(239,68,68,0.18);color:#f87171}.pill.ok{background:rgba(34,197,94,0.18);color:#4ade80}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--ln)}
+.row small{display:block;color:var(--mu);font-size:12.5px}.row b{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+.row.t{border:0;font-size:16px;padding-bottom:0;color:var(--lime)}
+.cf{color:var(--red)}.cm{color:var(--amb)}.ci{color:var(--blu)}.cg{color:var(--grn)}
+.note{border-left:4px solid var(--lime);background:var(--sub);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0;font-size:13.5px}
+.note.w{border-color:var(--amb);background:rgba(245,158,11,0.1)}.note.r{border-color:var(--red);background:rgba(239,68,68,0.1)}
+details summary{cursor:pointer;font-weight:600;min-height:32px}
+.print-only{display:none}
+@media(min-width:900px){.g.s{grid-template-columns:5fr 7fr;align-items:start}}
+@media screen and (max-width:600px){.two{grid-template-columns:1fr}}
+@media print{.top,.tabs,.noprint,.acts,#emp-banner{display:none!important}.print-only{display:block}body{background:#fff;color:#000}.card{break-inside:avoid;border:1px solid #ccc}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head>
+<body>
+<header class="top"><div><h1>Consultor de sanciones SENIAT (COT 2020)</h1><small>Código Orgánico Tributario 2020 · Gaceta Oficial 6.507 Extraordinario</small></div><div class="mini" id="mini">Bs. 0,00</div></header>
+<nav class="tabs" role="tablist" aria-label="Secciones">
+<button type="button" role="tab" data-t="sim" aria-selected="true">1. Simulador</button>
+<button type="button" role="tab" data-t="con" aria-selected="false">2. Concurrencia (Art. 82)</button>
+<button type="button" role="tab" data-t="tab" aria-selected="false">3. Tabla de multas</button>
+<button type="button" role="tab" data-t="gui" aria-selected="false">4. Guía legal</button>
+</nav>
+<main class="wrap">
+<p class="print-only">Consulta emitida el <span id="pd"></span></p>
+
+<section id="t-sim" class="g s">
+<div class="card noprint">
+<h2>Datos del cálculo</h2>
+<label for="tr">Tributo</label>
+<select id="tr">
+<optgroup label="Impuestos (pago con retraso, Art. 110)"><option value="G">ISLR – Declaración definitiva</option><option value="G2">IVA – Declaración mensual</option><option value="G3">IGTF</option><option value="G4">Impuesto a los Grandes Patrimonios</option></optgroup>
+<optgroup label="Anticipos (Art. 114)"><option value="A">Anticipos de ISLR / IVA</option></optgroup>
+<optgroup label="Retenciones (Art. 115)"><option value="R">Retenciones de ISLR / IVA (enteramiento)</option></optgroup>
+</select>
+<label>Calificación del contribuyente</label>
+<div class="two">
+<label class="opt"><input type="radio" name="ct" value="O" checked>Ordinario</label>
+<label class="opt"><input type="radio" name="ct" value="S">Especial (+200 % en multas formales)</label>
+</div>
+<label for="mo">Tributo adeudado (Bs.)</label>
+<input id="mo" inputmode="decimal" value="50.000,00" autocomplete="off">
+<div class="two">
+<div><label for="fv">Fecha de vencimiento</label><input id="fv" type="date"></div>
+<div><label for="fp">Fecha de pago</label><input id="fp" type="date"></div>
+</div>
+<div class="two">
+<div><label for="mn">Moneda de mayor valor</label><select id="mn"><option value="EUR">Euro (€)</option><option value="USD">Dólar (US$)</option></select></div>
+<div><label for="tc">Tipo de cambio (Bs.)</label><input id="tc" inputmode="decimal" autocomplete="off"></div>
+</div>
+<p class="hint">Referencia BCV del <span id="rf"></span>. Para otra fecha, use el valor publicado en <a href="https://www.bcv.org.ve/" target="_blank" rel="noopener">bcv.org.ve</a>.</p>
+<label for="ta">Tasa activa BCV (% anual)</label>
+<input id="ta" inputmode="decimal" autocomplete="off">
+<p class="hint">Art. 66: los intereses usan 1,2 veces esta tasa. Última publicada: octubre 2026.</p>
+<label class="opt" style="margin-top:12px"><input type="checkbox" id="fo" checked><span>La declaración también se presentó fuera de plazo<small>Agrega la multa formal del Art. 103.</small></span></label>
+<label class="opt" style="margin-top:8px"><input type="checkbox" id="cc" checked><span>Aplicar concurrencia de multas (Art. 82)<small>Multa más grave + la mitad de las demás.</small></span></label>
+<details style="margin-top:12px"><summary>Opciones avanzadas</summary>
+<label for="tv">Tipo de cambio al vencimiento (Bs.)</label>
+<input id="tv" inputmode="decimal" placeholder="Igual al de pago" autocomplete="off">
+<p class="hint">Art. 92: las multas en porcentaje se convierten a la moneda de mayor valor al momento del ilícito y se pagan al valor vigente el día del pago. Déjelo vacío para no aplicar este ajuste.</p>
+</details>
+<div class="acts"><button class="btn" id="rs" type="button">Restablecer</button><button class="btn" id="cp" type="button">Copiar resumen</button><button class="btn p" id="pr" type="button">Imprimir</button></div>
+</div>
+
+<div class="g">
+<div class="total">
+<small>Total a pagar estimado</small>
+<div class="big" id="tot">Bs. 0,00</div>
+<small id="tdv"></small>
+<p style="margin:10px 0 0"><span class="pill" id="pl">En plazo</span> <small id="pc"></small></p>
+</div>
+<div class="card"><h2>Desglose</h2><div id="rows"></div></div>
+<div class="card"><h2>Fundamento legal</h2><div id="lg"></div></div>
+</div>
+</section>
+
+<section id="t-con" class="g s" hidden>
+<div class="card">
+<h2>Hallazgos de la fiscalización</h2>
+<div id="ch"></div>
+<div class="two" style="margin-top:12px">
+<div><label for="ctc">Tipo de cambio (Bs.)</label><input id="ctc" inputmode="decimal" autocomplete="off"></div>
+<div><label for="cs">Contribuyente</label><select id="cs"><option value="O">Ordinario</option><option value="S">Especial (+200 %)</option></select></div>
+</div>
+</div>
+<div class="g">
+<div class="total"><small>Multa total por concurrencia (Art. 82)</small><div class="big" id="ct-t">Bs. 0,00</div><small id="ct-s"></small></div>
+<div class="card"><h2>Cálculo</h2><div id="cd"></div></div>
+</div>
+</section>
+
+<section id="t-tab" class="g" hidden>
+<div class="card"><h2>Ilícitos formales frecuentes</h2>
+<p class="hint" id="th" style="margin-bottom:6px"></p><div id="tf"></div></div>
+<div class="card"><h2>Ilícitos materiales</h2><div id="tm"></div></div>
+</section>
+
+<section id="t-gui" class="g" hidden>
+<div class="card"><h2>Cómo leer el resultado</h2>
+<div class="note"><b>Multa formal (Arts. 99–108).</b> Sanciona incumplir deberes administrativos. Se expresa en veces el tipo de cambio de la moneda de mayor valor (TCMV) del BCV. Si el contribuyente es especial, la multa sube 200 % (se triplica, Art. 108). Este recargo no aplica a las multas materiales.</div>
+<div class="note w"><b>Multa material (Arts. 109–117).</b> Sanciona no pagar o pagar tarde. Se calcula como porcentaje del tributo.</div>
+<div class="note"><b>Intereses moratorios (Art. 66).</b> Se causan desde el vencimiento hasta el pago, a 1,2 veces la tasa activa promedio de los seis principales bancos. Aquí se calculan como interés simple sobre 365 días con una tasa única. Si la tasa cambió durante el retraso, el SENIAT calcula por períodos y el resultado puede variar.</div>
+<div class="note r"><b>Concurrencia (Art. 82).</b> Si hay varias multas, se aplica la más grave y la mitad de cada una de las demás.</div>
+</div>
+<div class="card"><h2>Fuentes oficiales</h2>
+<p><a href="https://www.bcv.org.ve/" target="_blank" rel="noopener">Banco Central de Venezuela</a>: tipo de cambio y tasas activas.</p>
+<p><a href="https://www.oncop.gob.ve/site/src/archivos/normativa-legal/LEYES/6-C%C3%B3digo%20Org%C3%A1nico%20Tributario%202020.pdf" target="_blank" rel="noopener">Texto del COT 2020 (PDF)</a></p>
+<p><a href="http://www.seniat.gob.ve/" target="_blank" rel="noopener">Portal del SENIAT</a></p>
+<p class="hint">El COT 2020 rige desde el 28 de febrero de 2020. Las infracciones cometidas antes se sancionan con el COT 2014. Esta herramienta da estimaciones informativas; no sustituye la liquidación del SENIAT ni asesoría profesional.</p>
+</div>
+</section>
+</main>
+
+<script>
+const REF={EUR:1010.56,USD:914.02,tasa:58.78,fecha:"16/11/2026"};
+const CAT=[
+{id:"i",a:"Art. 100 n.º 1",t:"No inscribirse en el Registro de Contribuyentes",v:150,c:5},
+{id:"f1",a:"Art. 101 n.º 1–4",t:"No emitir factura, o emitirla con datos que no coinciden",v:150,c:10},
+{id:"f2",a:"Art. 101 n.º 5–8",t:"Factura sin los requisitos legales",v:100,c:5},
+{id:"l1",a:"Art. 102 n.º 1",t:"No llevar los libros y registros exigidos",v:150,c:10},
+{id:"l2",a:"Art. 102 n.º 5, 7",t:"Libros con atraso mayor a un mes o sin formalidades",v:100,c:5},
+{id:"d3",a:"Art. 103 n.º 3",t:"Declaración incompleta o con retraso de hasta 1 año",v:100,c:0},
+{id:"d1",a:"Art. 103 n.º 1",t:"No presentar declaración o retraso mayor a 1 año",v:150,c:10},
+{id:"d2",a:"Art. 103 n.º 2, 4–6",t:"Comunicaciones omitidas o fuera de plazo",v:50,c:0},
+{id:"x",a:"Art. 105 n.º 1",t:"No entregar la información requerida por el SENIAT",v:100,c:0}];
+const MAT=[["Art. 110","Pago tardío de tributos","0,28 % por día hasta 100 % (+50 % si pasa de 1 año, +150 % si pasa de 2)"],["Art. 111","Omisión de declaración determinada por el SENIAT","30 % del tributo"],["Art. 112","Disminución ilegítima de ingresos","100 % a 300 % del tributo omitido"],["Art. 113","Devoluciones indebidas","100 % a 500 %"],["Art. 114","Anticipos","Omitidos: 100 %. Tardíos: 0,05 % por día hasta 100 %"],["Art. 115","Retenciones y percepciones","No retener: 500 %. Enterar tarde: 5 % por día hasta 100 días. No enterar: 1.000 %"]];
+function num(s){s=String(s||"").trim().replace(/[^\d.,-]/g,"");if(!s)return NaN;const c=s.lastIndexOf(","),p=s.lastIndexOf(".");
+ if(c>-1&&p>-1)s=c>p?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");
+ else if(c>-1)s=s.replace(/\./g,"").replace(",",".");
+ else if(/^-?\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");
+ return parseFloat(s)}
+function fmt(n){return new Intl.NumberFormat("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)}
+function ymd(d){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
+function pd(s){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");return m?Date.UTC(+m[1],+m[2]-1,+m[3]):NaN}
+function addY(t,n){const d=new Date(t);return Date.UTC(d.getUTCFullYear()+n,d.getUTCMonth(),d.getUTCDate())}
+function calc(p){
+ const r={ok:true,notes:[]};
+ if(!(p.monto>=0)||isNaN(p.venc)||isNaN(p.pago)||!(p.tc>0)){r.ok=false;return r}
+ const dias=Math.max(0,Math.round((p.pago-p.venc)/864e5));
+ const y1=p.pago>addY(p.venc,1),y2=p.pago>addY(p.venc,2);
+ Object.assign(r,{dias,y1,y2,formal:0,material:0,adj:0,pct:0,vecesF:0,artF:"",artM:"",refM:""});
+ if(dias>0&&p.formal){r.vecesF=y1?150:100;r.artF=y1?"Art. 103 n.º 1":"Art. 103 n.º 3";r.formal=r.vecesF*p.tc*(p.spe?3:1);
+  if(y1)r.notes.push(["r","Retraso mayor a un año en la declaración: además procede clausura de 10 días continuos (Art. 103 n.º 1)."])}
+ if(dias>0){
+  if(p.tipo==="A"){r.pct=Math.min(dias*0.05,100);r.artM="Art. 114";r.refM="0,05 % por día (tope 100 %)"}
+  else if(p.tipo==="R"){
+   if(dias<=100){r.pct=dias*5;r.artM="Art. 115 n.º 3";r.refM="5 % por día, hasta 100 días"}
+   else{r.pct=1000;r.artM="Art. 115 n.º 4";r.refM="Más de 100 días: se trata como no enterado (1.000 %)";r.notes.push(["r","Enterar retenciones después de 100 días se sanciona como no enterar y puede configurar el delito del Art. 121 (falta de enteramiento de retenciones)."])}}
+  else{r.pct=Math.min(dias*0.28,100)+(y2?150:y1?50:0);r.artM="Art. 110";r.refM="0,28 % por día (tope 100 %)"+(y2?" + 150 %":y1?" + 50 %":"")}
+ }
+ const fac=p.tv>0?p.tc/p.tv:1;r.fac=fac;
+ r.material=p.monto*r.pct/100*fac;
+ if(p.conc&&r.formal>0&&r.material>0){r.adj=-Math.min(r.formal,r.material)/2}
+ r.tasaE=p.tasa*1.2;r.interes=p.monto*(r.tasaE/100)/365*dias;
+ r.total=p.monto+r.formal+r.material+r.adj+r.interes;
+ r.pctTot=p.monto>0?(r.total-p.monto)/p.monto*100:0;
+ return r}
+function conc(sel,tc,spe){
+ const it=CAT.filter(c=>sel.includes(c.id)).map(c=>({...c,m:c.v*tc*(spe?3:1)})).sort((a,b)=>b.m-a.m);
+ let tot=0;it.forEach((c,i)=>{c.ap=i?c.m/2:c.m;tot+=c.ap});return{it,tot}}
+const $=id=>document.getElementById(id);
+const mon=()=>$("mn").value==="EUR"?"€":"US$";
+let last=null;
+function params(){return{tipo:$("tr").value[0],spe:document.querySelector("input[name=ct]:checked").value==="S",monto:num($("mo").value),venc:pd($("fv").value),pago:pd($("fp").value),tc:num($("tc").value),tv:num($("tv").value),tasa:num($("ta").value),formal:$("fo").checked,conc:$("cc").checked}}
+function row(a,b,c,cls){return `<div class="row"><div>${a}<small>${b}</small></div><b class="${cls||""}">${c}</b></div>`}
+function saveSanc(){
+ try{
+  localStorage.setItem("sanc_cot_v1",JSON.stringify({
+   tr:$("tr").value,ct:document.querySelector("input[name=ct]:checked").value,
+   mo:$("mo").value,fv:$("fv").value,fp:$("fp").value,mn:$("mn").value,
+   tc:$("tc").value,tv:$("tv").value,ta:$("ta").value,fo:$("fo").checked,cc:$("cc").checked
+  }));
+ }catch(e){}
+}
+function run(){
+ const p=params();if(!(p.tasa>=0))p.tasa=0;const r=calc(p);last=r.ok?{p,r}:null;
+ saveSanc();
+ if(!r.ok){$("tot").textContent="Bs. —";$("mini").textContent="Bs. —";$("tdv").textContent="";$("pl").textContent="Datos incompletos";$("pl").className="pill";$("pc").textContent="";
+  $("rows").innerHTML='<p class="hint">Indique monto, ambas fechas y un tipo de cambio mayor que cero.</p>';$("lg").innerHTML="";return}
+ const T="Bs. "+fmt(r.total);$("tot").textContent=T;$("mini").textContent=T;
+ $("tdv").textContent="Equivalente: "+fmt(r.total/p.tc)+" "+mon()+" al tipo de cambio indicado";
+ $("pl").textContent=r.dias?"Extemporáneo: "+r.dias+" días":"En plazo";$("pl").className="pill"+(r.dias?"":" ok");
+ $("pc").textContent=r.dias?"Cargo sobre el tributo: +"+r.pctTot.toFixed(1).replace(".",",")+" %":"No se causan multas ni intereses";
+ let h=row("Tributo adeudado","100 % del capital","Bs. "+fmt(p.monto));
+ if(r.dias){
+  h+=row("Multa formal (ilícito formal)",r.formal?r.artF+": "+r.vecesF+" × "+fmt(p.tc)+(p.spe?" × 3 (SPE, Art. 108)":""):"No incluida",r.formal?"Bs. "+fmt(r.formal):"—","cf");
+  h+=row("Multa material",r.artM+": "+r.refM+" = "+r.pct.toFixed(2).replace(".",",")+" %"+(r.fac!==1?" (ajuste Art. 92 × "+r.fac.toFixed(4).replace(".",",")+")":""),"Bs. "+fmt(r.material),"cm");
+  if(r.adj)h+=row("Ajuste por concurrencia","Art. 82: solo la mitad de la multa menor","− Bs. "+fmt(-r.adj),"cg");
+  h+=row("Intereses moratorios","Art. 66: "+fmt(r.tasaE)+" % anual × "+r.dias+" días / 365","Bs. "+fmt(r.interes),"ci")}
+ h+=row("Total","","Bs. "+fmt(r.total)).replace('class="row"','class="row t"');$("rows").innerHTML=h;
+ let l=r.notes.map(n=>`<div class="note ${n[0]}">${n[1]}</div>`).join("");
+ if(!r.dias)l+='<div class="note">La fecha de pago no es posterior al vencimiento, por lo que no hay sanciones ni intereses.</div>';
+ else{
+  if(r.formal)l+=`<div class="note"><b>${r.artF} COT.</b> ${r.y1?"No presentar la declaración o hacerlo con más de un año de retraso: 150":"Declaración tardía de hasta un año: 100"} veces el tipo de cambio oficial de la moneda de mayor valor.</div>`;
+  if(p.spe&&r.formal)l+='<div class="note r"><b>Art. 108 COT.</b> Las multas formales de sujetos pasivos especiales aumentan 200 %.</div>';
+  l+=`<div class="note w"><b>${r.artM} COT.</b> ${r.refM}.</div>`;
+  if(r.adj)l+='<div class="note"><b>Art. 82 COT.</b> Con varios ilícitos sancionados con multa, se aplica la más grave aumentada con la mitad de las otras.</div>';
+  l+='<div class="note"><b>Art. 66 COT.</b> Intereses moratorios a 1,2 veces la tasa activa bancaria promedio, desde el vencimiento hasta el pago.</div>'}
+ $("lg").innerHTML=l;tabla()}
+function renderConc(){
+ const sel=[...document.querySelectorAll("#ch input:checked")].map(i=>i.value),tc=num($("ctc").value),spe=$("cs").value==="S";
+ if(!(tc>0)){$("cd").innerHTML='<p class="hint">Indique un tipo de cambio mayor que cero.</p>';return}
+ if(!sel.length){$("ct-t").textContent="Bs. 0,00";$("ct-s").textContent="";$("cd").innerHTML='<p class="hint">Seleccione al menos un hallazgo.</p>';return}
+ const c=conc(sel,tc,spe);
+ $("ct-t").textContent="Bs. "+fmt(c.tot);$("ct-s").textContent=fmt(c.tot/tc)+" veces el tipo de cambio ("+fmt(c.tot)+" Bs.)";
+ $("cd").innerHTML=c.it.map((x,i)=>row(x.t,x.a+" · "+(i?"mitad de ":"multa más grave: ")+x.v+" × "+fmt(tc)+(spe?" × 3":"")+(x.c?" · clausura "+x.c+" días":""),"Bs. "+fmt(x.ap))).join("")+
+  (spe?'<div class="note r">Recargo de 200 % por sujeto pasivo especial (Art. 108) incluido en cada multa.</div>':"")+
+  '<div class="note">El Art. 82 aplica a multas. Las clausuras indicadas son sanciones aparte.</div>'}
+function tabla(){
+ const tc=num($("tc").value);if(!(tc>0)){$("tf").innerHTML="";return}
+ $("th").textContent="Montos con tipo de cambio de Bs. "+fmt(tc)+" por "+mon()+". El tipo de cambio se toma del simulador.";
+ $("tf").innerHTML=CAT.map(c=>row(c.t,c.a+" · "+c.v+" veces"+(c.c?" · clausura "+c.c+" días":""),"Ordinario: Bs. "+fmt(c.v*tc)+"<small>Especial: Bs. "+fmt(c.v*tc*3)+"</small>")).join("")}
+function init(resetAll){
+ const h=new Date(),v=new Date();v.setDate(h.getDate()-45);
+ const defSpe=window.EMP_ES?"S":"O";
+ let saved=null;
+ if(!resetAll){try{saved=JSON.parse(localStorage.getItem("sanc_cot_v1"))}catch(e){}}
+ $("fp").value=(saved&&saved.fp)||ymd(h);$("fv").value=(saved&&saved.fv)||ymd(v);
+ $("pd").textContent=h.toLocaleDateString("es-VE",{year:"numeric",month:"long",day:"numeric"});
+ $("mn").value=(saved&&saved.mn)||"EUR";$("tc").value=(saved&&saved.tc)||fmt(REF.EUR);
+ $("ta").value=(saved&&saved.ta)||fmt(REF.tasa);$("mo").value=(saved&&saved.mo)||"50.000,00";
+ $("tv").value=(saved&&saved.tv)||"";$("tr").value=(saved&&saved.tr)||"G";
+ const ctVal=(saved&&saved.ct)||defSpe;
+ const radio=document.querySelector(`input[name=ct][value=${ctVal}]`);if(radio)radio.checked=true;
+ $("fo").checked=saved?!!saved.fo:true;$("cc").checked=saved?!!saved.cc:true;
+ $("rf").textContent=REF.fecha+" (euro: "+fmt(REF.EUR)+" Bs.; dólar: "+fmt(REF.USD)+" Bs.)";
+ $("ctc").value=$("tc").value;$("cs").value=ctVal;run();renderConc()}
+$("ch").innerHTML=CAT.map(c=>`<label class="opt" style="margin-bottom:8px"><input type="checkbox" value="${c.id}" ${["f1","l1","d3"].includes(c.id)?"checked":""}><span>${c.t}<small>${c.a} · ${c.v} veces${c.c?" · clausura "+c.c+" días":""}</small></span></label>`).join("");
+$("tm").innerHTML=MAT.map(m=>row(m[1],m[0]+" COT",m[2].replace(/^/,""))).join("").replace(/<b class="">/g,'<b style="white-space:normal;max-width:55%;font-weight:600;font-size:14px">');
+$("ch").addEventListener("change",e=>{const x=e.target;if(x.checked&&(x.value==="d1"||x.value==="d3")){const o=document.querySelector(`#ch input[value=${x.value==="d1"?"d3":"d1"}]`);o.checked=false}renderConc()});
+["tr","mo","fv","fp","tc","tv","ta","fo","cc"].forEach(i=>$(i).addEventListener("input",run));
+document.querySelectorAll("input[name=ct]").forEach(i=>i.addEventListener("change",()=>{$("cs").value=i.value;run();renderConc()}));
+$("mn").addEventListener("change",()=>{$("tc").value=fmt(REF[$("mn").value]);$("ctc").value=$("tc").value;run();renderConc()});
+$("tc").addEventListener("input",()=>{$("ctc").value=$("tc").value;renderConc()});
+$("ctc").addEventListener("input",renderConc);$("cs").addEventListener("change",renderConc);
+$("rs").onclick=()=>init(true);$("pr").onclick=()=>window.print();
+$("cp").onclick=async()=>{if(!last)return;const{p,r}=last;
+ const t=`Consultor SENIAT (COT 2020)\nTributo: Bs. ${fmt(p.monto)} | Vencimiento: ${$("fv").value} | Pago: ${$("fp").value} (${r.dias} días)\nMulta formal: Bs. ${fmt(r.formal)}\nMulta material: Bs. ${fmt(r.material)}\nAjuste Art. 82: Bs. ${fmt(r.adj)}\nIntereses: Bs. ${fmt(r.interes)}\nTOTAL: Bs. ${fmt(r.total)}\nEstimación informativa.`;
+ try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}a.remove()}
+ $("cp").textContent="Copiado";setTimeout(()=>$("cp").textContent="Copiar resumen",1500)};
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+ ["sim","con","tab","gui"].forEach(k=>$("t-"+k).hidden=k!==b.dataset.t);
+ if(b.dataset.t==="con")renderConc();if(b.dataset.t==="tab")tabla();window.scrollTo(0,0)}));
+init(false);
+</script>
+<script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
+</html>

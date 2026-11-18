@@ -1,0 +1,3243 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script id="tv-theme-listener">
+  (function() {
+    function setT(t) {
+      document.documentElement.classList.toggle('dark', t === 'dark');
+      document.documentElement.setAttribute('data-theme', t);
+      if (typeof window.applyTheme === 'function') {
+        window.applyTheme(t);
+      }
+    }
+    var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+    setT(initT);
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'tv-theme-change') {
+        setT(e.data.theme);
+      }
+    });
+  })();
+  </script>
+  <script id="tv-bridge">
+  window.EMPRESA = {{ tv_config.empresa|safe }};
+  (function() {
+    var datosServidor = {{ tv_config.datos|safe }};
+    var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+    for (var k in datosServidor) {
+      if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+        try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+      }
+    }
+    var origSet = Storage.prototype.setItem;
+    var origRemove = Storage.prototype.removeItem;
+    var saveQueue = {};
+    var saveTimer = null;
+
+    function syncToServer() {
+      var payload = Object.assign({}, saveQueue);
+      saveQueue = {};
+      if (!window.EMPRESA || !window.EMPRESA.id) return;
+      fetch("{{ tv_config.urlDatos }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ tv_config.csrf }}"
+        },
+        body: JSON.stringify({ cambios: payload })
+      }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+    }
+
+    Storage.prototype.setItem = function(key, val) {
+      origSet.call(this, key, val);
+      if (key && key.indexOf(prefix) === 0) {
+        var kSin = key.slice(prefix.length);
+        saveQueue[kSin] = val;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(syncToServer, 600);
+      }
+    };
+
+    Storage.prototype.removeItem = function(key) {
+      origRemove.call(this, key);
+      if (key && key.indexOf(prefix) === 0) {
+        var kSin = key.slice(prefix.length);
+        saveQueue[kSin] = null;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(syncToServer, 600);
+      }
+    };
+  })();
+  </script>
+  <script>window.EMPRESA = window.EMPRESA || { id: 1, nombre: "Empresa", rif: "J-00000000-0", condicion: "Sujeto pasivo especial" };(function(){var E=window.EMPRESA;if(!E)return;var P="emp:"+E.id+":",T=Storage.prototype,g=T.getItem,s=T.setItem,r=T.removeItem;
+  T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
+  window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
+  })();</script>
+  <title>Sistema Integral de Conciliación Fiscal ISLR — TributoVE</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.469.0"></script>
+  
+  <!-- SheetJS (XLSX) para importación y exportación Excel real -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  
+  <!-- Chart.js para gráficos ejecutivos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            midnight: {
+              950: '#0b0e0c',
+              900: '#101512',
+              850: '#141815',
+              800: '#1a201c',
+              700: '#222a24',
+              600: '#2D5128',
+            },
+            gold: {
+              400: '#1A6B4A',
+              500: '#c4ec4d',
+              600: '#9ab939',
+            },
+            emerald: {
+              400: '#22c55e',
+              500: '#16a34a',
+              600: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0e0c;
+      color: #F4F3EE;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0e0c;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #222a24;
+      border-radius: 9999px;
+    }
+
+    .luxury-card {
+      background: #141815;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+      transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .luxury-card-hover {
+      transition: all 0.22s ease;
+    }
+    .luxury-card-hover:hover {
+      border-color: rgba(26, 107, 74, 0.35);
+    }
+
+    .cell-input {
+      background: #1a201c;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #FFFFFF;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.55rem;
+      transition: all 0.15s ease;
+    }
+    .cell-input:focus {
+      outline: none;
+      border-color: #1A6B4A;
+      box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2);
+      background: #222a24;
+    }
+
+    html:not(.dark) body {
+      background-color: #f2f5f1;
+      color: #1F2937;
+    }
+    html:not(.dark) header {
+      background-color: #ffffff !important;
+      border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+      color: #0b0e0c !important;
+    }
+    html:not(.dark) header h1 {
+      color: #0b0e0c !important;
+    }
+    html:not(.dark) .luxury-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.05);
+    }
+    html:not(.dark) .cell-input {
+      background: #f7faf5;
+      border: 1px solid rgba(0,0,0,0.12);
+      color: #1F2937;
+    }
+    html:not(.dark) thead tr {
+      background-color: #f7faf5 !important;
+      color: #1F2937 !important;
+    }
+    html:not(.dark) thead th {
+      color: #374151 !important;
+    }
+    html:not(.dark) tfoot tr {
+      background-color: #eaf0e6 !important;
+      color: #0F5333 !important;
+    }
+    html:not(.dark) .text-white,
+    html:not(.dark) .text-slate-100,
+    html:not(.dark) .text-slate-200 {
+      color: #1F2937 !important;
+    }
+    html:not(.dark) .text-slate-300 {
+      color: #374151 !important;
+    }
+    html:not(.dark) .text-slate-400 {
+      color: #4B5563 !important;
+    }
+    html:not(.dark) .text-gold-400,
+    html:not(.dark) .text-gold-500 {
+      color: #2D5128 !important;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .luxury-card {
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        box-shadow: none !important;
+        color: #0F172A !important;
+        break-inside: avoid;
+      }
+      .text-white, .text-slate-100, .text-slate-200, .text-slate-300 {
+        color: #0F172A !important;
+      }
+      .cell-input {
+        border: none !important;
+        background: transparent !important;
+        color: #0F172A !important;
+        padding: 0 !important;
+      }
+      .tab-panel {
+        display: block !important;
+        margin-bottom: 2rem;
+        page-break-after: always;
+      }
+    }
+  
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head>
+<body class="min-h-screen flex flex-col selection:bg-gold-500/30 selection:text-gold-400">
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
+
+  <div id="app-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4 no-print">
+    <div class="luxury-card rounded-2xl max-w-lg w-full p-6 border border-gold-500/35 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <h3 id="modal-title" class="text-lg font-bold text-gold-400 flex items-center gap-2"></h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="text-sm text-slate-300 space-y-4"></div>
+      <div id="modal-footer" class="mt-6 flex justify-end gap-3"></div>
+    </div>
+  </div>
+
+  <!-- BARRA SUPERIOR CORPORATIVA -->
+  <header class="bg-[#141815] border-b border-white/10 z-30">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center shadow-lg shrink-0">
+              <svg class="w-5 h-5 text-midnight-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] font-bold tracking-widest uppercase text-gold-400">TRIBUTOVE | CONTABILIDAD E IMPUESTOS</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">LISLR · VEN-NIF · NIC 12</span>
+              </div>
+              <h1 class="text-base sm:text-xl font-extrabold text-white tracking-tight">
+                Sistema Integral de Conciliación Fiscal ISLR
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <select id="profile-selector" onchange="switchProfile(this.value)" class="hidden"></select>
+
+          <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-midnight-800 hover:bg-midnight-700 text-slate-200 border border-slate-700 hover:border-gold-500/50 text-xs font-semibold transition">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+            <span>Importar Excel/CSV</span>
+            <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
+          </label>
+
+          <button onclick="exportToExcel()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Exportar .XLSX</span>
+          </button>
+
+          <button onclick="printExecutiveReport()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 text-xs font-bold transition">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Reporte PDF</span>
+          </button>
+
+          <button onclick="openResetModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-midnight-800 hover:bg-midnight-700 text-slate-300 border border-slate-700 text-xs font-semibold transition" title="Cargar Demo o Nuevo Ejercicio">
+            <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-400"></i>
+            <span>Demo / Limpiar</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- PANEL DE IDENTIFICACIÓN DEL CONTRIBUYENTE Y PARÁMETROS FISCALES -->
+  <section class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-4">
+    <div class="luxury-card rounded-2xl p-4 sm:p-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 items-end">
+        
+        <div class="lg:col-span-2">
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Razón Social del Contribuyente</label>
+          <div class="relative">
+            <input type="text" id="meta-company" oninput="updateMeta('companyName', this.value)" class="cell-input w-full text-sm font-semibold pl-3 pr-8 py-2" placeholder="Ej. Empresa Ejemplo, C.A." />
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">RIF</label>
+          <input type="text" id="meta-rif" oninput="updateMeta('rif', this.value)" class="cell-input w-full text-sm font-mono uppercase py-2" placeholder="J-00000000-0" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Ejercicio Fiscal</label>
+          <input type="text" id="meta-period" oninput="updateMeta('fiscalYear', this.value)" class="cell-input w-full text-sm font-medium py-2" placeholder="01/01/2026 al 31/12/2026" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-gold-400 mb-1">Tipo de Contribuyente</label>
+          <select id="meta-taxpayer-type" onchange="updateMeta('taxpayerType', this.value)" class="cell-input w-full text-sm font-semibold py-2 border-gold-500/40 bg-midnight-900 cursor-pointer">
+            <option value="Sujeto Pasivo Especial">Sujeto Pasivo Especial</option>
+            <option value="Contribuyente Ordinario">Contribuyente Ordinario</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Tarifa del Impuesto</label>
+          <select id="meta-tarifa-mode" onchange="updateMeta('tarifaMode', this.value)" class="cell-input w-full text-sm font-semibold py-2 border-gold-500/40 bg-midnight-900 cursor-pointer">
+            <option value="TARIFA2">Tarifa N.º 2 (15% / 22% / 34%)</option>
+            <option value="FIJA">Tasa fija manual (%)</option>
+          </select>
+          <div class="relative mt-1.5">
+            <input type="number" step="0.01" min="0" max="100" id="meta-tax-rate" oninput="updateMeta('taxRate', this.value === '' ? '' : parseFloat(this.value))" class="cell-input w-full text-sm font-mono font-bold text-right pr-7 py-2 text-gold-400" />
+            <span class="absolute right-2.5 top-2 text-sm font-bold text-slate-400">%</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="regime-banner" class="mt-4 rounded-xl px-4 py-3 border flex items-start sm:items-center gap-3 transition-all">
+        <div id="regime-icon" class="p-2 rounded-lg shrink-0 mt-0.5 sm:mt-0"></div>
+        <div class="flex-1">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p id="regime-text" class="text-xs sm:text-sm font-medium leading-relaxed"></p>
+            <span id="autosave-indicator" class="text-[11px] text-slate-400 flex items-center gap-1 shrink-0 no-print">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Guardado automático en servidor
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS CON ALERTAS EN TIEMPO REAL -->
+  <nav class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-4 no-print" role="tablist">
+    <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none" id="main-tabs">
+      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard Ejecutivo</span>
+      </button>
+
+      <button onclick="switchTab('balance')" data-tab="balance" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="scale" class="w-4 h-4"></i>
+        <span>1. Balance de Comprobación</span>
+        <span id="badge-tab-balance" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('conciliacion')" data-tab="conciliacion" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>2. Conciliación Fiscal y Cierre</span>
+        <span id="badge-tab-conciliacion" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('api')" data-tab="api" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="trending-up" class="w-4 h-4"></i>
+        <span>3. Ajuste por Inflación (API)</span>
+        <span id="badge-tab-api" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('retenciones')" data-tab="retenciones" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="shield-check" class="w-4 h-4"></i>
+        <span>4. Retenciones Decreto 1.808</span>
+        <span id="badge-tab-retenciones" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('dictamen')" data-tab="dictamen" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        <span>Informe y Dictamen Fiscal</span>
+      </button>
+
+      <button onclick="switchTab('baselegal')" data-tab="baselegal" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="book-open-check" class="w-4 h-4"></i>
+        <span>5. Base Legal LISLR (25 Reglas)</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTENIDO PRINCIPAL DE LOS MÓDULOS -->
+  <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-4 flex-1">
+
+    <!-- PESTAÑA: DASHBOARD EJECUTIVO -->
+    <div id="panel-dashboard" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="luxury-card rounded-2xl p-4 sm:p-5 luxury-card-hover">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Utilidad Contable</span>
+            <div class="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+              <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p id="kpi-utilidad-contable" class="text-2xl font-extrabold font-mono text-white mt-2">0,00 Bs.</p>
+          <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+            <span id="kpi-ingresos-sub" class="truncate">Ingresos Brutos: 0,00 Bs.</span>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-4 sm:p-5 luxury-card-hover">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Ajustes No Deducibles</span>
+            <div class="p-2 rounded-xl bg-amber-500/15 text-amber-400">
+              <i data-lucide="sliders" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p id="kpi-ajustes-totales" class="text-2xl font-extrabold font-mono text-amber-400 mt-2">0,00 Bs.</p>
+          <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+            <span id="kpi-ajustes-desglose" class="truncate">Perm: 0,00 | Temp: 0,00</span>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-4 sm:p-5 luxury-card-hover">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-gold-400">Renta Neta Gravable</span>
+            <div class="p-2 rounded-xl bg-gold-500/15 text-gold-400">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p id="kpi-renta-gravable" class="text-2xl font-extrabold font-mono text-gold-400 mt-2">0,00 Bs.</p>
+          <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+            <span id="kpi-api-sub" class="truncate">Efecto API Neto: 0,00 Bs.</span>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-4 sm:p-5 luxury-card-hover">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">ISLR Corriente</span>
+            <div class="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+              <i data-lucide="landmark" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <p id="kpi-islr-corriente" class="text-2xl font-extrabold font-mono text-emerald-400 mt-2">0,00 Bs.</p>
+          <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+            <span id="kpi-imp-diferido" class="truncate">Activo Imp. Diferido: 0,00 Bs.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="luxury-card rounded-2xl p-5 lg:col-span-2 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+              <span>Puente de Conciliación Fiscal (De Utilidad Contable a Renta Gravable)</span>
+            </h3>
+            <span class="text-xs text-slate-400">Cifras en Bs.</span>
+          </div>
+          <div class="relative flex-1 min-h-[300px]">
+            <canvas id="chart-bridge"></canvas>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4"></i>
+              <span>Análisis de Gastos</span>
+            </h3>
+          </div>
+          <div class="relative flex-1 min-h-[240px] flex items-center justify-center">
+            <canvas id="chart-expenses"></canvas>
+          </div>
+          <div id="expenses-legend-summary" class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800 text-center text-xs"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="luxury-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+              <span>Alertas de Auditoría y Cumplimiento Fiscal</span>
+            </h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">SENIAT / VEN-NIF</span>
+          </div>
+          <div id="audit-alerts-list" class="space-y-3"></div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+              <i data-lucide="file-check" class="w-4 h-4"></i>
+              <span>Resumen Ejecutivo de Cierre</span>
+            </h3>
+            <button onclick="switchTab('conciliacion')" class="text-xs text-gold-400 hover:underline flex items-center gap-1">
+              <span>Ver detalle completo</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <div id="dashboard-mini-summary" class="space-y-2 text-xs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 1: BALANCE DE COMPROBACIÓN -->
+    <div id="panel-balance" class="tab-panel hidden space-y-6">
+      <div class="luxury-card rounded-2xl p-5 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="scale" class="w-5 h-5 text-gold-400"></i>
+              <span>Módulo 1: Balance de Comprobación y Balanza de Saldos</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Cuentas contables de Activo, Pasivo, Patrimonio, Ingresos, Costos y Gastos según VEN-NIF.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="addBalanceRow()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs transition">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Agregar Cuenta</span>
+            </button>
+            <button onclick="syncExpensesToConciliation()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>Sincronizar Gastos</span>
+              <span id="unsynced-expenses-count" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-midnight-950 font-bold ml-1"></span>
+            </button>
+          </div>
+        </div>
+
+        <div id="bal-cuadre-card" class="luxury-card rounded-2xl p-4 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 rounded-xl bg-midnight-950/70 border border-slate-800">
+              <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>
+            </div>
+            <div>
+              <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Estado de Cuadre del Balance</span>
+              <p id="bal-diferencia" class="text-lg sm:text-xl font-bold font-mono mt-0.5">0,00 Bs.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-6">
+            <div>
+              <span class="text-[11px] uppercase tracking-wider text-slate-400 block">Total Ingresos Brutos</span>
+              <p id="bal-ingresos-brutos" class="text-sm sm:text-base font-bold font-mono text-emerald-400">0,00 Bs.</p>
+            </div>
+            <div>
+              <span class="text-[11px] uppercase tracking-wider text-slate-400 block">Utilidad Contable antes ISLR</span>
+              <p id="bal-utilidad-contable" class="text-sm sm:text-base font-bold font-mono text-gold-400">0,00 Bs.</p>
+            </div>
+            <div id="bal-cuadre-badge"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-sm">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+            <input type="text" id="bal-search" oninput="renderBalanceTable()" placeholder="Buscar por código o nombre de cuenta..." class="cell-input w-full pl-9 text-xs py-2" />
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Filtrar Tipo:</span>
+            <select id="bal-filter-type" onchange="renderBalanceTable()" class="cell-input text-xs py-1.5 cursor-pointer">
+              <option value="ALL">Todas las cuentas</option>
+              <option value="Activo">Activos</option>
+              <option value="Pasivo">Pasivos</option>
+              <option value="Patrimonio">Patrimonio</option>
+              <option value="Ingreso">Ingresos</option>
+              <option value="Costo">Costos</option>
+              <option value="Gasto">Gastos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl overflow-hidden border border-slate-800">
+          <div class="table-container">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-midnight-950/90 border-b border-gold-500/25 text-[11px] font-bold uppercase text-gold-400">
+                  <th class="py-3 px-3 w-28">Código</th>
+                  <th class="py-3 px-3 min-w-[280px]">Nombre de la Cuenta Contable</th>
+                  <th class="py-3 px-3 w-36">Tipo</th>
+                  <th class="py-3 px-3 w-32">Naturaleza</th>
+                  <th class="py-3 px-3 w-36 text-right">Debe (Bs.)</th>
+                  <th class="py-3 px-3 w-36 text-right">Haber (Bs.)</th>
+                  <th class="py-3 px-3 w-36 text-right">Saldo Neto (Bs.)</th>
+                  <th class="py-3 px-3 w-16 text-center no-print">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="balance-tbody" class="divide-y divide-slate-800/80 text-xs"></tbody>
+              <tfoot>
+                <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold text-xs">
+                  <td colspan="4" class="py-3.5 px-3 text-gold-400 uppercase tracking-wider">Sumas Iguales / Utilidad Contable:</td>
+                  <td id="bal-foot-debe" class="py-3.5 px-3 text-right font-mono text-white">0,00</td>
+                  <td id="bal-foot-haber" class="py-3.5 px-3 text-right font-mono text-white">0,00</td>
+                  <td id="bal-foot-neto" class="py-3.5 px-3 text-right font-mono text-gold-400 text-sm">0,00</td>
+                  <td class="no-print"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: CONCILIACIÓN FISCAL Y CIERRE -->
+    <div id="panel-conciliacion" class="tab-panel hidden space-y-6">
+      <div class="luxury-card rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="calculator" class="w-5 h-5 text-gold-400"></i>
+            <span>Módulo 2: Conciliación Fiscal de Rentas (LISLR Art. 27)</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Clasificación de diferencias permanentes y temporarias y cálculo de la Renta Neta Gravable.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="conc-ret-alert" class="px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5"></div>
+          <button onclick="addConciliationRow()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Analizar Gasto</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="luxury-card rounded-2xl overflow-hidden border border-slate-800">
+        <div class="table-container">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-midnight-950/90 border-b border-gold-500/25 text-[11px] font-bold uppercase text-gold-400">
+                <th class="py-3 px-2.5 w-24">Cód. Cuenta</th>
+                <th class="py-3 px-2.5 min-w-[220px]">Cuenta Contable / Regla LISLR</th>
+                <th class="py-3 px-2.5 w-32 text-right">Saldo Contable</th>
+                <th class="py-3 px-2.5 w-44">Regla LISLR</th>
+                <th class="py-3 px-2.5 w-32">Base Legal</th>
+                <th class="py-3 px-2.5 w-36 text-right">Monto Deducible</th>
+                <th class="py-3 px-2.5 w-36 text-right">No Deducible</th>
+                <th class="py-3 px-2.5 w-44">Tipo de Diferencia</th>
+                <th class="py-3 px-2.5 w-16 text-center no-print">Eliminar</th>
+              </tr>
+            </thead>
+            <tbody id="conciliation-tbody" class="divide-y divide-slate-800/80 text-xs"></tbody>
+            <tfoot>
+              <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold text-xs">
+                <td colspan="2" class="py-3.5 px-2.5 text-gold-400 uppercase">Totales Conciliación de Gastos:</td>
+                <td id="conc-foot-saldo" class="py-3.5 px-2.5 text-right font-mono text-white">0,00</td>
+                <td colspan="3" class="py-3.5 px-2.5 text-right font-mono text-emerald-400" id="conc-foot-deducible">0,00</td>
+                <td id="conc-foot-ajuste" class="py-3.5 px-2.5 text-right font-mono text-amber-400">0,00</td>
+                <td colspan="2" class="no-print"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="luxury-card rounded-2xl p-6 space-y-5 border border-gold-500/35">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-gold-400"></i>
+            <span>Sección 3: Cédula Resumen de Conciliación Fiscal y Determinación del ISLR</span>
+          </h3>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-gold-500/15 text-gold-400 border border-gold-500/30 font-bold">RÉGIMEN VENEZOLANO</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between py-2 border-b border-slate-800">
+              <span class="text-slate-300 font-medium">Utilidad (o Pérdida) Contable antes de ISLR</span>
+              <span id="res-utilidad-contable" class="font-mono font-bold text-white text-sm">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-slate-800">
+              <span class="text-slate-300 font-medium">(+) Partidas No Deducibles — Diferencias Permanentes</span>
+              <span id="res-dif-perm" class="font-mono font-bold text-amber-400 text-sm">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-slate-800">
+              <span class="text-slate-300 font-medium">(+) Partidas No Deducibles — Diferencias Temporarias</span>
+              <span id="res-dif-temp" class="font-mono font-bold text-sky-400 text-sm">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-slate-800">
+              <span class="text-slate-300 font-medium">(+) Ganancia Neta por Ajuste por Inflación Fiscal (API)</span>
+              <span id="res-ganancia-api" class="font-mono font-bold text-emerald-400 text-sm">0,00 Bs.</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-slate-800 gap-4">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-300 font-medium">(-) Ingresos Exentos y No Gravables</span>
+                <button onclick="syncExemptIncomeFromBalance()" class="text-[10px] text-gold-400 hover:underline">(Sincronizar Balance)</button>
+              </div>
+              <input type="number" step="0.01" id="input-ingresos-exentos" onchange="updateConciliationExtra('exemptIncome', parseFloat(this.value) || 0)" class="cell-input w-36 text-right font-mono text-xs font-bold text-emerald-400" />
+            </div>
+            <div class="flex justify-between py-2 border-b border-slate-800">
+              <span class="text-slate-300 font-medium">(-) Pérdida Neta por Ajuste por Inflación Fiscal (API)</span>
+              <span id="res-perdida-api" class="font-mono font-bold text-rose-400 text-sm">0,00 Bs.</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-slate-800 gap-4">
+              <span class="text-slate-300 font-medium">(-) Pérdidas Fiscales de Años Anteriores (Art. 58)</span>
+              <input type="number" step="0.01" id="input-perdidas-anteriores" onchange="updateConciliationExtra('priorLosses', parseFloat(this.value) || 0)" class="cell-input w-36 text-right font-mono text-xs font-bold text-emerald-400" />
+            </div>
+            
+            <div class="flex justify-between py-3 px-4 rounded-xl bg-gold-500/15 border border-gold-500/40 text-sm">
+              <span class="font-bold text-gold-400 uppercase">= RENTA NETA GRAVABLE (UTILIDAD FISCAL)</span>
+              <span id="res-renta-gravable" class="font-mono font-extrabold text-gold-400 text-base">0,00 Bs.</span>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/35 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">ISLR Corriente Determinado</span>
+                <span id="res-tasa-aplicada-label" class="text-xs font-mono font-bold text-slate-300"></span>
+              </div>
+              <p id="res-islr-corriente" class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">0,00 Bs.</p>
+              <p class="text-[11px] text-slate-300">Impuesto bruto devengado resultante de aplicar la tarifa sobre la Renta Neta Gravable.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-sky-500/10 border border-sky-500/35 space-y-2">
+              <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Activo por Impuesto Diferido (NIC 12)</span>
+              <p id="res-activo-diferido" class="text-xl sm:text-2xl font-extrabold font-mono text-sky-300">0,00 Bs.</p>
+              <p class="text-[11px] text-slate-300">Reconocido sobre las diferencias temporarias deducibles del ejercicio a la tasa marginal vigente.</p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gold-500/10 border border-gold-500/35 space-y-2">
+              <span class="text-xs font-bold text-gold-400 uppercase tracking-wider">(-) Créditos Fiscales contra el ISLR</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-[11px] text-slate-300">Retenciones que le practicaron a la empresa, anticipos y otros créditos</span>
+                <input type="number" step="0.01" min="0" id="input-creditos-fiscales" onchange="updateConciliationExtra('creditosFiscales', parseFloat(this.value) || 0)" class="cell-input w-36 text-right font-mono text-xs font-bold text-gold-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="luxury-card rounded-2xl p-6 space-y-5 border border-emerald-500/35">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-emerald-400 flex items-center gap-2">
+              <i data-lucide="book-open" class="w-5 h-5 text-emerald-500"></i>
+              <span>Sección 4: Asiento Contable Automático de Cierre Fiscal e Impuesto Diferido</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Asiento de diario generado para registrar el Gasto por ISLR Corriente, el Impuesto Diferido y la provisión por pagar.</p>
+          </div>
+          <button onclick="postClosingEntryToBalance()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-600/20">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+            <span>Contabilizar en Balance</span>
+          </button>
+        </div>
+
+        <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
+          <div class="table-container">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-midnight-950/90 border-b border-gold-500/30 text-gold-400 font-bold uppercase">
+                  <th class="py-3 px-3 w-32">Código</th>
+                  <th class="py-3 px-3 min-w-[320px]">Cuenta del Asiento Contable</th>
+                  <th class="py-3 px-3 w-36 text-right">Debe (Bs.)</th>
+                  <th class="py-3 px-3 w-36 text-right">Haber (Bs.)</th>
+                </tr>
+              </thead>
+              <tbody id="journal-tbody" class="divide-y divide-slate-800/80"></tbody>
+              <tfoot>
+                <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold">
+                  <td colspan="2" class="py-3.5 px-3 text-gold-400 uppercase">Sumas Iguales del Asiento:</td>
+                  <td id="journal-total-debe" class="py-3.5 px-3 text-right font-mono text-white">0,00</td>
+                  <td id="journal-total-haber" class="py-3.5 px-3 text-right font-mono text-white">0,00</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div class="p-3.5 rounded-xl bg-midnight-950/70 border border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-medium">Gasto Neto Total por Impuestos:</span>
+            <span id="journal-gasto-neto" class="font-mono font-bold text-white">0,00 Bs.</span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-midnight-950/70 border border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-medium">Tasa Efectiva de Tributación:</span>
+            <span id="journal-tasa-efectiva" class="font-mono font-bold text-gold-400">0,00%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: AJUSTE POR INFLACIÓN (API) -->
+    <div id="panel-api" class="tab-panel hidden space-y-6">
+      <div class="luxury-card rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-5 h-5 text-gold-400"></i>
+            <span>Módulo 3: Ajuste por Inflación Fiscal (API — LISLR Art. 171 al 187)</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Cédula de Ajuste Inicial (RAR) y Reajuste Regular para Contribuyentes Ordinarios y Sujetos Pasivos Especiales.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="api-status-badge"></div>
+        </div>
+      </div>
+
+      <div id="api-spe-notice" class="hidden rounded-xl p-4 border border-amber-500/40 bg-amber-500/10 text-xs text-amber-300 flex items-center gap-3">
+        <i data-lucide="info" class="w-5 h-5 shrink-0"></i>
+        <span><strong>Aviso de Régimen:</strong> El contribuyente está clasificado como Sujeto Pasivo Especial (SPE). Conforme al Art. 171 de la LISLR, las empresas sujetas a este régimen están excluidas de aplicar el Ajuste por Inflación Fiscal, por lo que el resultado neto del API es 0,00 Bs.</span>
+      </div>
+
+      <div id="api-tables-wrapper" class="space-y-6">
+        <div class="luxury-card rounded-2xl p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+                <span>Sección A: Ajuste Inicial por Inflación (Registro de Activos y Pasivos No Monetarios)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Actualización inicial al cierre del primer ejercicio gravable o reestructuración (Art. 173 LISLR).</p>
+            </div>
+            <button onclick="addApiInitialRow()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Agregar Partida Inicial</span>
+            </button>
+          </div>
+
+          <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
+            <div class="table-container">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-midnight-950/90 border-b border-gold-500/30 text-gold-400 font-bold uppercase">
+                    <th class="py-3 px-2.5 w-24">Cód.</th>
+                    <th class="py-3 px-2.5 min-w-[220px]">Partida No Monetaria</th>
+                    <th class="py-3 px-2.5 w-40">Tipo</th>
+                    <th class="py-3 px-2.5 w-32">Fecha Adq.</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Costo Histórico</th>
+                    <th class="py-3 px-2.5 w-28 text-right">INPC Origen</th>
+                    <th class="py-3 px-2.5 w-28 text-right">INPC Cierre</th>
+                    <th class="py-3 px-2.5 w-24 text-right">Factor</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Valor Actualizado</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Ajuste / RAR</th>
+                    <th class="py-3 px-2.5 w-16 text-center no-print">Eliminar</th>
+                  </tr>
+                </thead>
+                <tbody id="api-initial-tbody" class="divide-y divide-slate-800/80"></tbody>
+                <tfoot>
+                  <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold">
+                    <td colspan="4" class="py-3.5 px-2.5 text-gold-400 uppercase">Totales Ajuste Inicial (RAR):</td>
+                    <td id="api-init-foot-costo" class="py-3.5 px-2.5 text-right font-mono text-white">0,00</td>
+                    <td colspan="3"></td>
+                    <td id="api-init-foot-actualizado" class="py-3.5 px-2.5 text-right font-mono text-sky-300">0,00</td>
+                    <td id="api-init-foot-rar" class="py-3.5 px-2.5 text-right font-mono text-gold-400">0,00</td>
+                    <td class="no-print"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <div class="flex justify-end items-center gap-3 text-xs text-slate-300 pt-1">
+            <span>Tributo 3% sobre incremento por Revalorización (RAR):</span>
+            <span id="api-init-tributo-rar" class="font-mono font-bold text-gold-400 text-sm">0,00 Bs.</span>
+          </div>
+        </div>
+
+        <div class="luxury-card rounded-2xl p-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
+                <i data-lucide="repeat" class="w-4 h-4"></i>
+                <span>Sección B: Reajuste Regular por Inflación (Art. 177 LISLR)</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Actualización anual de activos y pasivos no monetarios y patrimonio neto inicial del ejercicio.</p>
+            </div>
+            <button onclick="addApiRegularRow()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Agregar Partida Reajuste</span>
+            </button>
+          </div>
+
+          <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
+            <div class="table-container">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-midnight-950/90 border-b border-gold-500/30 text-gold-400 font-bold uppercase">
+                    <th class="py-3 px-2.5 w-24">Cód.</th>
+                    <th class="py-3 px-2.5 min-w-[220px]">Partida / Patrimonio</th>
+                    <th class="py-3 px-2.5 w-40">Naturaleza API</th>
+                    <th class="py-3 px-2.5 w-32">Fecha de Origen</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Saldo Base</th>
+                    <th class="py-3 px-2.5 w-28 text-right">INPC Origen</th>
+                    <th class="py-3 px-2.5 w-28 text-right">INPC Cierre</th>
+                    <th class="py-3 px-2.5 w-24 text-right">Factor</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Valor Reajustado</th>
+                    <th class="py-3 px-2.5 w-36 text-right">Ganancia / (Pérdida)</th>
+                    <th class="py-3 px-2.5 w-16 text-center no-print">Eliminar</th>
+                  </tr>
+                </thead>
+                <tbody id="api-regular-tbody" class="divide-y divide-slate-800/80"></tbody>
+                <tfoot>
+                  <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold">
+                    <td colspan="4" class="py-3.5 px-2.5 text-gold-400 uppercase">Totales Reajuste Regular:</td>
+                    <td id="api-reg-foot-base" class="py-3.5 px-2.5 text-right font-mono text-white">0,00</td>
+                    <td colspan="3"></td>
+                    <td id="api-reg-foot-reajustado" class="py-3.5 px-2.5 text-right font-mono text-sky-300">0,00</td>
+                    <td id="api-reg-foot-subtotal" class="py-3.5 px-2.5 text-right font-mono text-emerald-400">0,00</td>
+                    <td class="no-print"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between p-4 rounded-xl bg-gold-500/15 border border-gold-500/35">
+            <span class="font-bold text-gold-400 text-sm">RESULTADO NETO DEL AJUSTE POR INFLACIÓN (TRASLADADO A CÉDULA DE CONCILIACIÓN):</span>
+            <span id="api-reg-foot-neto" class="font-mono font-extrabold text-gold-400 text-lg mt-1 sm:mt-0">0,00 Bs.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: RETENCIONES DECRETO 1.808 -->
+    <div id="panel-retenciones" class="tab-panel hidden space-y-6">
+      <div class="luxury-card rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-gold-400"></i>
+            <span>Módulo 4: Validación de Retenciones de ISLR (Decreto 1.808)</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Control de enteros de retenciones a proveedores y cálculo de sustraendos para personas naturales (Art. 9 del Decreto 1.808).</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2 bg-midnight-950/70 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
+            <span class="text-slate-400">Valor U.T. (Bs.):</span>
+            <input type="number" step="0.01" id="ret-ut-value" onchange="updateRetParam('utValue', parseFloat(this.value) || 1)" class="cell-input w-20 text-right font-mono font-bold text-gold-400 py-1" />
+          </div>
+          <label class="flex items-center gap-2 bg-midnight-950/70 border border-slate-800 rounded-xl px-3 py-1.5 text-xs cursor-pointer">
+            <input type="checkbox" id="ret-reparo-auto" onchange="updateRetParam('reparoAuto', this.checked)" class="accent-emerald-500" />
+            <span class="text-slate-300">Reparo automático de facturas inválidas: <span id="ret-reparo-monto" class="font-mono font-bold text-amber-400">0,00 Bs.</span></span>
+          </label>
+          <button onclick="addRetentionRow()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Registrar Retención</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="luxury-card rounded-2xl p-4">
+          <span class="text-[11px] font-bold uppercase text-slate-400">Total Base Imponible Registrada</span>
+          <p id="ret-kpi-base" class="text-xl font-bold font-mono text-white mt-1">0,00 Bs.</p>
+          <span class="text-[10px] text-slate-500 mt-1 block">Sustraendo Base PN: <span id="ret-sustraendo-base" class="font-mono text-gold-400">0,00 Bs.</span></span>
+        </div>
+        <div class="luxury-card rounded-2xl p-4">
+          <span class="text-[11px] font-bold uppercase text-slate-400">Total ISLR Retenido</span>
+          <p id="ret-kpi-retenido" class="text-xl font-bold font-mono text-emerald-400 mt-1">0,00 Bs.</p>
+          <span class="text-[10px] text-slate-500 mt-1 block">Retenido a proveedores (pasivo por enterar)</span>
+        </div>
+        <div class="luxury-card rounded-2xl p-4">
+          <span class="text-[11px] font-bold uppercase text-slate-400">Base Deducible Válida</span>
+          <p id="ret-kpi-valida" class="text-xl font-bold font-mono text-gold-400 mt-1">0,00 Bs.</p>
+          <span class="text-[10px] text-slate-500 mt-1 block">Con factura y enteramiento oportuno</span>
+        </div>
+        <div id="ret-kpi-rechazadas-card" class="luxury-card rounded-2xl p-4">
+          <span class="text-[11px] font-bold uppercase text-slate-400">Facturas No Deducibles (Alerta)</span>
+          <p id="ret-kpi-rechazadas" class="text-xl font-bold font-mono text-emerald-400 mt-1">0</p>
+          <span class="text-[10px] text-slate-500 mt-1 block">Incumplen requisito Art. 27 LISLR</span>
+        </div>
+      </div>
+
+      <div class="luxury-card rounded-2xl overflow-hidden border border-slate-800">
+        <div class="table-container">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-midnight-950/90 border-b border-gold-500/30 text-gold-400 font-bold uppercase text-[11px]">
+                <th class="py-3 px-2 w-28">Fecha</th>
+                <th class="py-3 px-2 w-32">RIF Proveedor</th>
+                <th class="py-3 px-2 min-w-[200px]">Razón Social / Proveedor</th>
+                <th class="py-3 px-2 w-36">Tipo Persona</th>
+                <th class="py-3 px-2 w-28">Nro. Factura</th>
+                <th class="py-3 px-2 w-32">Nro. Control</th>
+                <th class="py-3 px-2 w-36">Concepto Retención</th>
+                <th class="py-3 px-2 w-32 text-right">Base Imponible</th>
+                <th class="py-3 px-2 w-20 text-right">% Ret.</th>
+                <th class="py-3 px-2 w-28 text-right">Sustraendo</th>
+                <th class="py-3 px-2 w-32 text-right">ISLR Retenido</th>
+                <th class="py-3 px-2 w-28 text-center">¿Enterado?</th>
+                <th class="py-3 px-2 w-48">Validación LISLR</th>
+                <th class="py-3 px-2 w-16 text-center no-print">Borrar</th>
+              </tr>
+            </thead>
+            <tbody id="retentions-tbody" class="divide-y divide-slate-800/80"></tbody>
+            <tfoot>
+              <tr class="bg-midnight-950/90 border-t-2 border-gold-500/40 font-bold">
+                <td colspan="7" class="py-3.5 px-2 text-gold-400 uppercase">Totales Retenciones Decreto 1.808:</td>
+                <td id="ret-foot-base" class="py-3.5 px-2 text-right font-mono text-white">0,00</td>
+                <td></td>
+                <td id="ret-foot-sustraendo" class="py-3.5 px-2 text-right font-mono text-slate-300">0,00</td>
+                <td id="ret-foot-retenido" class="py-3.5 px-2 text-right font-mono text-emerald-400">0,00</td>
+                <td colspan="3" class="no-print"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: INFORME EJECUTIVO Y DICTAMEN FISCAL -->
+    <div id="panel-dictamen" class="tab-panel hidden space-y-6">
+      <div class="luxury-card rounded-2xl p-6 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-3 py-1 rounded-full bg-gold-500/15 text-gold-400 text-xs font-bold border border-gold-500/30">TRIBUTOVE | DICTAMEN FISCAL</span>
+              <span class="text-xs text-slate-400">Fecha de Emisión: <span id="inf-fecha-emision" class="font-semibold text-white"></span></span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-2">Informe Ejecutivo de Cierre Fiscal y Determinación del ISLR</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">Dirigido a la Gerencia de Finanzas — Análisis Técnico LISLR y VEN-NIF (NIC 12)</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <button onclick="printExecutiveReport()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs transition shadow-lg">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>Imprimir Informe PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="building-2" class="w-5 h-5 text-gold-400"></i>
+            <span>1. Identificación y Diagnóstico General del Contribuyente</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-midnight-950/70 border border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-400 block">Razón Social</span>
+              <span id="inf-company-name" class="font-bold text-white text-sm"></span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">RIF</span>
+              <span id="inf-rif" class="font-mono font-bold text-white text-sm"></span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Calificación Fiscal / Régimen</span>
+              <span id="inf-regime" class="font-bold text-gold-400 text-sm"></span>
+            </div>
+          </div>
+          <p id="inf-regime-desc" class="text-xs text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-5 h-5 text-gold-400"></i>
+            <span>2. Cuadro Resumen de Indicadores Clave (KPIs Fiscales)</span>
+          </h3>
+          <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
+            <div class="table-container">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-midnight-950/90 border-b border-gold-500/30 text-gold-400 font-bold uppercase">
+                    <th class="py-3 px-4">Indicador Financiero-Fiscal</th>
+                    <th class="py-3 px-4 text-right">Monto / Resultado (Bs.)</th>
+                    <th class="py-3 px-4">Observación Técnica</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Ingresos Brutos del Ejercicio</td>
+                    <td id="inf-tbl-ingresos" class="py-2.5 px-4 text-right font-mono font-bold text-white">0,00</td>
+                    <td class="py-2.5 px-4 text-slate-400">Base para cálculo de topes legales (ej. directores).</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Utilidad Contable antes de ISLR</td>
+                    <td id="inf-tbl-utilidad" class="py-2.5 px-4 text-right font-mono font-bold text-white">0,00</td>
+                    <td class="py-2.5 px-4 text-slate-400">Según Balance de Comprobación cuadrado.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Total Ajustes No Deducibles</td>
+                    <td id="inf-tbl-ajustes" class="py-2.5 px-4 text-right font-mono font-bold text-amber-400">0,00</td>
+                    <td class="py-2.5 px-4 text-slate-400">Compuesto por Diferencias Permanentes y Temporarias.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-gold-400">Renta Neta Gravable (Utilidad Fiscal)</td>
+                    <td id="inf-tbl-renta" class="py-2.5 px-4 text-right font-mono font-bold text-gold-400 text-sm">0,00</td>
+                    <td class="py-2.5 px-4 text-gold-300">Base imponible definitiva para el cálculo del tributo.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Tasa Efectiva ISLR Aplicada</td>
+                    <td id="inf-tbl-tasa" class="py-2.5 px-4 text-right font-mono font-bold text-white">0,00%</td>
+                    <td class="py-2.5 px-4 text-slate-400">Impuesto determinado ÷ Renta Neta Gravable (Tarifa N.º 2 o tasa fija).</td>
+                  </tr>
+                  <tr class="bg-emerald-500/10">
+                    <td class="py-3 px-4 font-extrabold text-emerald-400">ISLR Corriente Determinado</td>
+                    <td id="inf-tbl-islr" class="py-3 px-4 text-right font-mono font-extrabold text-emerald-400 text-base">0,00</td>
+                    <td class="py-3 px-4 text-emerald-300">Impuesto bruto devengado del ejercicio.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-sky-300">Activo por Impuesto Diferido (NIC 12)</td>
+                    <td id="inf-tbl-diferido" class="py-2.5 px-4 text-right font-mono font-bold text-sky-300">0,00</td>
+                    <td class="py-2.5 px-4 text-slate-400">Generado por diferencias temporarias deducibles.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Gasto Neto Total por Impuestos</td>
+                    <td id="inf-tbl-gastoken" class="py-2.5 px-4 text-right font-mono font-bold text-white">0,00</td>
+                    <td class="py-2.5 px-4 text-slate-400">Impacto real en el Estado de Resultados.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4 font-semibold text-slate-200">Tasa Efectiva de Tributación</td>
+                    <td id="inf-tbl-tasaefec" class="py-2.5 px-4 text-right font-mono font-bold text-gold-400">0,00%</td>
+                    <td class="py-2.5 px-4 text-slate-400">Relación Gasto Neto / Utilidad Contable.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="git-commit" class="w-5 h-5 text-gold-400"></i>
+            <span>3. Puente de Conciliación Fiscal (De la Utilidad Contable a la Renta Gravable)</span>
+          </h3>
+          <div class="p-4 rounded-xl bg-midnight-950/70 border border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">Utilidad Contable antes de ISLR</span>
+              <span id="inf-bridge-util" class="font-mono font-bold text-white">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">(+) Diferencias Permanentes No Deducibles</span>
+              <span id="inf-bridge-perm" class="font-mono font-bold text-amber-400">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">(+) Diferencias Temporarias No Deducibles</span>
+              <span id="inf-bridge-temp" class="font-mono font-bold text-amber-400">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">(+/-) Ajuste por Inflación Fiscal (API Neto)</span>
+              <span id="inf-bridge-api" class="font-mono font-bold text-sky-400">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">(-) Ingresos Exentos y No Gravables</span>
+              <span id="inf-bridge-exemp" class="font-mono font-bold text-emerald-400">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-800">
+              <span class="text-slate-300">(-) Pérdidas Fiscales de Años Anteriores</span>
+              <span id="inf-bridge-loss" class="font-mono font-bold text-emerald-400">0,00 Bs.</span>
+            </div>
+            <div class="flex justify-between py-2.5 px-3 rounded-lg bg-gold-500/15 border border-gold-500/30 text-sm">
+              <span class="font-bold text-gold-400">= RENTA NETA GRAVABLE (UTILIDAD FISCAL)</span>
+              <span id="inf-bridge-grav" class="font-mono font-extrabold text-gold-400">0,00 Bs.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="landmark" class="w-5 h-5 text-gold-400"></i>
+            <span>4. Determinación del Impuesto y Análisis de Tesorería</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Impuesto Corriente Determinado</span>
+              <p id="inf-box-islr" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400">0,00 Bs.</p>
+              <p id="inf-islr-desc" class="text-[11px] text-slate-300">Calculado sobre la Renta Neta Gravable.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gold-500/10 border border-gold-500/30 space-y-2">
+              <span class="text-xs font-bold text-gold-400 uppercase tracking-wider block">Créditos Fiscales Aplicados</span>
+              <p id="inf-box-ret" class="text-xl sm:text-2xl font-extrabold font-mono text-gold-400">0,00 Bs.</p>
+              <p id="inf-ret-info" class="text-[11px] text-slate-300"></p>
+            </div>
+          </div>
+          <div id="inf-net-payment-comment" class="p-4 rounded-xl bg-midnight-950/70 border border-slate-800 text-xs text-slate-200 leading-relaxed"></div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-5 h-5 text-gold-400"></i>
+            <span>5. Visualización Gráfica de la Determinación Tributaria</span>
+          </h3>
+          <div class="luxury-card rounded-xl p-4 border border-slate-800">
+            <div class="relative h-[260px] w-full">
+              <canvas id="chart-dictamen"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-gold-400 flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-gold-400"></i>
+            <span>6. Recomendaciones Estratégicas y Alertas para la Gerencia de Finanzas</span>
+          </h3>
+          <div id="inf-recommendations-list" class="p-4 rounded-xl bg-midnight-950/70 border border-slate-800 space-y-2.5 text-xs text-slate-300"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 5: BASE LEGAL DEDUCIBILIDAD LISLR (25 REGLAS) -->
+    <div id="panel-baselegal" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="legal-summary-cards"></div>
+
+      <div class="luxury-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print">
+        <div class="relative flex-1 max-w-md">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+          <input type="text" id="legal-search" oninput="renderLegalDatabase()" placeholder="Buscar por código (G-01), gasto, artículo LISLR o condición..." class="cell-input w-full pl-9 text-xs py-2" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="setLegalCategoryFilter('ALL')" data-cat="ALL" class="legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-gold-500/50 bg-gold-500/20 text-gold-400">Todos (25)</button>
+          <button onclick="setLegalCategoryFilter('100% Deducible')" data-cat="100% Deducible" class="legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-midnight-800 text-slate-300">100% Deducible (9)</button>
+          <button onclick="setLegalCategoryFilter('Deducible con Tope/Condición')" data-cat="Deducible con Tope/Condición" class="legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-midnight-800 text-slate-300">Con Tope/Condición (8)</button>
+          <button onclick="setLegalCategoryFilter('No Permitido (0% Deducible)')" data-cat="No Permitido (0% Deducible)" class="legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-midnight-800 text-slate-300">No Permitido 0% (8)</button>
+        </div>
+      </div>
+
+      <div class="luxury-card rounded-2xl overflow-hidden">
+        <div class="table-container">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-midnight-950/90 border-b border-gold-500/25 text-[11px] font-bold uppercase text-gold-400">
+                <th class="py-3 px-3 w-20">ID</th>
+                <th class="py-3 px-3 w-48">Categoría Fiscal</th>
+                <th class="py-3 px-3 min-w-[200px]">Nombre del Gasto</th>
+                <th class="py-3 px-3 min-w-[220px]">Descripción</th>
+                <th class="py-3 px-3 w-40">Base Legal (LISLR)</th>
+                <th class="py-3 px-3 min-w-[240px]">Condición Especial y Topes</th>
+                <th class="py-3 px-3 min-w-[200px]">Tratamiento en Conciliación</th>
+                <th class="py-3 px-3 w-28 text-center">¿Dif. Perm.?</th>
+              </tr>
+            </thead>
+            <tbody id="legal-tbody" class="divide-y divide-slate-800/80 text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const THEME_STORAGE_KEY = 'tv-theme';
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function applyTheme(theme) {
+      const htmlEl = document.documentElement;
+      if (theme === 'dark') {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function round2(n) {
+      return Math.round((Number(n) || 0) * 100) / 100;
+    }
+
+    function fmtNum(n, decimals = 2) {
+      const val = Number(n) || 0;
+      return val.toLocaleString('es-VE', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function fmtBs(n, suffix = true) {
+      return fmtNum(n, 2) + (suffix ? ' Bs.' : '');
+    }
+
+    function fmtPct(n) {
+      return fmtNum(n, 2) + '%';
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function setElText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function setElHtml(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    const LEGAL_DATABASE = [
+      { id: 'G-01', category: '100% Deducible', name: 'Sueldos, Salarios y Beneficios Laborales', description: 'Remuneraciones pagadas al personal bajo relación de dependencia.', legalBasis: 'Art. 27 Num. 1 LISLR', condition: 'Sujetos a retención de ISLR y aportes parafiscales al día.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-02', category: '100% Deducible', name: 'Intereses de Capitales Tomados en Préstamo', description: 'Intereses financieros invertidos en la producción de la renta.', legalBasis: 'Art. 27 Num. 2 LISLR', condition: 'Préstamos destinados al giro ordinario de la empresa.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-03', category: '100% Deducible', name: 'Tributos Pagados (Municipales, Patentes, Timbres)', description: 'Impuestos distintos al ISLR efectivamente pagados.', legalBasis: 'Art. 27 Num. 3 LISLR', condition: 'Efectivamente pagados en el ejercicio (excluye ISLR e IGTF).', treatment: 'Deducible si pagado', isPermanentDiff: 'No (Temp. si causado)', ruleType: 'FULL' },
+      { id: 'G-04', category: '100% Deducible', name: 'Indemnizaciones Laborales (Prestaciones Sociales)', description: 'Prestaciones e indemnizaciones conforme a la LOTTT.', legalBasis: 'Art. 27 Num. 4 LISLR', condition: 'Calculadas conforme a la legislación laboral vigente.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-05', category: '100% Deducible', name: 'Cánones de Arrendamiento de Bienes', description: 'Alquileres de locales, oficinas y equipos operativos.', legalBasis: 'Art. 27 Num. 10 LISLR', condition: 'Factura fiscal y retención Dec. 1.808 practicada y enterada.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-06', category: '100% Deducible', name: 'Gastos de Transporte y Fletes Operativos', description: 'Traslado de mercancías, insumos y personal operativo.', legalBasis: 'Art. 27 Num. 11 LISLR', condition: 'Soporte fiscal válido y retención aplicada si corresponde.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-07', category: '100% Deducible', name: 'Comisiones a Intermediarios en Enajenación', description: 'Comisiones mercantiles vinculadas a ventas.', legalBasis: 'Art. 27 Num. 12 LISLR', condition: 'Soportadas con factura y retención Dec. 1.808.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-08', category: '100% Deducible', name: 'Primas de Seguros sobre Bienes Productores de Renta', description: 'Pólizas de activos fijos, inventarios y responsabilidad.', legalBasis: 'Art. 27 Num. 15 LISLR', condition: 'Bienes situados en el país productores de renta gravable.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-09', category: '100% Deducible', name: 'Honorarios Profesionales y Servicios Técnicos', description: 'Servicios legales, contables, auditoría y consultoría.', legalBasis: 'Art. 27 Num. 16 LISLR', condition: 'Factura Prov. 0071 + Retención Dec. 1.808 enterada.', treatment: 'Deducible al 100%', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-10', category: 'Deducible con Tope/Condición', name: 'Sueldos de Directores, Gerentes y Administradores', description: 'Remuneraciones a directivos y accionistas administradores.', legalBasis: 'Art. 27 Par. 2° LISLR', condition: 'Tope máximo del 15% del Ingreso Bruto Global.', treatment: 'Exceso no deducible', isPermanentDiff: 'Sí (El exceso)', ruleType: 'DIRECTOR_15_PCT' },
+      { id: 'G-11', category: 'Deducible con Tope/Condición', name: 'Depreciación de Activos Fijos y Amortización', description: 'Desgaste razonable de propiedad, planta y equipo.', legalBasis: 'Art. 27 Num. 5 LISLR', condition: 'Sobre costo histórico fiscal; revaluaciones NIIF no deducibles.', treatment: 'Deducible cuota fiscal', isPermanentDiff: 'No (Dif. Temporaria)', ruleType: 'MANUAL' },
+      { id: 'G-12', category: 'Deducible con Tope/Condición', name: 'Pérdidas por Cuentas Incobrables', description: 'Castigo de cartera vencida e incobrable.', legalBasis: 'Art. 27 Num. 8 LISLR', condition: 'Insolvencia comprobada; provisiones genéricas no deducibles.', treatment: 'Provisiones = Temporaria', isPermanentDiff: 'No (Dif. Temporaria)', ruleType: 'MANUAL' },
+      { id: 'G-13', category: 'Deducible con Tope/Condición', name: 'Gastos de Publicidad y Propaganda', description: 'Campañas publicitarias, medios digitales y promoción.', legalBasis: 'Art. 27 Num. 13 LISLR', condition: 'Condicionado a retención Dec. 1.808 enterada antes de declarar.', treatment: 'Deducible si retenido', isPermanentDiff: 'Sí (Sin retención)', ruleType: 'MANUAL' },
+      { id: 'G-14', category: 'Deducible con Tope/Condición', name: 'Gastos de Investigación y Desarrollo (I+D)', description: 'Proyectos tecnológicos y desarrollo de productos.', legalBasis: 'Art. 27 Num. 14 LISLR', condition: 'Efectivamente pagados en beneficio de la empresa.', treatment: 'Deducible si pagado', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-15', category: 'Deducible con Tope/Condición', name: 'Regalías, Asistencia Técnica y Servicios Tecnológicos', description: 'Pagos por uso de marcas, patentes y know-how.', legalBasis: 'Art. 27 Num. 17 LISLR', condition: 'Retención Dec. 1.808 practicada y enterada.', treatment: 'Deducible si retenido', isPermanentDiff: 'Sí (Sin retención)', ruleType: 'MANUAL' },
+      { id: 'G-16', category: 'Deducible con Tope/Condición', name: 'Gastos de Reparaciones Ordinarias de Bienes', description: 'Mantenimiento preventivo y correctivo menor.', legalBasis: 'Art. 27 Num. 18 LISLR', condition: 'Mejoras mayores deben capitalizarse y depreciarse.', treatment: 'Deducible si ordinario', isPermanentDiff: 'No', ruleType: 'FULL' },
+      { id: 'G-17', category: 'Deducible con Tope/Condición', name: 'Liberalidades y Donaciones (Fines Benéficos/Educativos)', description: 'Aportes a instituciones sin fines de lucro registradas.', legalBasis: 'Art. 27 Par. 12° LISLR', condition: 'Tope 10% renta neta (8% si renta > 10.000 UT).', treatment: 'Exceso no deducible', isPermanentDiff: 'Sí (El exceso)', ruleType: 'MANUAL' },
+      { id: 'G-18', category: 'No Permitido (0% Deducible)', name: 'Multas, Sanciones e Intereses Moratorios Fiscales', description: 'Sanciones pecuniarias impuestas por SENIAT, IVSS, alcaldías.', legalBasis: 'Art. 27 Par. 1° LISLR', condition: 'Prohibición expresa de deducción de sanciones.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-19', category: 'No Permitido (0% Deducible)', name: 'Gastos sin Soporte Fiscal / Facturas No Conformes', description: 'Erogaciones sin factura que cumpla Providencia 0071.', legalBasis: 'Art. 27 LISLR / Prov. 0071', condition: 'Carece de comprobante legal válido.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-20', category: 'No Permitido (0% Deducible)', name: 'Impuesto a las Grandes Transacciones Financieras (IGTF)', description: 'IGTF pagado por débitos bancarios o pagos en divisas.', legalBasis: 'Art. 18 Ley IGTF', condition: 'La Ley de IGTF prohíbe expresamente su deducibilidad en ISLR.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-21', category: 'No Permitido (0% Deducible)', name: 'Gastos Personales de Socios, Directores o Familiares', description: 'Viajes privados, consumos personales cargados a la empresa.', legalBasis: 'Art. 27 LISLR', condition: 'No son gastos normales ni necesarios para producir renta.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-22', category: 'No Permitido (0% Deducible)', name: 'Gastos Causados en el Exterior (Renta Territorial)', description: 'Gastos incurridos fuera de Venezuela sin vinculación territorial.', legalBasis: 'Art. 27 Par. 4° LISLR', condition: 'No imputables a rentas de fuente venezolana.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-23', category: 'No Permitido (0% Deducible)', name: 'Gastos Causados y No Pagados del Ejercicio Anterior', description: 'Partidas que exigían pago efectivo para su deducción.', legalBasis: 'Art. 32 LISLR', condition: 'No pagadas dentro del plazo legal establecido.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' },
+      { id: 'G-24', category: 'No Permitido (0% Deducible)', name: 'Provisiones Genéricas Contables (Obsolescencia / Litigios)', description: 'Estimaciones contables bajo NIIF sin realización efectiva.', legalBasis: 'Art. 27 LISLR / NIC 12', condition: 'Deducibles solo cuando ocurra la pérdida real.', treatment: 'Diferencia Temporaria', isPermanentDiff: 'No (Temporaria)', ruleType: 'ZERO' },
+      { id: 'G-25', category: 'No Permitido (0% Deducible)', name: 'Gasto por Impuesto Sobre la Renta (ISLR) del Ejercicio', description: 'Provisión contable del propio ISLR corriente o diferido.', legalBasis: 'Art. 27 Num. 3 LISLR', condition: 'El ISLR nunca es deducible de sí mismo.', treatment: 'Reparo 100% no deducible', isPermanentDiff: 'Sí (Permanente)', ruleType: 'ZERO' }
+    ];
+
+    const RETENTION_CONCEPTS = [
+      { label: 'Honorarios Profesionales', defaultRate: 0.05 },
+      { label: 'Servicios Empresariales / Contratistas', defaultRate: 0.02 },
+      { label: 'Arrendamiento de Inmuebles', defaultRate: 0.05 },
+      { label: 'Publicidad y Propaganda', defaultRate: 0.05 },
+      { label: 'Fletes y Transporte Nacional', defaultRate: 0.03 },
+      { label: 'Comisiones Mercantiles', defaultRate: 0.05 },
+      { label: 'Regalías / Asistencia Técnica', defaultRate: 0.05 }
+    ];
+
+    const CLOSING_CODES = ['7.1.01', '7.1.02', '1.3.01', '2.1.05'];
+
+    const UNKNOWN_RULE = {
+      id: '—', category: 'Sin regla', name: 'Regla no válida (0% deducible hasta asignar)', description: '',
+      legalBasis: '—', condition: '', treatment: '', isPermanentDiff: 'Sí', ruleType: 'ZERO'
+    };
+
+    function islrTarifa2(rentaBs, ut) {
+      const u = Number(ut) > 0 ? Number(ut) : 43;
+      const r = Math.max(0, Number(rentaBs) || 0) / u;
+      const tUT = r <= 2000 ? r * 0.15 : (r <= 3000 ? r * 0.22 - 140 : r * 0.34 - 500);
+      return round2(Math.max(0, tUT) * u);
+    }
+
+    function tarifa2Marginal(rentaBs, ut) {
+      const u = Number(ut) > 0 ? Number(ut) : 43;
+      const r = Math.max(0, Number(rentaBs) || 0) / u;
+      return r <= 2000 ? 0.15 : (r <= 3000 ? 0.22 : 0.34);
+    }
+
+    function tarifaTexto(m) {
+      const c = m.conciliation;
+      if (c.tarifaMode === 'TARIFA2') {
+        return `Tarifa N.º 2 (Art. 52): renta de ${fmtNum(c.rentaEnUT)} U.T., tramo marginal ${fmtNum(c.tasaMarginal * 100)}%, tasa efectiva ${fmtNum(c.tasaAplicada)}%.`;
+      }
+      return `Tasa fija manual de ${fmtNum(c.tasaAplicada)}% sobre la Renta Neta Gravable.`;
+    }
+
+    function parseNumVE(v) {
+      if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+      let t = String(v ?? '').trim().replace(/[^\d,.\-]/g, '');
+      t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+      return parseFloat(t) || 0;
+    }
+
+    function suggestRetPct(concept, personType) {
+      const found = RETENTION_CONCEPTS.find(c => c.label === concept);
+      const base = found ? found.defaultRate : 0.05;
+      if (personType === 'PN Residente') return concept === 'Servicios Empresariales / Contratistas' ? base : 0.03;
+      if (personType === 'PN No Residente') return 0.34;
+      return base;
+    }
+
+    const STORE_KEY = 'numera_islr_conciliacion_v2';
+    let appStore = { activeProfileId: 'demo_2026', profiles: {} };
+    let state = null;
+    let currentModel = null;
+    let activeTab = 'dashboard';
+    let legalCategoryFilter = 'ALL';
+    let chartBridgeInstance = null;
+    let chartExpensesInstance = null;
+    let chartDictamenInstance = null;
+
+    function getDefaultDemoState() {
+      const emp = window.EMPRESA || {};
+      const isSpe = window.EMP_ES !== undefined ? window.EMP_ES : true;
+      return {
+        meta: {
+          companyName: emp.nombre || 'Inversiones Corporativas Andina, C.A.',
+          rif: emp.rif || 'J-40987654-3',
+          fiscalYear: '01/01/2026 al 31/12/2026',
+          taxpayerType: isSpe ? 'Sujeto Pasivo Especial' : 'Contribuyente Ordinario',
+          taxRate: 34,
+          tarifaMode: 'TARIFA2'
+        },
+        balance: [
+          { id: 'b1', code: '1.1.01', name: 'Efectivo y Equivalentes en Bancos', type: 'Activo', nature: 'Deudora', debit: 85000, credit: 0 },
+          { id: 'b2', code: '1.1.02', name: 'Cuentas por Cobrar Comerciales', type: 'Activo', nature: 'Deudora', debit: 42000, credit: 0 },
+          { id: 'b3', code: '1.2.01', name: 'Propiedad, Planta y Equipo Neto', type: 'Activo', nature: 'Deudora', debit: 65000, credit: 0 },
+          { id: 'b4', code: '2.1.01', name: 'Cuentas por Pagar Proveedores', type: 'Pasivo', nature: 'Acreedora', debit: 0, credit: 28500 },
+          { id: 'b5', code: '3.1.01', name: 'Capital Social Suscrito y Pagado', type: 'Patrimonio', nature: 'Acreedora', debit: 0, credit: 118000 },
+          { id: 'b6', code: '4.1.01', name: 'Ingresos por Ventas y Servicios Gravados', type: 'Ingreso', nature: 'Acreedora', debit: 0, credit: 98000 },
+          { id: 'b7', code: '4.1.02', name: 'Intereses Financieros Exentos (Bonos Públicos)', type: 'Ingreso', nature: 'Acreedora', debit: 0, credit: 2000 },
+          { id: 'b8', code: '5.1.01', name: 'Costo de Ventas y Servicios Prestados', type: 'Costo', nature: 'Deudora', debit: 18000, credit: 0 },
+          { id: 'b9', code: '6.1.01', name: 'Sueldos y Salarios del Personal', type: 'Gasto', nature: 'Deudora', debit: 11800, credit: 0 },
+          { id: 'b10', code: '6.1.02', name: 'Remuneraciones a Directores y Gerentes', type: 'Gasto', nature: 'Deudora', debit: 18000, credit: 0 },
+          { id: 'b11', code: '6.1.03', name: 'Multas y Sanciones Administrativas SENIAT', type: 'Gasto', nature: 'Deudora', debit: 2000, credit: 0 },
+          { id: 'b12', code: '6.1.04', name: 'Impuesto a las Grandes Transacciones Financieras (IGTF)', type: 'Gasto', nature: 'Deudora', debit: 1200, credit: 0 },
+          { id: 'b13', code: '6.1.05', name: 'Provisión para Cuentas Incobrables (Genérica NIIF)', type: 'Gasto', nature: 'Deudora', debit: 3500, credit: 0 }
+        ],
+        conciliation: {
+          rows: [
+            { id: 'c1', code: '6.1.01', ruleId: 'G-01', deductibleAmount: 11800, diffType: 'Ninguna (100% Deducible)', autoTope: false },
+            { id: 'c2', code: '6.1.02', ruleId: 'G-10', deductibleAmount: 15000, diffType: 'Diferencia Permanente', autoTope: true },
+            { id: 'c3', code: '6.1.03', ruleId: 'G-18', deductibleAmount: 0, diffType: 'Diferencia Permanente', autoTope: false },
+            { id: 'c4', code: '6.1.04', ruleId: 'G-20', deductibleAmount: 0, diffType: 'Diferencia Permanente', autoTope: false },
+            { id: 'c5', code: '6.1.05', ruleId: 'G-24', deductibleAmount: 0, diffType: 'Diferencia Temporaria', autoTope: false }
+          ],
+          exemptIncome: 2000,
+          priorLosses: 0,
+          creditosFiscales: 0
+        },
+        api: {
+          inpcInicio: 100.0000,
+          inpcCierre: 128.5000,
+          initialRows: [
+            { id: 'ai1', code: '1.2.01', name: 'Maquinaria y Equipos Industriales', partType: 'Activo No Monetario', acqDate: '2024-06-15', linkBalance: false, manualCost: 50000, inpcOrigin: 85.0000, inpcCierre: 100.0000 }
+          ],
+          regularRows: [
+            { id: 'ar1', code: '1.2.01', name: 'Propiedad, Planta y Equipo', natureApi: 'Activo No Monetario', refDate: '2026-01-01', sourceType: 'MANUAL', manualBase: 65000, useInpcInicio: true, inpcOrigin: 100.0000, inpcCierre: 128.5000 },
+            { id: 'ar2', code: '3.1.01', name: 'Patrimonio Neto Inicial', natureApi: 'Patrimonio Neto Inicial', refDate: '2026-01-01', sourceType: 'MANUAL', manualBase: 118000, useInpcInicio: true, inpcOrigin: 100.0000, inpcCierre: 128.5000 }
+          ]
+        },
+        retentions: {
+          utValue: 43.00,
+          reparoAuto: true,
+          rows: [
+            { id: 'r1', date: '2026-04-12', rif: 'J-30112233-4', vendor: 'Consultores Tributarios Alfa, C.A.', personType: 'PJ Domiciliada', invoiceNo: '001452', controlNo: '00-001452', concept: 'Honorarios Profesionales', taxableBase: 25000, retPct: 0.05, paidSeniat: 'Sí' },
+            { id: 'r2', date: '2026-07-20', rif: 'J-31998877-1', vendor: 'Inmobiliaria Centro Empresarial, C.A.', personType: 'PJ Domiciliada', invoiceNo: '008910', controlNo: '00-008910', concept: 'Arrendamiento de Inmuebles', taxableBase: 16790, retPct: 0.05, paidSeniat: 'Sí' }
+          ]
+        }
+      };
+    }
+
+    function getEmptyExerciseState() {
+      const emp = window.EMPRESA || {};
+      const isSpe = window.EMP_ES !== undefined ? window.EMP_ES : true;
+      return {
+        meta: {
+          companyName: emp.nombre || 'Nueva Empresa, C.A.',
+          rif: emp.rif || 'J-00000000-0',
+          fiscalYear: '01/01/2026 al 31/12/2026',
+          taxpayerType: isSpe ? 'Sujeto Pasivo Especial' : 'Contribuyente Ordinario',
+          taxRate: 34,
+          tarifaMode: 'TARIFA2'
+        },
+        balance: [],
+        conciliation: { rows: [], exemptIncome: 0, priorLosses: 0, creditosFiscales: 0 },
+        api: { inpcInicio: 100.0000, inpcCierre: 120.0000, initialRows: [], regularRows: [] },
+        retentions: { utValue: 43.00, reparoAuto: true, rows: [] }
+      };
+    }
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.profiles && Object.keys(parsed.profiles).length > 0) {
+            appStore = parsed;
+            const active = appStore.profiles[appStore.activeProfileId] || Object.values(appStore.profiles)[0];
+            appStore.activeProfileId = active.id;
+            state = active.data;
+            if (window.EMPRESA) {
+              state.meta.companyName = window.EMPRESA.nombre || state.meta.companyName;
+              state.meta.rif = window.EMPRESA.rif || state.meta.rif;
+            }
+            return;
+          }
+        }
+      } catch (e) {}
+      const demo = getDefaultDemoState();
+      appStore = {
+        activeProfileId: 'demo_2026',
+        profiles: {
+          demo_2026: {
+            id: 'demo_2026',
+            label: `${demo.meta.companyName} (2026)`,
+            updatedAt: new Date().toISOString(),
+            data: demo
+          }
+        }
+      };
+      state = demo;
+      saveStore();
+    }
+
+    function saveStore() {
+      try {
+        if (appStore.profiles[appStore.activeProfileId]) {
+          appStore.profiles[appStore.activeProfileId].data = state;
+          appStore.profiles[appStore.activeProfileId].label = `${state.meta.companyName || 'Empresa'} (2026)`;
+          appStore.profiles[appStore.activeProfileId].updatedAt = new Date().toISOString();
+        }
+        localStorage.setItem(STORE_KEY, JSON.stringify(appStore));
+        const ind = document.getElementById('autosave-indicator');
+        if (ind) ind.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Guardado ${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}`;
+      } catch (e) {}
+    }
+
+    function switchProfile(profileId) {
+      if (!appStore.profiles[profileId]) return;
+      appStore.activeProfileId = profileId;
+      state = appStore.profiles[profileId].data;
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function computeFullModel() {
+      let totalDebe = 0;
+      let totalHaber = 0;
+      let ingresosBrutos = 0;
+      let costosTotales = 0;
+      let gastosTotales = 0;
+
+      const balRows = (state.balance || []).map(r => {
+        const debit = round2(r.debit);
+        const credit = round2(r.credit);
+        const netBalance = r.nature === 'Deudora' ? round2(debit - credit) : round2(credit - debit);
+        totalDebe = round2(totalDebe + debit);
+        totalHaber = round2(totalHaber + credit);
+
+        const isClosing = CLOSING_CODES.includes(String(r.code).trim()) && (r.type === 'Gasto' || r.type === 'Ingreso');
+        if (!isClosing) {
+          if (r.type === 'Ingreso') ingresosBrutos = round2(ingresosBrutos + netBalance);
+          if (r.type === 'Costo') costosTotales = round2(costosTotales + netBalance);
+          if (r.type === 'Gasto') gastosTotales = round2(gastosTotales + netBalance);
+        }
+
+        return { ...r, debit, credit, netBalance, isClosing };
+      });
+
+      const diferenciaCuadre = round2(totalDebe - totalHaber);
+      const isBalanced = Math.abs(diferenciaCuadre) < 0.01;
+      const utilidadContable = round2(ingresosBrutos - costosTotales - gastosTotales);
+
+      const analyzedCodes = new Set((state.conciliation?.rows || []).map(c => String(c.code).trim()));
+      const unsyncedExpenses = balRows.filter(r => r.type === 'Gasto' && !r.isClosing && r.netBalance > 0 && !analyzedCodes.has(String(r.code).trim()));
+
+      const codeCount = {};
+      balRows.forEach(r => { const k = String(r.code).trim(); codeCount[k] = (codeCount[k] || 0) + 1; });
+      const duplicateCodes = Object.keys(codeCount).filter(k => codeCount[k] > 1);
+
+      const isSPE = state.meta.taxpayerType === 'Sujeto Pasivo Especial';
+      const inpcInicio = Number(state.api?.inpcInicio) || 1;
+      const inpcCierre = Number(state.api?.inpcCierre) || 1;
+      const variacionInpc = round2(((inpcCierre - inpcInicio) / inpcInicio) * 100);
+
+      let initTotalCosto = 0;
+      let initTotalActualizado = 0;
+      let initTotalRAR = 0;
+
+      const initialRows = (state.api?.initialRows || []).map(r => {
+        const linkedCost = r.linkBalance ? balRows.find(b => String(b.code).trim() === String(r.code).trim()) : null;
+        const cost = linkedCost ? round2(Math.abs(linkedCost.netBalance)) : round2(r.manualCost);
+        const orig = Number(r.inpcOrigin) || 1;
+        const cierre = Number(r.inpcCierre) || inpcInicio;
+        const factor = orig > 0 ? cierre / orig : 1;
+        const updatedValue = round2(cost * factor);
+        const signoPartida = r.partType === 'Pasivo No Monetario' ? -1 : 1;
+        const rarAdjustment = round2((updatedValue - cost) * signoPartida);
+        initTotalCosto = round2(initTotalCosto + cost);
+        initTotalActualizado = round2(initTotalActualizado + updatedValue);
+        initTotalRAR = round2(initTotalRAR + rarAdjustment);
+        return { ...r, cost, factor, inpcCierreUsed: cierre, updatedValue, rarAdjustment };
+      });
+      const tributo3PctRAR = round2(Math.max(0, initTotalRAR) * 0.03);
+
+      let regTotalBase = 0;
+      let regTotalReajustado = 0;
+      let regSubtotal = 0;
+
+      const initUpdatedByCode = {};
+      const initCierreByCode = {};
+      initialRows.forEach(i => {
+        const k = String(i.code).trim();
+        initUpdatedByCode[k] = round2((initUpdatedByCode[k] || 0) + i.updatedValue);
+        if (initCierreByCode[k] === undefined) initCierreByCode[k] = i.inpcCierreUsed;
+      });
+
+      const regularRows = (state.api?.regularRows || []).map(r => {
+        const codeKey = String(r.code).trim();
+        const linkedBase = r.sourceType === 'BALANCE' ? balRows.find(b => String(b.code).trim() === codeKey) : null;
+        let base;
+        let baseSource;
+        if (linkedBase) {
+          base = round2(Math.abs(linkedBase.netBalance));
+          baseSource = 'BALANCE';
+        } else if (!r.baseOverride && initUpdatedByCode[codeKey] !== undefined) {
+          base = initUpdatedByCode[codeKey];
+          baseSource = 'INICIAL';
+        } else {
+          base = round2(r.manualBase);
+          baseSource = 'MANUAL';
+        }
+        const tieneInpcPropio = r.inpcCierre !== undefined && r.inpcCierre !== null && r.inpcCierre !== '';
+        let inpcOrigUsed;
+        let inpcCierreUsed;
+        if (tieneInpcPropio) {
+          inpcOrigUsed = Number(r.inpcOrigin) || 1;
+          inpcCierreUsed = Number(r.inpcCierre) || 1;
+        } else {
+          inpcOrigUsed = baseSource === 'INICIAL'
+            ? (Number(initCierreByCode[codeKey]) || 1)
+            : (r.useInpcInicio ? inpcInicio : (Number(r.inpcOrigin) || 1));
+          inpcCierreUsed = inpcCierre;
+        }
+        const factor = inpcOrigUsed > 0 ? inpcCierreUsed / inpcOrigUsed : 1;
+        const reajustado = round2(base * factor);
+        const diff = round2(reajustado - base);
+        const gainLoss = r.natureApi === 'Activo No Monetario' ? diff : -diff;
+
+        regTotalBase = round2(regTotalBase + base);
+        regTotalReajustado = round2(regTotalReajustado + reajustado);
+        regSubtotal = round2(regSubtotal + gainLoss);
+
+        return { ...r, base, baseSource, inpcOrigUsed, inpcCierreUsed, factor, reajustado, gainLoss };
+      });
+
+      const resultadoNetoAPI = isSPE ? 0 : round2(regSubtotal);
+
+      const utValue = Number(state.retentions?.utValue) || 43;
+      const sustraendoBasePN = round2(utValue * 83.3334);
+      let totalBaseRet = 0;
+      let totalSustraendo = 0;
+      let totalRetenido = 0;
+      let baseValida = 0;
+      let facturasRechazadas = 0;
+
+      const retRows = (state.retentions?.rows || []).map(r => {
+        const taxableBase = round2(r.taxableBase);
+        const retPct = Number(r.retPct) || 0;
+        const sustraendo = r.personType === 'PN Residente' ? round2(sustraendoBasePN * retPct) : 0;
+        const retained = round2(Math.max(0, taxableBase * retPct - sustraendo));
+        const hasInvoice = Boolean(String(r.invoiceNo || '').trim()) && Boolean(String(r.controlNo || '').trim());
+        const isPaid = r.paidSeniat === 'Sí';
+        const isValid = hasInvoice && isPaid;
+
+        totalBaseRet = round2(totalBaseRet + taxableBase);
+        totalSustraendo = round2(totalSustraendo + sustraendo);
+        totalRetenido = round2(totalRetenido + retained);
+        if (isValid) {
+          baseValida = round2(baseValida + taxableBase);
+        } else {
+          facturasRechazadas++;
+        }
+
+        return {
+          ...r,
+          taxableBase,
+          retPct,
+          sustraendo,
+          retained,
+          isValid,
+          statusText: isValid ? 'Válida (Deducible)' : (!hasInvoice ? 'Sin Soporte Fiscal' : 'No Enterada SENIAT')
+        };
+      });
+
+      const baseInvalida = round2(totalBaseRet - baseValida);
+      const reparoAuto = state.retentions?.reparoAuto !== false;
+      const reparoRetenciones = reparoAuto ? baseInvalida : 0;
+      const pjNoDomiciliada = retRows.filter(r => r.personType === 'PJ No Domiciliada').length;
+
+      let totalSaldoConc = 0;
+      let totalDeducible = 0;
+      let totalAjuste = 0;
+      let difPermanentes = 0;
+      let difTemporarias = 0;
+
+      const concRows = (state.conciliation?.rows || []).map(r => {
+        const balMatches = balRows.filter(b => String(b.code).trim() === String(r.code).trim());
+        const balMatch = balMatches[0];
+        const bookBalance = balMatches.length ? round2(balMatches.reduce((a, b) => a + b.netBalance, 0)) : 0;
+        const accountName = balMatch
+          ? (balMatches.length > 1 ? `${balMatch.name} (+${balMatches.length - 1})` : balMatch.name)
+          : (r.accountName || 'Cuenta no vinculada en balance');
+        const rule = LEGAL_DATABASE.find(lr => lr.id === r.ruleId) || UNKNOWN_RULE;
+
+        let deductible = round2(r.deductibleAmount);
+        if (r.autoTope && rule.ruleType === 'DIRECTOR_15_PCT') {
+          deductible = round2(Math.min(bookBalance, ingresosBrutos * 0.15));
+        } else if (rule.ruleType === 'ZERO') {
+          deductible = 0;
+        } else if (rule.ruleType === 'FULL') {
+          deductible = round2(bookBalance);
+        }
+        deductible = Math.min(bookBalance, Math.max(0, deductible));
+        const nonDeductible = round2(Math.max(0, bookBalance - deductible));
+
+        totalSaldoConc = round2(totalSaldoConc + bookBalance);
+        totalDeducible = round2(totalDeducible + deductible);
+        totalAjuste = round2(totalAjuste + nonDeductible);
+
+        let effDiff = r.diffType;
+        if (nonDeductible > 0 && effDiff !== 'Diferencia Temporaria') effDiff = 'Diferencia Permanente';
+        if (effDiff === 'Diferencia Permanente') {
+          difPermanentes = round2(difPermanentes + nonDeductible);
+        } else if (effDiff === 'Diferencia Temporaria') {
+          difTemporarias = round2(difTemporarias + nonDeductible);
+        }
+
+        return {
+          ...r,
+          diffType: effDiff,
+          ruleMissing: rule === UNKNOWN_RULE,
+          linked: balMatches.length > 0,
+          accountName,
+          bookBalance,
+          rule,
+          deductible,
+          nonDeductible
+        };
+      });
+
+      difPermanentes = round2(difPermanentes + reparoRetenciones);
+      totalAjuste = round2(totalAjuste + reparoRetenciones);
+
+      const gananciaAPI = resultadoNetoAPI > 0 ? resultadoNetoAPI : 0;
+      const perdidaAPI = resultadoNetoAPI < 0 ? Math.abs(resultadoNetoAPI) : 0;
+      const exemptIncome = round2(state.conciliation?.exemptIncome || 0);
+      const priorLosses = round2(state.conciliation?.priorLosses || 0);
+
+      const rentaNetaGravable = round2(
+        Math.max(0, utilidadContable + difPermanentes + difTemporarias + gananciaAPI - exemptIncome - perdidaAPI - priorLosses)
+      );
+
+      const tarifaMode = state.meta.tarifaMode === 'FIJA' ? 'FIJA' : 'TARIFA2';
+      const trRaw = state.meta.taxRate;
+      const trNum = (trRaw === '' || trRaw === null || trRaw === undefined) ? NaN : Number(trRaw);
+      const fixedRateDecimal = (Number.isFinite(trNum) ? trNum : 34) / 100;
+      let islrCorriente;
+      let tasaMarginal;
+      if (tarifaMode === 'TARIFA2') {
+        islrCorriente = islrTarifa2(rentaNetaGravable, utValue);
+        tasaMarginal = tarifa2Marginal(rentaNetaGravable, utValue);
+      } else {
+        tasaMarginal = fixedRateDecimal;
+        islrCorriente = round2(rentaNetaGravable * fixedRateDecimal);
+      }
+      const activoImpuestoDiferido = round2(difTemporarias * tasaMarginal);
+      const tasaAplicada = rentaNetaGravable > 0 ? round2((islrCorriente / rentaNetaGravable) * 100) : round2(tasaMarginal * 100);
+      const rentaEnUT = round2(rentaNetaGravable / utValue);
+      const creditosFiscales = round2(state.conciliation?.creditosFiscales || 0);
+
+      const journalRows = [
+        { code: '7.1.01', name: 'Gasto por ISLR Corriente del Ejercicio', debit: islrCorriente, credit: 0 },
+        { code: '1.3.01', name: 'Activo por Impuesto Diferido (NIC 12)', debit: activoImpuestoDiferido, credit: 0 },
+        { code: '7.1.02', name: 'Beneficio / Ingreso por Impuesto Diferido', debit: 0, credit: activoImpuestoDiferido },
+        { code: '2.1.05', name: 'ISLR por Pagar (SENIAT)', debit: 0, credit: islrCorriente }
+      ];
+
+      const jTotalDebe = round2(islrCorriente + activoImpuestoDiferido);
+      const jTotalHaber = round2(activoImpuestoDiferido + islrCorriente);
+      const gastoNetoImpuestos = round2(islrCorriente - activoImpuestoDiferido);
+      const tasaEfectiva = utilidadContable > 0 ? round2((gastoNetoImpuestos / utilidadContable) * 100) : 0;
+      const saldoNetoTesoreria = round2(islrCorriente - creditosFiscales);
+
+      return {
+        balance: {
+          rows: balRows,
+          totalDebe,
+          totalHaber,
+          diferenciaCuadre,
+          isBalanced,
+          ingresosBrutos,
+          costosTotales,
+          gastosTotales,
+          utilidadContable,
+          unsyncedExpenses,
+          duplicateCodes
+        },
+        conciliation: {
+          rows: concRows,
+          totalSaldo: totalSaldoConc,
+          totalDeducible,
+          totalAjuste,
+          difPermanentes,
+          difTemporarias,
+          gananciaAPI,
+          perdidaAPI,
+          exemptIncome,
+          priorLosses,
+          rentaNetaGravable,
+          islrCorriente,
+          activoImpuestoDiferido,
+          tarifaMode,
+          tasaMarginal,
+          tasaAplicada,
+          rentaEnUT,
+          creditosFiscales,
+          reparoRetenciones
+        },
+        api: {
+          isSPE,
+          inpcInicio,
+          inpcCierre,
+          variacionInpc,
+          initialRows,
+          initTotalCosto,
+          initTotalActualizado,
+          initTotalRAR,
+          tributo3PctRAR,
+          regularRows,
+          regTotalBase,
+          regTotalReajustado,
+          regSubtotal,
+          resultadoNetoAPI
+        },
+        retentions: {
+          utValue,
+          sustraendoBasePN,
+          rows: retRows,
+          totalBase: totalBaseRet,
+          totalSustraendo,
+          totalRetenido,
+          baseValida,
+          baseInvalida,
+          reparoAuto,
+          reparoRetenciones,
+          pjNoDomiciliada,
+          facturasRechazadas
+        },
+        journal: {
+          rows: journalRows,
+          totalDebe: jTotalDebe,
+          totalHaber: jTotalHaber,
+          gastoNetoImpuestos,
+          tasaEfectiva
+        },
+        treasury: {
+          creditosFiscales,
+          saldoNetoTesoreria
+        }
+      };
+    }
+
+    function renderNavigationBadges(m) {
+      const bBal = document.getElementById('badge-tab-balance');
+      if (bBal) {
+        bBal.textContent = m.balance.isBalanced ? 'OK' : 'Descuadre';
+        bBal.className = m.balance.isBalanced
+          ? 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-emerald-500/20 text-emerald-400'
+          : 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-rose-500/25 text-rose-300';
+      }
+
+      const bConc = document.getElementById('badge-tab-conciliacion');
+      if (bConc) {
+        bConc.textContent = fmtBs(m.conciliation.islrCorriente, false);
+        bConc.className = 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-gold-500/20 text-gold-400';
+      }
+
+      const bApi = document.getElementById('badge-tab-api');
+      if (bApi) {
+        bApi.textContent = m.api.isSPE ? 'SPE' : 'Activo';
+        bApi.className = 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-sky-500/20 text-sky-300';
+      }
+
+      const bRet = document.getElementById('badge-tab-retenciones');
+      if (bRet) {
+        bRet.textContent = m.retentions.facturasRechazadas > 0 ? `${m.retentions.facturasRechazadas} Alerta` : 'OK';
+        bRet.className = m.retentions.facturasRechazadas > 0
+          ? 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-rose-500/25 text-rose-300'
+          : 'px-2 py-0.5 text-[10px] rounded-full font-bold bg-emerald-500/20 text-emerald-400';
+      }
+    }
+
+    function renderDashboard(m) {
+      setElText('kpi-utilidad-contable', fmtBs(m.balance.utilidadContable));
+      setElText('kpi-ingresos-sub', `Ingresos Brutos: ${fmtBs(m.balance.ingresosBrutos)}`);
+      setElText('kpi-ajustes-totales', fmtBs(m.conciliation.totalAjuste));
+      setElText('kpi-ajustes-desglose', `Perm: ${fmtBs(m.conciliation.difPermanentes, false)} | Temp: ${fmtBs(m.conciliation.difTemporarias, false)}`);
+      setElText('kpi-renta-gravable', fmtBs(m.conciliation.rentaNetaGravable));
+      setElText('kpi-api-sub', `Efecto API Neto: ${fmtBs(m.api.resultadoNetoAPI)}`);
+      setElText('kpi-islr-corriente', fmtBs(m.conciliation.islrCorriente));
+      setElText('kpi-imp-diferido', `Activo Imp. Diferido: ${fmtBs(m.conciliation.activoImpuestoDiferido)}`);
+
+      const expLegend = document.getElementById('expenses-legend-summary');
+      if (expLegend) {
+        expLegend.innerHTML = `
+          <div>
+            <span class="text-slate-400 block">Deducibles</span>
+            <span class="font-mono font-bold text-emerald-400">${fmtBs(m.conciliation.totalDeducible, false)}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Dif. Perm.</span>
+            <span class="font-mono font-bold text-amber-400">${fmtBs(m.conciliation.difPermanentes, false)}</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Dif. Temp.</span>
+            <span class="font-mono font-bold text-sky-400">${fmtBs(m.conciliation.difTemporarias, false)}</span>
+          </div>
+        `;
+      }
+
+      const alertsList = document.getElementById('audit-alerts-list');
+      if (alertsList) {
+        const alerts = [];
+        if (!m.balance.isBalanced) {
+          alerts.push({ level: 'danger', text: `Descuadre detectado en Balance de Comprobación por ${fmtBs(m.balance.diferenciaCuadre)}.` });
+        } else {
+          alerts.push({ level: 'ok', text: 'Balance de Comprobación cuadrado y validado bajo principios VEN-NIF.' });
+        }
+        if (m.retentions.facturasRechazadas > 0) {
+          alerts.push({ level: 'warn', text: `${m.retentions.facturasRechazadas} factura(s) presentan incumplimiento de retención Decreto 1.808.` });
+        } else {
+          alerts.push({ level: 'ok', text: '100% de las retenciones registradas cumplen requisitos de enteramiento ante SENIAT.' });
+        }
+        if (m.api.isSPE) {
+          alerts.push({ level: 'info', text: 'Contribuyente Sujeto Pasivo Especial: exclusión de API aplicada conforme al Art. 171 LISLR.' });
+        }
+        if (m.balance.unsyncedExpenses.length > 0) {
+          alerts.push({ level: 'warn', text: `${m.balance.unsyncedExpenses.length} cuenta(s) de gasto sin analizar en la conciliación: no tienen ajuste fiscal y quedan deducibles.` });
+        }
+        alertsList.innerHTML = alerts.map(a => {
+          const badge = a.level === 'danger'
+            ? 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+            : a.level === 'warn'
+              ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+              : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
+          return `<div class="p-3 rounded-xl border text-xs font-medium ${badge}">${escapeHtml(a.text)}</div>`;
+        }).join('');
+      }
+
+      const miniSum = document.getElementById('dashboard-mini-summary');
+      if (miniSum) {
+        miniSum.innerHTML = `
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-slate-400">Utilidad Contable:</span><span class="font-mono font-bold text-white">${fmtBs(m.balance.utilidadContable)}</span></div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-slate-400">(+) Partidas No Deducibles (Perm. + Temp.):</span><span class="font-mono font-bold text-amber-400">${fmtBs(m.conciliation.totalAjuste)}</span></div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-slate-400">(+/−) Efecto API Neto:</span><span class="font-mono font-bold ${m.api.resultadoNetoAPI < 0 ? 'text-rose-400' : 'text-sky-300'}">${fmtBs(m.api.resultadoNetoAPI)}</span></div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-slate-400">(-) Ingresos Exentos:</span><span class="font-mono font-bold text-emerald-400">${fmtBs(m.conciliation.exemptIncome)}</span></div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-slate-400">(-) Pérdidas Fiscales Anteriores:</span><span class="font-mono font-bold text-emerald-400">${fmtBs(m.conciliation.priorLosses)}</span></div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800"><span class="text-gold-400 font-bold">= Renta Neta Gravable:</span><span class="font-mono font-extrabold text-gold-400">${fmtBs(m.conciliation.rentaNetaGravable)}</span></div>
+          <div class="flex justify-between py-1.5"><span class="text-emerald-400 font-bold">ISLR Corriente (tasa efectiva ${fmtNum(m.conciliation.tasaAplicada)}%):</span><span class="font-mono font-extrabold text-emerald-400">${fmtBs(m.conciliation.islrCorriente)}</span></div>
+        `;
+      }
+
+      renderCharts(m);
+    }
+
+    function renderCharts(m) {
+      if (typeof Chart === 'undefined') return;
+      const isDark = document.documentElement.classList.contains('dark');
+      const tickColor = isDark ? '#CBD5E1' : '#374151';
+      const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+      const ctxBridge = document.getElementById('chart-bridge');
+      if (ctxBridge) {
+        if (chartBridgeInstance) chartBridgeInstance.destroy();
+        chartBridgeInstance = new Chart(ctxBridge, {
+          type: 'bar',
+          data: {
+            labels: ['Utilidad Contable', 'Dif. Permanentes', 'Dif. Temporarias', 'API Neto', 'Ingresos Exentos (-)', 'Pérdidas Ant. (-)', 'Renta Gravable'],
+            datasets: [{
+              label: 'Monto (Bs.)',
+              data: [
+                m.balance.utilidadContable,
+                m.conciliation.difPermanentes,
+                m.conciliation.difTemporarias,
+                m.api.resultadoNetoAPI,
+                -m.conciliation.exemptIncome,
+                -m.conciliation.priorLosses,
+                m.conciliation.rentaNetaGravable
+              ],
+              backgroundColor: ['#22c55e', '#f59e0b', '#38bdf8', '#6366F1', '#E11D48', '#F43F5E', '#1A6B4A'],
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { display: false } },
+              y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }
+            }
+          }
+        });
+      }
+
+      const ctxExp = document.getElementById('chart-expenses');
+      if (ctxExp) {
+        if (chartExpensesInstance) chartExpensesInstance.destroy();
+        chartExpensesInstance = new Chart(ctxExp, {
+          type: 'doughnut',
+          data: {
+            labels: ['Deducibles', 'Dif. Permanentes', 'Dif. Temporarias'],
+            datasets: [{
+              data: [
+                Math.max(0, m.conciliation.totalDeducible),
+                Math.max(0, m.conciliation.difPermanentes),
+                Math.max(0, m.conciliation.difTemporarias)
+              ],
+              backgroundColor: ['#22c55e', '#f59e0b', '#38bdf8'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '66%',
+            plugins: {
+              legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 } } }
+            }
+          }
+        });
+      }
+    }
+
+    function renderDictamenSection(m) {
+      const today = new Date().toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
+      setElText('inf-fecha-emision', today);
+      setElText('inf-company-name', state.meta.companyName || 'Contribuyente');
+      setElText('inf-rif', state.meta.rif || 'J-00000000-0');
+      setElText('inf-regime', state.meta.taxpayerType);
+
+      const regimeDesc = m.api.isSPE
+        ? `Como Sujeto Pasivo Especial (SPE), la entidad se encuentra excluida del Ajuste por Inflación Fiscal (API) conforme al Art. 171 de la LISLR, trasladando un efecto neto de 0,00 Bs. por este concepto y actuando como agente de retención bajo el Decreto 1.808.`
+        : `Como Contribuyente Ordinario, la entidad aplica el sistema integral de Ajuste por Inflación Fiscal (Art. 171 al 187 LISLR), incorporando un resultado neto por API de ${fmtBs(m.api.resultadoNetoAPI)} en su determinación.`;
+      setElText('inf-regime-desc', regimeDesc);
+
+      setElText('inf-tbl-ingresos', fmtBs(m.balance.ingresosBrutos, false));
+      setElText('inf-tbl-utilidad', fmtBs(m.balance.utilidadContable, false));
+      setElText('inf-tbl-ajustes', fmtBs(m.conciliation.totalAjuste, false));
+      setElText('inf-tbl-renta', fmtBs(m.conciliation.rentaNetaGravable, false));
+      setElText('inf-tbl-tasa', fmtPct(m.conciliation.tasaAplicada));
+      setElText('inf-tbl-islr', fmtBs(m.conciliation.islrCorriente, false));
+      setElText('inf-tbl-diferido', fmtBs(m.conciliation.activoImpuestoDiferido, false));
+      setElText('inf-tbl-gastoken', fmtBs(m.journal.gastoNetoImpuestos, false));
+      setElText('inf-tbl-tasaefec', fmtPct(m.journal.tasaEfectiva));
+
+      setElText('inf-bridge-util', fmtBs(m.balance.utilidadContable));
+      setElText('inf-bridge-perm', `+ ${fmtBs(m.conciliation.difPermanentes)}`);
+      setElText('inf-bridge-temp', `+ ${fmtBs(m.conciliation.difTemporarias)}`);
+      setElText('inf-bridge-api', `${m.api.resultadoNetoAPI >= 0 ? '+' : ''} ${fmtBs(m.api.resultadoNetoAPI)}`);
+      setElText('inf-bridge-exemp', `- ${fmtBs(m.conciliation.exemptIncome)}`);
+      setElText('inf-bridge-loss', `- ${fmtBs(m.conciliation.priorLosses)}`);
+      setElText('inf-bridge-grav', fmtBs(m.conciliation.rentaNetaGravable));
+
+      setElText('inf-box-islr', fmtBs(m.conciliation.islrCorriente));
+      setElText('inf-box-ret', fmtBs(m.conciliation.creditosFiscales));
+      setElText('inf-ret-info', `Créditos aplicados contra el ISLR propio. Aparte, las retenciones practicadas a proveedores (Dec. 1.808) suman ${fmtBs(m.retentions.totalRetenido)}.`);
+      setElText('inf-islr-desc', tarifaTexto(m));
+
+      const commentBox = document.getElementById('inf-net-payment-comment');
+      if (commentBox) {
+        const diff = m.treasury.saldoNetoTesoreria;
+        if (diff > 0) {
+          commentBox.innerHTML = `<strong class="text-amber-400">Posición Neta de Tesorería (Impuesto por Pagar):</strong> El ISLR Corriente Determinado (${fmtBs(m.conciliation.islrCorriente)}) supera los créditos fiscales aplicados (${fmtBs(m.conciliation.creditosFiscales)}), generando un <strong>Impuesto Neto a Pagar de ${fmtBs(diff)}</strong> ante el SENIAT.`;
+        } else if (diff < 0) {
+          commentBox.innerHTML = `<strong class="text-emerald-400">Posición Neta de Tesorería (Saldo a Favor):</strong> Los créditos fiscales aplicados (${fmtBs(m.conciliation.creditosFiscales)}) superan el ISLR Determinado (${fmtBs(m.conciliation.islrCorriente)}), generando un <strong>saldo a favor de ${fmtBs(Math.abs(diff))}</strong>.`;
+        } else {
+          commentBox.innerHTML = `<strong class="text-emerald-400">Posición Neta de Tesorería:</strong> Los créditos fiscales aplicados cubren exactamente el ISLR Determinado (${fmtBs(m.conciliation.islrCorriente)}).`;
+        }
+      }
+
+      const recBox = document.getElementById('inf-recommendations-list');
+      if (recBox) {
+        const item = (icon, color, title, text) => `<div class="flex items-start gap-2"><i data-lucide="${icon}" class="w-4 h-4 ${color} shrink-0 mt-0.5"></i><p><strong>${escapeHtml(title)}:</strong> ${escapeHtml(text)}</p></div>`;
+        const recs = [];
+        if (!m.balance.isBalanced) recs.push(item('alert-triangle', 'text-rose-400', 'Balance descuadrado', `Corrija la diferencia de ${fmtBs(m.balance.diferenciaCuadre)} antes de presentar la declaración.`));
+        if (m.balance.unsyncedExpenses.length > 0) recs.push(item('alert-triangle', 'text-amber-400', 'Gastos sin analizar', `${m.balance.unsyncedExpenses.length} cuenta(s) de gasto no tienen tratamiento fiscal asignado.`));
+        if (m.retentions.facturasRechazadas > 0) recs.push(item('alert-triangle', 'text-amber-400', 'Decreto 1.808', `${m.retentions.facturasRechazadas} factura(s) sin soporte fiscal o con retención no enterada.`));
+        else recs.push(item('check-circle-2', 'text-emerald-400', 'Cumplimiento Decreto 1.808', 'Mantenga la custodia de comprobantes de retención y soportes fiscales con número de control conforme a la Providencia 0071.'));
+        if (m.conciliation.difTemporarias > 0) recs.push(item('check-circle-2', 'text-emerald-400', 'Control NIC 12 / VEN-NIF', `Se reconoce un activo por impuesto diferido de ${fmtBs(m.conciliation.activoImpuestoDiferido)} sobre las diferencias temporarias.`));
+        recBox.innerHTML = recs.join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+
+      const ctxDict = document.getElementById('chart-dictamen');
+      if (ctxDict && typeof Chart !== 'undefined') {
+        if (chartDictamenInstance) chartDictamenInstance.destroy();
+        const isDark = document.documentElement.classList.contains('dark');
+        const tickColor = isDark ? '#CBD5E1' : '#374151';
+        const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+        chartDictamenInstance = new Chart(ctxDict, {
+          type: 'bar',
+          data: {
+            labels: ['Utilidad Contable', 'Renta Neta Gravable', 'ISLR Determinado', 'Créditos Fiscales', 'Gasto Neto Impuestos'],
+            datasets: [{
+              label: 'Bolívares (Bs.)',
+              data: [
+                m.balance.utilidadContable,
+                m.conciliation.rentaNetaGravable,
+                m.conciliation.islrCorriente,
+                m.conciliation.creditosFiscales,
+                m.journal.gastoNetoImpuestos
+              ],
+              backgroundColor: ['#2D5128', '#1A6B4A', '#22c55e', '#38bdf8', '#15803d'],
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { display: false } },
+              y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }
+            }
+          }
+        });
+      }
+    }
+
+    function updateMeta(field, value) {
+      state.meta[field] = value;
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function renderBalanceSection(m) {
+      const card = document.getElementById('bal-cuadre-card');
+      const diffEl = document.getElementById('bal-diferencia');
+      const badgeEl = document.getElementById('bal-cuadre-badge');
+      if (card && diffEl && badgeEl) {
+        if (m.balance.isBalanced) {
+          card.className = 'luxury-card rounded-2xl p-4 border border-emerald-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+          diffEl.textContent = '0,00 Bs. (Cuadrado)';
+          diffEl.className = 'text-lg sm:text-xl font-bold font-mono mt-0.5 text-emerald-400';
+          badgeEl.innerHTML = '<span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">CUADRE PERFECTO</span>';
+        } else {
+          card.className = 'luxury-card rounded-2xl p-4 border border-rose-500/50 bg-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+          diffEl.textContent = `${fmtBs(m.balance.diferenciaCuadre)} (Descuadre)`;
+          diffEl.className = 'text-lg sm:text-xl font-bold font-mono mt-0.5 text-rose-400';
+          badgeEl.innerHTML = '<span class="px-3 py-1 rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/40 text-xs font-bold">REVISAR ASIENTOS</span>';
+        }
+      }
+
+      setElText('bal-ingresos-brutos', fmtBs(m.balance.ingresosBrutos));
+      setElText('bal-utilidad-contable', fmtBs(m.balance.utilidadContable));
+      setElText('bal-foot-debe', fmtBs(m.balance.totalDebe, false));
+      setElText('bal-foot-haber', fmtBs(m.balance.totalHaber, false));
+      setElText('bal-foot-neto', fmtBs(m.balance.utilidadContable, false));
+
+      const unsyncBadge = document.getElementById('unsynced-expenses-count');
+      if (unsyncBadge) {
+        if (m.balance.unsyncedExpenses.length > 0) {
+          unsyncBadge.textContent = m.balance.unsyncedExpenses.length;
+          unsyncBadge.classList.remove('hidden');
+        } else {
+          unsyncBadge.classList.add('hidden');
+        }
+      }
+
+      renderBalanceTable();
+    }
+
+    function renderBalanceTable() {
+      const m = currentModel || computeFullModel();
+      const tbody = document.getElementById('balance-tbody');
+      if (!tbody) return;
+
+      const search = (document.getElementById('bal-search')?.value || '').toLowerCase().trim();
+      const filterType = document.getElementById('bal-filter-type')?.value || 'ALL';
+
+      const filtered = m.balance.rows.filter(r => {
+        const matchesSearch = !search || r.code.toLowerCase().includes(search) || r.name.toLowerCase().includes(search);
+        const matchesType = filterType === 'ALL' || r.type === filterType;
+        return matchesSearch && matchesType;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400">No hay cuentas contables que coincidan con el filtro actual.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(r => `
+        <tr class="hover:bg-midnight-800/40 transition">
+          <td class="py-2 px-3">
+            <input type="text" value="${escapeHtml(r.code)}" onchange="updateBalanceRow('${r.id}', 'code', this.value)" class="cell-input w-full font-mono text-xs" />
+          </td>
+          <td class="py-2 px-3">
+            <input type="text" value="${escapeHtml(r.name)}" onchange="updateBalanceRow('${r.id}', 'name', this.value)" class="cell-input w-full text-xs" />
+          </td>
+          <td class="py-2 px-3">
+            <select onchange="updateBalanceRow('${r.id}', 'type', this.value)" class="cell-input w-full text-xs cursor-pointer">
+              ${['Activo', 'Pasivo', 'Patrimonio', 'Ingreso', 'Costo', 'Gasto'].map(t => `<option value="${t}" ${r.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </td>
+          <td class="py-2 px-3">
+            <select onchange="updateBalanceRow('${r.id}', 'nature', this.value)" class="cell-input w-full text-xs cursor-pointer">
+              <option value="Deudora" ${r.nature === 'Deudora' ? 'selected' : ''}>Deudora</option>
+              <option value="Acreedora" ${r.nature === 'Acreedora' ? 'selected' : ''}>Acreedora</option>
+            </select>
+          </td>
+          <td class="py-2 px-3">
+            <input type="number" step="0.01" value="${r.debit}" onchange="updateBalanceRow('${r.id}', 'debit', parseFloat(this.value) || 0)" class="cell-input w-full text-right font-mono text-xs" />
+          </td>
+          <td class="py-2 px-3">
+            <input type="number" step="0.01" value="${r.credit}" onchange="updateBalanceRow('${r.id}', 'credit', parseFloat(this.value) || 0)" class="cell-input w-full text-right font-mono text-xs" />
+          </td>
+          <td class="py-2 px-3 text-right font-mono font-bold ${r.netBalance < 0 ? 'text-rose-400' : 'text-white'}">
+            ${fmtBs(r.netBalance, false)}
+          </td>
+          <td class="py-2 px-3 text-center no-print">
+            <button onclick="deleteBalanceRow('${r.id}')" class="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition" title="Eliminar cuenta">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function updateBalanceRow(id, field, value) {
+      const row = state.balance.find(r => r.id === id);
+      if (!row) return;
+      if (field === 'code') {
+        const oldCode = String(row.code).trim();
+        const newCode = String(value).trim();
+        state.conciliation.rows.forEach(c => { if (String(c.code).trim() === oldCode) c.code = newCode; });
+        (state.api.initialRows || []).forEach(a => { if (a.linkBalance && String(a.code).trim() === oldCode) a.code = newCode; });
+        (state.api.regularRows || []).forEach(a => { if (a.sourceType === 'BALANCE' && String(a.code).trim() === oldCode) a.code = newCode; });
+      }
+      row[field] = value;
+      if (field === 'type') {
+        row.nature = ['Activo', 'Costo', 'Gasto'].includes(value) ? 'Deudora' : 'Acreedora';
+      }
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function addBalanceRow() {
+      state.balance.push({
+        id: 'b_' + Date.now(),
+        code: (() => { let n = 99, c; do { c = '6.1.' + n; n++; } while (state.balance.some(b => String(b.code).trim() === c)); return c; })(),
+        name: 'Nueva Cuenta Contable',
+        type: 'Gasto',
+        nature: 'Deudora',
+        debit: 0,
+        credit: 0
+      });
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function deleteBalanceRow(id) {
+      state.balance = state.balance.filter(r => r.id !== id);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function suggestConciliationValues(row) {
+      const m = currentModel || computeFullModel();
+      const bookBal = m.balance.rows
+        .filter(b => String(b.code).trim() === String(row.code).trim())
+        .reduce((acc, b) => acc + b.netBalance, 0);
+      const rule = LEGAL_DATABASE.find(r => r.id === row.ruleId) || UNKNOWN_RULE;
+
+      row.bookBalance = bookBal;
+      if (rule.ruleType === 'ZERO') {
+        row.deductibleAmount = 0;
+        row.diffType = rule.id === 'G-24' ? 'Diferencia Temporaria' : 'Diferencia Permanente';
+        row.autoTope = false;
+      } else if (rule.ruleType === 'DIRECTOR_15_PCT') {
+        row.autoTope = true;
+        row.deductibleAmount = round2(Math.min(bookBal, m.balance.ingresosBrutos * 0.15));
+        row.diffType = bookBal > row.deductibleAmount ? 'Diferencia Permanente' : 'Ninguna (100% Deducible)';
+      } else if (rule.ruleType === 'MANUAL') {
+        row.autoTope = false;
+        let ded = bookBal;
+        if (rule.id === 'G-17') {
+          const ut = Number(state.retentions?.utValue) || 43;
+          const base = Math.max(0, m.balance.utilidadContable);
+          const pct = (base / ut) > 10000 ? 0.08 : 0.10;
+          ded = Math.min(bookBal, base * pct);
+        }
+        row.deductibleAmount = round2(ded);
+        row.diffType = bookBal > row.deductibleAmount ? 'Diferencia Permanente' : 'Ninguna (100% Deducible)';
+      } else {
+        row.deductibleAmount = round2(bookBal);
+        row.diffType = 'Ninguna (100% Deducible)';
+        row.autoTope = false;
+      }
+    }
+
+    function syncExpensesToConciliation() {
+      const m = currentModel || computeFullModel();
+      const unsynced = m.balance.unsyncedExpenses;
+      if (unsynced.length === 0) {
+        showToast('Todas las cuentas de gasto del Balance ya están sincronizadas en la conciliación.', 'info');
+        return;
+      }
+
+      unsynced.forEach((exp, idx) => {
+        let ruleId = 'G-01';
+        const nm = String(exp.name || '');
+        if (/islr|impuesto\s+sobre\s+la\s+renta/i.test(nm)) ruleId = 'G-25';
+        else if (/igtf|grandes\s+transacciones/i.test(nm)) ruleId = 'G-20';
+        else if (/multa|sanci/i.test(nm)) ruleId = 'G-18';
+        else if (/sin factura|informal|sin soporte/i.test(nm)) ruleId = 'G-19';
+        else if (/gastos?\s+personales|consumos?\s+personales/i.test(nm)) ruleId = 'G-21';
+        else if (/exterior/i.test(nm)) ruleId = 'G-22';
+        else if (/provisi/i.test(nm)) ruleId = 'G-24';
+        else if (/director|gerent/i.test(nm)) ruleId = 'G-10';
+        else if (/donaci|liberalidad/i.test(nm)) ruleId = 'G-17';
+        else if (/incobrable|castigo/i.test(nm)) ruleId = 'G-12';
+        else if (/depreciaci|amortizaci/i.test(nm)) ruleId = 'G-11';
+        else if (/impuesto|municipal|patente|timbre/i.test(nm)) ruleId = 'G-03';
+        else if (/honorario/i.test(nm)) ruleId = 'G-09';
+        else if (/alquiler|arrendamiento/i.test(nm)) ruleId = 'G-05';
+        else if (/publicidad|propaganda/i.test(nm)) ruleId = 'G-13';
+        else if (/regal[ií]a|asistencia t[eé]cnica/i.test(nm)) ruleId = 'G-15';
+        else if (/inter[eé]s/i.test(nm)) ruleId = 'G-02';
+        else if (/seguro|prima/i.test(nm)) ruleId = 'G-08';
+        else if (/flete|transporte/i.test(nm)) ruleId = 'G-06';
+        else if (/comisi/i.test(nm)) ruleId = 'G-07';
+        else if (/reparaci|mantenimiento/i.test(nm)) ruleId = 'G-16';
+
+        const newRow = {
+          id: 'c_sync_' + Date.now() + '_' + idx,
+          code: exp.code,
+          accountName: exp.name,
+          ruleId,
+          deductibleAmount: exp.netBalance,
+          diffType: 'Ninguna (100% Deducible)',
+          autoTope: ruleId === 'G-10'
+        };
+        suggestConciliationValues(newRow);
+        state.conciliation.rows.push(newRow);
+      });
+
+      saveStore();
+      recalculateAndRenderAll();
+      showToast(`Se sincronizaron ${unsynced.length} cuenta(s) de gasto exitosamente.`, 'success');
+    }
+
+    function renderConciliationSection(m) {
+      const retAlert = document.getElementById('conc-ret-alert');
+      if (retAlert) {
+        if (m.retentions.facturasRechazadas > 0) {
+          retAlert.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-1.5';
+          retAlert.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>${m.retentions.facturasRechazadas} Factura(s) sin retención válida</span>`;
+        } else {
+          retAlert.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 flex items-center gap-1.5';
+          retAlert.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>Retenciones Dec. 1.808 al día</span>`;
+        }
+      }
+
+      const tbody = document.getElementById('conciliation-tbody');
+      if (tbody) {
+        if (m.conciliation.rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-400">No hay partidas de gastos analizadas. Use "Sincronizar Gastos" o "Analizar Gasto".</td></tr>`;
+        } else {
+          tbody.innerHTML = m.conciliation.rows.map(r => `
+            <tr class="hover:bg-midnight-800/40 transition">
+              <td class="py-2 px-2.5">
+                <input type="text" value="${escapeHtml(r.code)}" onchange="updateConciliationRow('${r.id}', 'code', this.value)" class="cell-input w-full font-mono text-xs" />
+              </td>
+              <td class="py-2 px-2.5">
+                <div class="font-semibold text-white text-xs">${escapeHtml(r.accountName)}</div>
+                <div class="text-[11px] text-slate-400 truncate max-w-[260px]">${escapeHtml(r.rule.name)}</div>
+              </td>
+              <td class="py-2 px-2.5 text-right font-mono font-bold text-white">
+                ${fmtBs(r.bookBalance, false)}
+              </td>
+              <td class="py-2 px-2.5">
+                <select onchange="updateConciliationRow('${r.id}', 'ruleId', this.value)" class="cell-input w-full text-xs cursor-pointer">
+                  ${r.ruleMissing ? '<option value="" selected>— Seleccione regla —</option>' : ''}
+                  ${LEGAL_DATABASE.map(rule => `<option value="${rule.id}" ${r.ruleId === rule.id ? 'selected' : ''}>${rule.id} - ${escapeHtml(rule.name.slice(0, 32))}...</option>`).join('')}
+                </select>
+              </td>
+              <td class="py-2 px-2.5 text-[11px] font-semibold text-gold-400">
+                ${escapeHtml(r.rule.legalBasis)}
+              </td>
+              <td class="py-2 px-2.5">
+                <input type="number" step="0.01" value="${r.deductible}" ${(r.rule.ruleType === 'FULL' || r.rule.ruleType === 'ZERO') ? 'readonly' : ''} onchange="updateConciliationRow('${r.id}', 'deductibleAmount', parseFloat(this.value) || 0)" class="cell-input w-full text-right font-mono text-xs text-emerald-400 font-bold" />
+              </td>
+              <td class="py-2 px-2.5 text-right font-mono font-bold ${r.nonDeductible > 0 ? 'text-amber-400' : 'text-slate-400'}">
+                ${fmtBs(r.nonDeductible, false)}
+              </td>
+              <td class="py-2 px-2.5">
+                <select onchange="updateConciliationRow('${r.id}', 'diffType', this.value)" class="cell-input w-full text-xs cursor-pointer">
+                  <option value="Ninguna (100% Deducible)" ${r.diffType === 'Ninguna (100% Deducible)' ? 'selected' : ''}>Ninguna (100% Deducible)</option>
+                  <option value="Diferencia Permanente" ${r.diffType === 'Diferencia Permanente' ? 'selected' : ''}>Diferencia Permanente</option>
+                  <option value="Diferencia Temporaria" ${r.diffType === 'Diferencia Temporaria' ? 'selected' : ''}>Diferencia Temporaria</option>
+                </select>
+              </td>
+              <td class="py-2 px-2.5 text-center no-print">
+                <button onclick="deleteConciliationRow('${r.id}')" class="text-slate-500 hover:text-rose-400 p-1 rounded-lg transition">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      setElText('conc-foot-saldo', fmtBs(m.conciliation.totalSaldo, false));
+      setElText('conc-foot-deducible', fmtBs(m.conciliation.totalDeducible, false));
+      setElText('conc-foot-ajuste', fmtBs(m.conciliation.totalAjuste, false));
+
+      setElText('res-utilidad-contable', fmtBs(m.balance.utilidadContable));
+      setElText('res-dif-perm', `+ ${fmtBs(m.conciliation.difPermanentes)}`);
+      setElText('res-dif-temp', `+ ${fmtBs(m.conciliation.difTemporarias)}`);
+      setElText('res-ganancia-api', `+ ${fmtBs(m.conciliation.gananciaAPI)}`);
+      setElText('res-perdida-api', `- ${fmtBs(m.conciliation.perdidaAPI)}`);
+
+      const exInput = document.getElementById('input-ingresos-exentos');
+      if (exInput && document.activeElement !== exInput) exInput.value = m.conciliation.exemptIncome;
+      const lossInput = document.getElementById('input-perdidas-anteriores');
+      if (lossInput && document.activeElement !== lossInput) lossInput.value = m.conciliation.priorLosses;
+
+      setElText('res-renta-gravable', fmtBs(m.conciliation.rentaNetaGravable));
+      setElText('res-tasa-aplicada-label', m.conciliation.tarifaMode === 'TARIFA2' ? `Tarifa N.º 2 · efectiva ${fmtNum(m.conciliation.tasaAplicada)}% · marginal ${fmtNum(m.conciliation.tasaMarginal * 100)}%` : `Tasa fija: ${fmtNum(m.conciliation.tasaAplicada)}%`);
+      const crInput = document.getElementById('input-creditos-fiscales');
+      if (crInput && document.activeElement !== crInput) crInput.value = m.conciliation.creditosFiscales;
+      setElText('res-islr-corriente', fmtBs(m.conciliation.islrCorriente));
+      setElText('res-activo-diferido', fmtBs(m.conciliation.activoImpuestoDiferido));
+
+      const jTbody = document.getElementById('journal-tbody');
+      if (jTbody) {
+        jTbody.innerHTML = m.journal.rows.map(j => `
+          <tr>
+            <td class="py-2.5 px-3 font-mono text-gold-400 font-bold">${escapeHtml(j.code)}</td>
+            <td class="py-2.5 px-3 font-medium text-white">${escapeHtml(j.name)}</td>
+            <td class="py-2.5 px-3 text-right font-mono ${j.debit > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${fmtBs(j.debit, false)}</td>
+            <td class="py-2.5 px-3 text-right font-mono ${j.credit > 0 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${fmtBs(j.credit, false)}</td>
+          </tr>
+        `).join('');
+      }
+      setElText('journal-total-debe', fmtBs(m.journal.totalDebe, false));
+      setElText('journal-total-haber', fmtBs(m.journal.totalHaber, false));
+      setElText('journal-gasto-neto', fmtBs(m.journal.gastoNetoImpuestos));
+      setElText('journal-tasa-efectiva', fmtPct(m.journal.tasaEfectiva));
+    }
+
+    function renderApiSection(m) {
+      const statusBadge = document.getElementById('api-status-badge');
+      const speNotice = document.getElementById('api-spe-notice');
+      if (statusBadge && speNotice) {
+        if (m.api.isSPE) {
+          statusBadge.innerHTML = '<span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">EXCLUIDO (ART. 171 SPE)</span>';
+          speNotice.classList.remove('hidden');
+        } else {
+          statusBadge.innerHTML = '<span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">APLICABLE (ORDINARIO)</span>';
+          speNotice.classList.add('hidden');
+        }
+      }
+
+      const initTbody = document.getElementById('api-initial-tbody');
+      if (initTbody) {
+        if (m.api.initialRows.length === 0) {
+          initTbody.innerHTML = `<tr><td colspan="11" class="py-5 text-center text-slate-400">Sin partidas en Ajuste Inicial.</td></tr>`;
+        } else {
+          initTbody.innerHTML = m.api.initialRows.map(r => `
+            <tr class="hover:bg-midnight-800/40 transition">
+              <td class="py-2 px-2.5"><input type="text" value="${escapeHtml(r.code)}" onchange="updateApiInitialRow('${r.id}', 'code', this.value)" class="cell-input w-full font-mono text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="text" value="${escapeHtml(r.name)}" onchange="updateApiInitialRow('${r.id}', 'name', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2.5">
+                <select onchange="updateApiInitialRow('${r.id}', 'partType', this.value)" class="cell-input w-full text-xs">
+                  <option value="Activo No Monetario" ${r.partType === 'Activo No Monetario' ? 'selected' : ''}>Activo No Monetario</option>
+                  <option value="Pasivo No Monetario" ${r.partType === 'Pasivo No Monetario' ? 'selected' : ''}>Pasivo No Monetario</option>
+                </select>
+              </td>
+              <td class="py-2 px-2.5"><input type="date" value="${escapeHtml(r.acqDate)}" onchange="updateApiInitialRow('${r.id}', 'acqDate', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.01" value="${r.cost}" ${r.linkBalance ? 'readonly' : ''} onchange="updateApiInitialRow('${r.id}', 'manualCost', parseFloat(this.value) || 0, {linkBalance: false})" class="cell-input w-full text-right font-mono text-xs" />
+                <label class="flex items-center gap-1 mt-1 text-[10px] text-slate-400 cursor-pointer"><input type="checkbox" ${r.linkBalance ? 'checked' : ''} onchange="updateApiInitialRow('${r.id}', 'linkBalance', this.checked)" class="accent-emerald-500" /> Vincular al balance</label></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.0001" value="${r.inpcOrigin}" onchange="updateApiInitialRow('${r.id}', 'inpcOrigin', parseFloat(this.value) || 1)" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.0001" value="${r.inpcCierreUsed}" onchange="updateApiInitialRow('${r.id}', 'inpcCierre', parseFloat(this.value) || 1)" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2.5 text-right font-mono text-slate-300">${fmtNum(r.factor, 4)}</td>
+              <td class="py-2 px-2.5 text-right font-mono text-sky-300 font-bold">${fmtBs(r.updatedValue, false)}</td>
+              <td class="py-2 px-2.5 text-right font-mono text-gold-400 font-bold">${fmtBs(r.rarAdjustment, false)}</td>
+              <td class="py-2 px-2.5 text-center no-print">
+                <button onclick="deleteApiInitialRow('${r.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      setElText('api-init-foot-costo', fmtBs(m.api.initTotalCosto, false));
+      setElText('api-init-foot-actualizado', fmtBs(m.api.initTotalActualizado, false));
+      setElText('api-init-foot-rar', fmtBs(m.api.initTotalRAR, false));
+      setElText('api-init-tributo-rar', fmtBs(m.api.tributo3PctRAR));
+
+      const regTbody = document.getElementById('api-regular-tbody');
+      if (regTbody) {
+        if (m.api.regularRows.length === 0) {
+          regTbody.innerHTML = `<tr><td colspan="11" class="py-5 text-center text-slate-400">Sin partidas en Reajuste Regular.</td></tr>`;
+        } else {
+          regTbody.innerHTML = m.api.regularRows.map(r => `
+            <tr class="hover:bg-midnight-800/40 transition">
+              <td class="py-2 px-2.5"><input type="text" value="${escapeHtml(r.code)}" onchange="updateApiRegularRow('${r.id}', 'code', this.value)" class="cell-input w-full font-mono text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="text" value="${escapeHtml(r.name)}" onchange="updateApiRegularRow('${r.id}', 'name', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2.5">
+                <select onchange="updateApiRegularRow('${r.id}', 'natureApi', this.value)" class="cell-input w-full text-xs">
+                  <option value="Activo No Monetario" ${r.natureApi === 'Activo No Monetario' ? 'selected' : ''}>Activo No Monetario (+)</option>
+                  <option value="Pasivo No Monetario" ${r.natureApi === 'Pasivo No Monetario' ? 'selected' : ''}>Pasivo No Monetario (-)</option>
+                  <option value="Patrimonio Neto Inicial" ${r.natureApi === 'Patrimonio Neto Inicial' ? 'selected' : ''}>Patrimonio Neto Inicial (-)</option>
+                </select>
+              </td>
+              <td class="py-2 px-2.5"><input type="date" value="${escapeHtml(r.refDate)}" onchange="updateApiRegularRow('${r.id}', 'refDate', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.01" value="${r.base}" ${r.baseSource === 'BALANCE' ? 'readonly' : ''} onchange="updateApiRegularRow('${r.id}', 'manualBase', parseFloat(this.value) || 0, {sourceType: 'MANUAL', baseOverride: true})" class="cell-input w-full text-right font-mono text-xs" />
+                <label class="flex items-center gap-1 mt-1 text-[10px] text-slate-400 cursor-pointer"><input type="checkbox" ${r.sourceType === 'BALANCE' ? 'checked' : ''} onchange="updateApiRegularRow('${r.id}', 'sourceType', this.checked ? 'BALANCE' : 'MANUAL', {baseOverride: false})" class="accent-emerald-500" /> Vincular al balance</label></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.0001" value="${r.inpcOrigUsed}" onchange="updateApiRegularRow('${r.id}', 'inpcOrigin', parseFloat(this.value) || 1, {inpcCierre: ${r.inpcCierreUsed}, useInpcInicio: false})" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2.5"><input type="number" step="0.0001" value="${r.inpcCierreUsed}" onchange="updateApiRegularRow('${r.id}', 'inpcCierre', parseFloat(this.value) || 1, {inpcOrigin: ${r.inpcOrigUsed}, useInpcInicio: false})" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2.5 text-right font-mono text-slate-300">${fmtNum(r.factor, 4)}</td>
+              <td class="py-2 px-2.5 text-right font-mono text-sky-300 font-bold">${fmtBs(r.reajustado, false)}</td>
+              <td class="py-2 px-2.5 text-right font-mono font-bold ${r.gainLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fmtBs(r.gainLoss, false)}</td>
+              <td class="py-2 px-2.5 text-center no-print">
+                <button onclick="deleteApiRegularRow('${r.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      setElText('api-reg-foot-base', fmtBs(m.api.regTotalBase, false));
+      setElText('api-reg-foot-reajustado', fmtBs(m.api.regTotalReajustado, false));
+      setElText('api-reg-foot-subtotal', fmtBs(m.api.regSubtotal, false));
+      setElText('api-reg-foot-neto', m.api.isSPE ? '0,00 Bs. (Excluido SPE Art. 171)' : fmtBs(m.api.resultadoNetoAPI));
+    }
+
+    function renderRetentionsSection(m) {
+      const utInput = document.getElementById('ret-ut-value');
+      if (utInput && document.activeElement !== utInput) utInput.value = m.retentions.utValue;
+      const reparoChk = document.getElementById('ret-reparo-auto');
+      if (reparoChk) reparoChk.checked = m.retentions.reparoAuto;
+      setElText('ret-reparo-monto', fmtBs(m.retentions.reparoRetenciones));
+
+      setElText('ret-kpi-base', fmtBs(m.retentions.totalBase));
+      setElText('ret-sustraendo-base', fmtBs(m.retentions.sustraendoBasePN));
+      setElText('ret-kpi-retenido', fmtBs(m.retentions.totalRetenido));
+      setElText('ret-kpi-valida', fmtBs(m.retentions.baseValida));
+      setElText('ret-kpi-rechazadas', String(m.retentions.facturasRechazadas));
+
+      const rejVal = document.getElementById('ret-kpi-rechazadas');
+      if (rejVal) {
+        rejVal.className = m.retentions.facturasRechazadas > 0
+          ? 'text-xl font-bold font-mono text-rose-400 mt-1'
+          : 'text-xl font-bold font-mono text-emerald-400 mt-1';
+      }
+
+      const tbody = document.getElementById('retentions-tbody');
+      if (tbody) {
+        if (m.retentions.rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="14" class="py-6 text-center text-slate-400">No hay retenciones registradas bajo Decreto 1.808.</td></tr>`;
+        } else {
+          tbody.innerHTML = m.retentions.rows.map(r => `
+            <tr class="hover:bg-midnight-800/40 transition">
+              <td class="py-2 px-2"><input type="date" value="${escapeHtml(r.date)}" onchange="updateRetentionRow('${r.id}', 'date', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2"><input type="text" value="${escapeHtml(r.rif)}" onchange="updateRetentionRow('${r.id}', 'rif', this.value)" class="cell-input w-full font-mono text-xs uppercase" /></td>
+              <td class="py-2 px-2"><input type="text" value="${escapeHtml(r.vendor)}" onchange="updateRetentionRow('${r.id}', 'vendor', this.value)" class="cell-input w-full text-xs" /></td>
+              <td class="py-2 px-2">
+                <select onchange="updateRetentionRow('${r.id}', 'personType', this.value)" class="cell-input w-full text-xs">
+                  <option value="PJ Domiciliada" ${r.personType === 'PJ Domiciliada' ? 'selected' : ''}>PJ Domiciliada</option>
+                  <option value="PN Residente" ${r.personType === 'PN Residente' ? 'selected' : ''}>PN Residente</option>
+                  <option value="PN No Residente" ${r.personType === 'PN No Residente' ? 'selected' : ''}>PN No Residente (34%)</option>
+                  <option value="PJ No Domiciliada" ${r.personType === 'PJ No Domiciliada' ? 'selected' : ''}>PJ No Domiciliada (tarifa manual)</option>
+                </select>
+              </td>
+              <td class="py-2 px-2"><input type="text" value="${escapeHtml(r.invoiceNo)}" onchange="updateRetentionRow('${r.id}', 'invoiceNo', this.value)" class="cell-input w-full font-mono text-xs" /></td>
+              <td class="py-2 px-2"><input type="text" value="${escapeHtml(r.controlNo)}" onchange="updateRetentionRow('${r.id}', 'controlNo', this.value)" class="cell-input w-full font-mono text-xs" /></td>
+              <td class="py-2 px-2">
+                <select onchange="updateRetentionRow('${r.id}', 'concept', this.value)" class="cell-input w-full text-xs">
+                  ${RETENTION_CONCEPTS.map(c => `<option value="${escapeHtml(c.label)}" ${r.concept === c.label ? 'selected' : ''}>${escapeHtml(c.label)}</option>`).join('')}
+                </select>
+              </td>
+              <td class="py-2 px-2"><input type="number" step="0.01" value="${r.taxableBase}" onchange="updateRetentionRow('${r.id}', 'taxableBase', parseFloat(this.value) || 0)" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2"><input type="number" step="0.01" value="${round2(r.retPct * 100)}" onchange="updateRetentionRow('${r.id}', 'retPct', (parseFloat(this.value) || 0) / 100)" class="cell-input w-full text-right font-mono text-xs" /></td>
+              <td class="py-2 px-2 text-right font-mono text-slate-300">${fmtBs(r.sustraendo, false)}</td>
+              <td class="py-2 px-2 text-right font-mono font-bold text-emerald-400">${fmtBs(r.retained, false)}</td>
+              <td class="py-2 px-2 text-center">
+                <select onchange="updateRetentionRow('${r.id}', 'paidSeniat', this.value)" class="cell-input text-xs font-bold ${r.paidSeniat === 'Sí' ? 'text-emerald-400' : 'text-rose-400'}">
+                  <option value="Sí" ${r.paidSeniat === 'Sí' ? 'selected' : ''}>Sí</option>
+                  <option value="No" ${r.paidSeniat === 'No' ? 'selected' : ''}>No</option>
+                </select>
+              </td>
+              <td class="py-2 px-2">
+                <span class="px-2 py-1 rounded-lg text-[10px] font-bold block text-center ${r.isValid ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'}">
+                  ${escapeHtml(r.statusText)}
+                </span>
+              </td>
+              <td class="py-2 px-2 text-center no-print">
+                <button onclick="deleteRetentionRow('${r.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      setElText('ret-foot-base', fmtBs(m.retentions.totalBase, false));
+      setElText('ret-foot-sustraendo', fmtBs(m.retentions.totalSustraendo, false));
+      setElText('ret-foot-retenido', fmtBs(m.retentions.totalRetenido, false));
+    }
+
+    function setLegalCategoryFilter(cat) {
+      legalCategoryFilter = cat;
+      document.querySelectorAll('.legal-cat-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = 'legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-gold-500/50 bg-gold-500/20 text-gold-400';
+        } else {
+          btn.className = 'legal-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700 bg-midnight-800 text-slate-300';
+        }
+      });
+      renderLegalDatabase();
+    }
+
+    function renderLegalDatabase() {
+      const summaryBox = document.getElementById('legal-summary-cards');
+      if (summaryBox) {
+        const countFull = LEGAL_DATABASE.filter(r => r.category === '100% Deducible').length;
+        const countCond = LEGAL_DATABASE.filter(r => r.category === 'Deducible con Tope/Condición').length;
+        const countZero = LEGAL_DATABASE.filter(r => r.category === 'No Permitido (0% Deducible)').length;
+        summaryBox.innerHTML = `
+          <div class="luxury-card rounded-2xl p-4">
+            <span class="text-[11px] font-bold uppercase text-slate-400">Total Reglas Catalogadas</span>
+            <p class="text-2xl font-extrabold font-mono text-gold-400 mt-1">${LEGAL_DATABASE.length}</p>
+            <span class="text-[11px] text-slate-400">Artículos LISLR y Leyes Especiales</span>
+          </div>
+          <div class="luxury-card rounded-2xl p-4">
+            <span class="text-[11px] font-bold uppercase text-emerald-400">100% Deducibles</span>
+            <p class="text-2xl font-extrabold font-mono text-emerald-400 mt-1">${countFull}</p>
+            <span class="text-[11px] text-slate-400">Gastos operativos ordinarios</span>
+          </div>
+          <div class="luxury-card rounded-2xl p-4">
+            <span class="text-[11px] font-bold uppercase text-amber-400">Con Tope o Condición</span>
+            <p class="text-2xl font-extrabold font-mono text-amber-400 mt-1">${countCond}</p>
+            <span class="text-[11px] text-slate-400">Sujetos a límites porcentuales / pagos</span>
+          </div>
+          <div class="luxury-card rounded-2xl p-4">
+            <span class="text-[11px] font-bold uppercase text-rose-400">No Permitidos (0%)</span>
+            <p class="text-2xl font-extrabold font-mono text-rose-400 mt-1">${countZero}</p>
+            <span class="text-[11px] text-slate-400">Reparables en conciliación fiscal</span>
+          </div>
+        `;
+      }
+
+      const tbody = document.getElementById('legal-tbody');
+      if (!tbody) return;
+
+      const search = (document.getElementById('legal-search')?.value || '').toLowerCase().trim();
+      const filtered = LEGAL_DATABASE.filter(r => {
+        const matchCat = legalCategoryFilter === 'ALL' || r.category === legalCategoryFilter;
+        const matchText = !search ||
+          r.id.toLowerCase().includes(search) ||
+          r.name.toLowerCase().includes(search) ||
+          r.legalBasis.toLowerCase().includes(search) ||
+          r.condition.toLowerCase().includes(search);
+        return matchCat && matchText;
+      });
+
+      tbody.innerHTML = filtered.map(r => {
+        const badgeClass = r.category === '100% Deducible'
+          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+          : r.category === 'Deducible con Tope/Condición'
+            ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+            : 'bg-rose-500/15 text-rose-300 border-rose-500/30';
+        return `
+          <tr class="hover:bg-midnight-800/40 transition">
+            <td class="py-3 px-3 font-mono font-bold text-gold-400">${escapeHtml(r.id)}</td>
+            <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg text-[10px] font-bold border ${badgeClass}">${escapeHtml(r.category)}</span></td>
+            <td class="py-3 px-3 font-semibold text-white">${escapeHtml(r.name)}</td>
+            <td class="py-3 px-3 text-slate-300">${escapeHtml(r.description)}</td>
+            <td class="py-3 px-3 font-semibold text-gold-400">${escapeHtml(r.legalBasis)}</td>
+            <td class="py-3 px-3 text-slate-300">${escapeHtml(r.condition)}</td>
+            <td class="py-3 px-3 text-slate-300">${escapeHtml(r.treatment)}</td>
+            <td class="py-3 px-3 text-center font-bold ${r.isPermanentDiff.startsWith('Sí') ? 'text-amber-400' : 'text-sky-300'}">${escapeHtml(r.isPermanentDiff)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tabKey) {
+      activeTab = tabKey;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const targetPanel = document.getElementById(`panel-${tabKey}`);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabKey) {
+          btn.className = 'tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition border border-gold-400 bg-gold-400 text-midnight-950 shadow-md';
+        } else {
+          btn.className = 'tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border border-slate-800 bg-midnight-850 text-slate-300 hover:border-slate-700 hover:text-white';
+        }
+      });
+
+      if (tabKey === 'dashboard' && currentModel) renderCharts(currentModel);
+      if (tabKey === 'dictamen' && currentModel) renderDictamenSection(currentModel);
+    }
+
+    function updateConciliationRow(id, field, value) {
+      const row = state.conciliation.rows.find(r => r.id === id);
+      if (!row) return;
+      row[field] = value;
+      if (field === 'code' || field === 'ruleId') {
+        suggestConciliationValues(row);
+      } else if (field === 'deductibleAmount') {
+        row.autoTope = false;
+      }
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function addConciliationRow() {
+      const firstExpense = state.balance.find(b => b.type === 'Gasto') || state.balance[0];
+      const newRow = {
+        id: 'c_' + Date.now(),
+        code: firstExpense ? firstExpense.code : '6.1.01',
+        ruleId: 'G-01',
+        deductibleAmount: 0,
+        diffType: 'Ninguna (100% Deducible)'
+      };
+      suggestConciliationValues(newRow);
+      state.conciliation.rows.push(newRow);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function deleteConciliationRow(id) {
+      state.conciliation.rows = state.conciliation.rows.filter(r => r.id !== id);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function updateConciliationExtra(field, value) {
+      state.conciliation[field] = value;
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function syncExemptIncomeFromBalance() {
+      const m = currentModel || computeFullModel();
+      const exemptSum = m.balance.rows
+        .filter(b => b.type === 'Ingreso' && /exent|exoner|no grav/i.test(b.name))
+        .reduce((acc, b) => acc + b.netBalance, 0);
+      state.conciliation.exemptIncome = round2(exemptSum);
+      saveStore();
+      recalculateAndRenderAll();
+      showToast(`Ingresos exentos vinculados: ${fmtBs(exemptSum)}`, 'success');
+    }
+
+    function postClosingEntryToBalance() {
+      const m = computeFullModel();
+      if (m.journal.totalDebe <= 0) {
+        showToast('El asiento de cierre tiene monto 0,00 Bs.', 'warning');
+        return;
+      }
+
+      const entries = [
+        { code: '7.1.01', name: 'Gasto por ISLR Corriente (Cierre)', type: 'Gasto', nature: 'Deudora', debit: m.conciliation.islrCorriente, credit: 0 },
+        { code: '1.3.01', name: 'Activo por Impuesto Diferido (NIC 12)', type: 'Activo', nature: 'Deudora', debit: m.conciliation.activoImpuestoDiferido, credit: 0 },
+        { code: '7.1.02', name: 'Beneficio por Impuesto Diferido', type: 'Ingreso', nature: 'Acreedora', debit: 0, credit: m.conciliation.activoImpuestoDiferido },
+        { code: '2.1.05', name: 'ISLR por Pagar (SENIAT)', type: 'Pasivo', nature: 'Acreedora', debit: 0, credit: m.conciliation.islrCorriente }
+      ].filter(e => e.debit > 0 || e.credit > 0);
+
+      state.balance = state.balance.filter(b => !CLOSING_CODES.includes(String(b.code).trim()));
+      entries.forEach((e, i) => {
+        state.balance.push({ id: 'b_close_' + Date.now() + '_' + i, ...e });
+      });
+
+      saveStore();
+      recalculateAndRenderAll();
+      switchTab('balance');
+      showToast('Asiento de cierre contabilizado en Balance.', 'success');
+    }
+
+    function updateApiInitialRow(id, field, value, extra) {
+      const row = state.api.initialRows.find(r => r.id === id);
+      if (!row) return;
+      row[field] = value;
+      if (extra) Object.assign(row, extra);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function addApiInitialRow() {
+      state.api.initialRows.push({
+        id: 'ai_' + Date.now(),
+        code: '1.2.02',
+        name: 'Nueva Partida No Monetaria',
+        partType: 'Activo No Monetario',
+        acqDate: '2025-01-01',
+        linkBalance: false,
+        manualCost: 10000,
+        inpcOrigin: 90.0000,
+        inpcCierre: Number(state.api.inpcInicio) || 100,
+        isDepreciable: false
+      });
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function deleteApiInitialRow(id) {
+      state.api.initialRows = state.api.initialRows.filter(r => r.id !== id);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function updateApiRegularRow(id, field, value, extra) {
+      const row = state.api.regularRows.find(r => r.id === id);
+      if (!row) return;
+      row[field] = value;
+      if (extra) Object.assign(row, extra);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function addApiRegularRow() {
+      state.api.regularRows.push({
+        id: 'ar_' + Date.now(),
+        code: '1.2.02',
+        name: 'Nueva Partida Reajuste',
+        natureApi: 'Activo No Monetario',
+        refDate: '2026-01-01',
+        sourceType: 'MANUAL',
+        manualBase: 10000,
+        useInpcInicio: true,
+        inpcOrigin: state.api.inpcInicio,
+        inpcCierre: Number(state.api.inpcCierre) || Number(state.api.inpcInicio) || 100
+      });
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function deleteApiRegularRow(id) {
+      state.api.regularRows = state.api.regularRows.filter(r => r.id !== id);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function updateRetParam(field, value) {
+      state.retentions[field] = value;
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function updateRetentionRow(id, field, value) {
+      const row = state.retentions.rows.find(r => r.id === id);
+      if (!row) return;
+      row[field] = value;
+      if (field === 'concept' || field === 'personType') {
+        row.retPct = suggestRetPct(row.concept, row.personType);
+      }
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function addRetentionRow() {
+      state.retentions.rows.push({
+        id: 'r_' + Date.now(),
+        date: '2026-10-01',
+        rif: 'J-00000000-0',
+        vendor: 'Nuevo Proveedor, C.A.',
+        personType: 'PJ Domiciliada',
+        invoiceNo: '000001',
+        controlNo: '00-000001',
+        concept: 'Honorarios Profesionales',
+        taxableBase: 5000,
+        retPct: 0.05,
+        paidSeniat: 'Sí'
+      });
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function deleteRetentionRow(id) {
+      state.retentions.rows = state.retentions.rows.filter(r => r.id !== id);
+      saveStore();
+      recalculateAndRenderAll();
+    }
+
+    function handleExcelImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const balSheetName = workbook.SheetNames.find(n => /balance/i.test(n)) || workbook.SheetNames[0];
+          const balSheet = workbook.Sheets[balSheetName];
+          const rows = XLSX.utils.sheet_to_json(balSheet, { header: 1, defval: '' });
+
+          let headerIdx = -1;
+          for (let i = 0; i < Math.min(rows.length, 20); i++) {
+            const rowStr = rows[i].join(' ').toLowerCase();
+            if ((rowStr.includes('cód') || rowStr.includes('cod') || rowStr.includes('cuenta')) && rowStr.includes('debe')) {
+              headerIdx = i;
+              break;
+            }
+          }
+
+          if (headerIdx === -1) {
+            showToast('No se detectó estructura estándar de Balance en el Excel.', 'error');
+            return;
+          }
+
+          const headers = rows[headerIdx].map(h => String(h).toLowerCase().trim());
+          const colCode = headers.findIndex(h => h.includes('cód') || h.includes('cod'));
+          const colName = headers.findIndex(h => h.includes('nombre') || h.includes('descrip') || (h.includes('cuenta') && !h.includes('cód')));
+          const colType = headers.findIndex(h => h.includes('tipo'));
+          const colNature = headers.findIndex(h => h.includes('naturaleza'));
+          const colDebit = headers.findIndex(h => h.includes('debe'));
+          const colCredit = headers.findIndex(h => h.includes('haber'));
+
+          const importedBalance = [];
+          for (let i = headerIdx + 1; i < rows.length; i++) {
+            const r = rows[i];
+            const code = String(r[colCode !== -1 ? colCode : 0] || '').trim();
+            const name = String(r[colName !== -1 ? colName : 1] || '').trim();
+            if (!code || !name || /total/i.test(code) || /total/i.test(name)) continue;
+
+            const debit = parseNumVE(r[colDebit !== -1 ? colDebit : 4]);
+            const credit = parseNumVE(r[colCredit !== -1 ? colCredit : 5]);
+            let type = colType !== -1 ? String(r[colType]).trim() : '';
+            if (!['Activo', 'Pasivo', 'Patrimonio', 'Ingreso', 'Costo', 'Gasto'].includes(type)) {
+              if (code.startsWith('1')) type = 'Activo';
+              else if (code.startsWith('2')) type = 'Pasivo';
+              else if (code.startsWith('3')) type = 'Patrimonio';
+              else if (code.startsWith('4')) type = 'Ingreso';
+              else if (code.startsWith('5')) type = 'Costo';
+              else type = 'Gasto';
+            }
+            const nature = colNature !== -1 && ['Deudora', 'Acreedora'].includes(String(r[colNature]).trim())
+              ? String(r[colNature]).trim()
+              : (['Activo', 'Costo', 'Gasto'].includes(type) ? 'Deudora' : 'Acreedora');
+
+            importedBalance.push({
+              id: 'b_imp_' + i,
+              code,
+              name,
+              type,
+              nature,
+              debit: round2(debit),
+              credit: round2(credit)
+            });
+          }
+
+          if (importedBalance.length > 0) {
+            state.balance = importedBalance;
+            saveStore();
+            recalculateAndRenderAll();
+            switchTab('balance');
+            showToast(`Se importaron ${importedBalance.length} cuentas exitosamente.`, 'success');
+          } else {
+            showToast('El archivo no contenía filas válidas.', 'warning');
+          }
+        } catch (err) {
+          showToast('Error al procesar el archivo Excel.', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function exportToExcel() {
+      try {
+        const m = computeFullModel();
+        const wb = XLSX.utils.book_new();
+
+        const wsBalanceData = [
+          ['TRIBUTOVE | BALANCE DE COMPROBACIÓN'],
+          ['Contribuyente:', state.meta.companyName, 'RIF:', state.meta.rif],
+          [],
+          ['Código', 'Cuenta', 'Tipo', 'Naturaleza', 'Debe', 'Haber', 'Saldo Neto'],
+          ...m.balance.rows.map(r => [r.code, r.name, r.type, r.nature, r.debit, r.credit, r.netBalance]),
+          [],
+          ['', '', '', 'TOTALES:', m.balance.totalDebe, m.balance.totalHaber, ''],
+          ['', '', '', 'Utilidad contable (antes de ISLR):', '', '', m.balance.utilidadContable]
+        ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsBalanceData), 'Balance');
+
+        const wsConcData = [
+          ['CONCILIACIÓN FISCAL ISLR — VENEZUELA'],
+          ['Renta Gravable:', m.conciliation.rentaNetaGravable, 'ISLR Corriente:', m.conciliation.islrCorriente],
+          [],
+          ['Código', 'Cuenta', 'Saldo Libros', 'Deducible', 'No Deducible', 'Tipo de Diferencia'],
+          ...m.conciliation.rows.map(r => [r.code, r.accountName, r.bookBalance, r.deductible, r.nonDeductible, r.diffType])
+        ];
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsConcData), 'Conciliacion');
+
+        XLSX.writeFile(wb, `Cierre_Fiscal_ISLR_${String(state.meta.companyName || 'Empresa').replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`);
+        showToast('Archivo Excel exportado correctamente.', 'success');
+      } catch (err) {
+        showToast('Error al exportar.', 'error');
+      }
+    }
+
+    function printExecutiveReport() {
+      showToast('Preparando Reporte PDF...', 'info');
+      setTimeout(() => window.print(), 350);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const colors = {
+        success: 'bg-midnight-900 border-emerald-500/60 text-emerald-300',
+        error: 'bg-midnight-900 border-rose-500/60 text-rose-300',
+        warning: 'bg-midnight-900 border-amber-500/60 text-amber-300',
+        info: 'bg-midnight-900 border-gold-500/60 text-gold-300'
+      }[type] || 'bg-midnight-900 border-gold-500/60 text-white';
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold flex items-center gap-2.5 transition-all ${colors}`;
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-current shrink-0"></span><span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3600);
+    }
+
+    function openModal(titleHtml, bodyHtml, footerHtml) {
+      setElHtml('modal-title', titleHtml);
+      setElHtml('modal-body', bodyHtml);
+      setElHtml('modal-footer', footerHtml);
+      const modal = document.getElementById('app-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('app-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function openResetModal() {
+      openModal(
+        `<i data-lucide="rotate-ccw" class="w-5 h-5"></i> <span>Opciones de Ejercicio Fiscal</span>`,
+        `<p>Seleccione cómo desea inicializar la hoja de trabajo actual (<strong>${escapeHtml(state.meta.companyName)}</strong>):</p>
+         <div class="grid grid-cols-1 gap-3 pt-2">
+           <button onclick="applyDemoData()" class="p-3.5 rounded-xl bg-gold-500/15 hover:bg-gold-500/25 border border-gold-500/40 text-left transition">
+             <div class="font-bold text-gold-400 text-sm">Restaurar Caso Demo Completo</div>
+             <div class="text-xs text-slate-300 mt-0.5">Carga cuentas contables, conciliación y retenciones.</div>
+           </button>
+           <button onclick="applyEmptyExercise()" class="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-left transition">
+             <div class="font-bold text-white text-sm">Limpiar / Nuevo Ejercicio en Blanco</div>
+             <div class="text-xs text-slate-300 mt-0.5">Vacía todas las tablas para iniciar desde cero.</div>
+           </button>
+         </div>`,
+        `<button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancelar</button>`
+      );
+    }
+
+    function applyDemoData() {
+      state = getDefaultDemoState();
+      saveStore();
+      recalculateAndRenderAll();
+      closeModal();
+      showToast('Datos Demo restaurados correctamente.', 'success');
+    }
+
+    function applyEmptyExercise() {
+      state = getEmptyExerciseState();
+      saveStore();
+      recalculateAndRenderAll();
+      closeModal();
+      showToast('Nuevo ejercicio en blanco inicializado.', 'info');
+    }
+
+    function recalculateAndRenderAll() {
+      const m = computeFullModel();
+      currentModel = m;
+
+      const metaCompany = document.getElementById('meta-company');
+      if (metaCompany && document.activeElement !== metaCompany) metaCompany.value = state.meta.companyName || '';
+      const metaRif = document.getElementById('meta-rif');
+      if (metaRif && document.activeElement !== metaRif) metaRif.value = state.meta.rif || '';
+      const metaPeriod = document.getElementById('meta-period');
+      if (metaPeriod && document.activeElement !== metaPeriod) metaPeriod.value = state.meta.fiscalYear || '';
+      const metaType = document.getElementById('meta-taxpayer-type');
+      if (metaType) metaType.value = state.meta.taxpayerType || 'Sujeto Pasivo Especial';
+      const metaRate = document.getElementById('meta-tax-rate');
+      if (metaRate && document.activeElement !== metaRate) metaRate.value = state.meta.taxRate ?? 34;
+      const metaMode = document.getElementById('meta-tarifa-mode');
+      if (metaMode) metaMode.value = state.meta.tarifaMode === 'FIJA' ? 'FIJA' : 'TARIFA2';
+      if (metaRate) {
+        const fija = state.meta.tarifaMode === 'FIJA';
+        metaRate.disabled = !fija;
+        metaRate.style.opacity = fija ? '1' : '0.45';
+      }
+
+      const regBanner = document.getElementById('regime-banner');
+      const regIcon = document.getElementById('regime-icon');
+      const regText = document.getElementById('regime-text');
+      if (regBanner && regIcon && regText) {
+        if (m.api.isSPE) {
+          regBanner.className = 'mt-4 rounded-xl px-4 py-3 border border-gold-500/40 bg-gold-500/10 flex items-start sm:items-center gap-3 transition-all';
+          regIcon.className = 'p-2 rounded-lg shrink-0 bg-gold-500/20 text-gold-400';
+          regIcon.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i>';
+          regText.innerHTML = `<strong>Régimen Sujeto Pasivo Especial (SPE):</strong> Excluido del Ajuste por Inflación Fiscal (Art. 171 LISLR). Efecto API = <strong>0,00 Bs.</strong> | Obligado a retener ISLR según Decreto 1.808.`;
+        } else {
+          regBanner.className = 'mt-4 rounded-xl px-4 py-3 border border-emerald-500/40 bg-emerald-500/10 flex items-start sm:items-center gap-3 transition-all';
+          regIcon.className = 'p-2 rounded-lg shrink-0 bg-emerald-500/20 text-emerald-400';
+          regIcon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i>';
+          regText.innerHTML = `<strong>Régimen Contribuyente Ordinario:</strong> Sujeto al Ajuste por Inflación Fiscal (Art. 171-187 LISLR). Efecto API Neto trasladado = <strong>${fmtBs(m.api.resultadoNetoAPI)}</strong>.`;
+        }
+      }
+
+      renderNavigationBadges(m);
+      renderDashboard(m);
+      renderBalanceSection(m);
+      renderConciliationSection(m);
+      renderApiSection(m);
+      renderRetentionsSection(m);
+      renderDictamenSection(m);
+      renderLegalDatabase();
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      if (window.EMPRESA && window.EMPRESA.id) {
+        const st = !m.balance.rows.length
+          ? { e: 'sin', d: 'Sin balance cargado' }
+          : (!m.balance.isBalanced
+              ? { e: 'proc', d: 'Descuadre en balance: ' + fmtBs(m.balance.diferenciaCuadre) }
+              : { e: 'ok', d: 'ISLR Corriente: ' + fmtBs(m.conciliation.islrCorriente) });
+        try {
+          parent.postMessage({ type: 'ux-status', emp: window.EMPRESA.id, mod: 'cislr', st: st }, '*');
+        } catch (e) {}
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadStore();
+      recalculateAndRenderAll();
+      switchTab('dashboard');
+    });
+  </script>
+<script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
+</html>

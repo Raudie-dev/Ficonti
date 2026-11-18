@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script id="tv-theme-listener">
+(function() {
+  function setT(t) {
+    document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
+  setT(initT);
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'tv-theme-change') {
+      setT(e.data.theme);
+    }
+  });
+})();
+</script>
+<script id="tv-bridge">
+window.EMPRESA = {{ tv_config.empresa|safe }};
+(function() {
+  var datosServidor = {{ tv_config.datos|safe }};
+  var prefix = "emp:" + (window.EMPRESA ? window.EMPRESA.id : "0") + ":";
+  for (var k in datosServidor) {
+    if (Object.prototype.hasOwnProperty.call(datosServidor, k)) {
+      try { localStorage.setItem(prefix + k, datosServidor[k]); } catch(e){}
+    }
+  }
+  var origSet = Storage.prototype.setItem;
+  var origRemove = Storage.prototype.removeItem;
+  var origGet = Storage.prototype.getItem;
+  var saveQueue = {};
+  var saveTimer = null;
+
+  function syncToServer() {
+    var payload = Object.assign({}, saveQueue);
+    saveQueue = {};
+    if (!window.EMPRESA || !window.EMPRESA.id) return;
+    fetch("{{ tv_config.urlDatos }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ tv_config.csrf }}"
+      },
+      body: JSON.stringify({ cambios: payload })
+    }).catch(function(err){ console.warn("Error sincronizando módulo:", err); });
+  }
+
+  Storage.prototype.getItem = function(key) {
+    if (key === 'tv-theme') return origGet.call(this, key);
+    return origGet.call(this, prefix + key);
+  };
+  Storage.prototype.setItem = function(key, val) {
+    if (key === 'tv-theme') return origSet.call(this, key, val);
+    origSet.call(this, prefix + key, val);
+    saveQueue[key] = val;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(syncToServer, 500);
+  };
+  Storage.prototype.removeItem = function(key) {
+    if (key === 'tv-theme') return origRemove.call(this, key);
+    origRemove.call(this, prefix + key);
+    saveQueue[key] = null;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(syncToServer, 500);
+  };
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculo AR-I · Determinación % Retención ISLR (Decreto 1.808)</title>
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #0b0e0c;
+    --surface: #141815;
+    --surface-2: #1a201c;
+    --border: rgba(255,255,255,0.08);
+    --text: #f3f6f4;
+    --muted: #8b958e;
+    --lime: #1A6B4A;
+    --lime-ink: #0b0e0c;
+    --green: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+  }
+  [data-theme="light"] {
+    --bg: #f2f5f1;
+    --surface: #ffffff;
+    --surface-2: #f7faf5;
+    --border: rgba(0,0,0,0.09);
+    --text: #0b0e0c;
+    --muted: #5f6861;
+    --lime: #2D5128;
+    --lime-ink: #ffffff;
+    --green: #16a34a;
+    --warn: #d97706;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0.75rem 1rem 2rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+  }
+  .top-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.65rem 1rem;
+  }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .tab-btn {
+    background: var(--surface-2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.45rem 0.95rem;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tab-btn.active {
+    background: #1A6B4A ; color: #ffffff ;
+    border-color: #1A6B4A;
+    font-weight: 700;
+  }
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .btn {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.45rem 0.9rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: #1A6B4A ; color: #ffffff ;
+    border-color: #1A6B4A;
+    font-weight: 700;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1rem;
+  }
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.15rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card h3 {
+    margin: 0 0 0.85rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kpi-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+  }
+  .kpi-val {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .kpi-val.accent {
+    color: #22c55e;
+  }
+  [data-theme="dark"] .kpi-val.accent {
+    color: #1A6B4A;
+  }
+  .kpi-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+  label {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  input, select {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0.5rem 0.65rem;
+    color: var(--text);
+    font: inherit;
+  }
+  input:focus, select:focus {
+    outline: 2px solid #1A6B4A;
+    border-color: transparent;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+  }
+  th, td {
+    padding: 0.6rem 0.65rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge {
+    display: inline-block;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .badge-ok { background: rgba(34,197,94,0.16); color: #22c55e; }
+  .badge-warn { background: rgba(245,158,11,0.16); color: #f59e0b; }
+  .hidden { display: none !important; }
+  @media print {
+    .top-nav, .no-print { display: none !important; }
+    body { background: #fff; color: #000; }
+    .card { border: 1px solid #ccc; box-shadow: none; }
+  }
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
+</style>
+<style id="tv-print-clean">
+td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
+
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab-btn active" data-tab="form" onclick="switchTab('form')">1. Formulario AR-I</button>
+    <button type="button" class="tab-btn" data-tab="nomina" onclick="switchTab('nomina')">2. Nómina AR-I (<span id="countNomina">0</span>)</button>
+    <button type="button" class="tab-btn" data-tab="tarifa" onclick="switchTab('tarifa')">3. Tarifa N.° 1 y Base Legal</button>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn btn-primary" onclick="guardarTrabajador()">+ Guardar en Nómina</button>
+    <button type="button" class="btn" onclick="window.print()">Imprimir AR-I</button>
+  </div>
+</div>
+
+<!-- KPIs Principales -->
+<div class="kpi-row">
+  <div class="card" style="margin:0;">
+    <div class="kpi-label">Remuneración Anual Estimada</div>
+    <div class="kpi-val" id="kpiRemBs">Bs. 0,00</div>
+    <div class="kpi-sub" id="kpiRemUt">0,00 U.T. (Mínimo legal: 1.000 U.T.)</div>
+  </div>
+  <div class="card" style="margin:0;">
+    <div class="kpi-label">Enriquecimiento Neto Gravable</div>
+    <div class="kpi-val" id="kpiNetoUt">0,00 U.T.</div>
+    <div class="kpi-sub" id="kpiDesgInfo">Desgravamen Único: 774,00 U.T.</div>
+  </div>
+  <div class="card" style="margin:0;">
+    <div class="kpi-label">Impuesto Estimado del Año</div>
+    <div class="kpi-val" id="kpiImpBs">Bs. 0,00</div>
+    <div class="kpi-sub" id="kpiImpUt">0,00 U.T. neto de rebajas</div>
+  </div>
+  <div class="card" style="margin:0;">
+    <div class="kpi-label">% de Retención AR-I (Casilla J)</div>
+    <div class="kpi-val accent" id="kpiPctAri">0,00 %</div>
+    <div class="kpi-sub" id="kpiRetMensual">Retención mensual est.: Bs. 0,00</div>
+  </div>
+</div>
+
+<!-- TAB 1: FORMULARIO AR-I -->
+<div id="tab-form">
+  <div class="grid-2">
+    <!-- Datos del Trabajador y Parámetros -->
+    <div class="card">
+      <h3>
+        <span>Datos del Trabajador y Ejercicio</span>
+        <span id="badgeObligado" class="badge badge-ok">Verifica 1.000 U.T.</span>
+      </h3>
+      <div class="form-grid">
+        <div>
+          <label>Apellidos y Nombres del Trabajador</label>
+          <input type="text" id="trabNombre" placeholder="Ej. Pérez Rodríguez, Juan Carlos" oninput="recalc()">
+        </div>
+        <div>
+          <label>Cédula de Identidad / RIF</label>
+          <input type="text" id="trabRif" placeholder="Ej. V-18456789-0" oninput="recalc()">
+        </div>
+        <div>
+          <label>Año Gravable</label>
+          <input type="number" id="anioGravable" value="2026" oninput="recalc()">
+        </div>
+        <div>
+          <label>Mes de Presentación / Variación</label>
+          <select id="tipoVariacion" onchange="recalc()">
+            <option value="inicial">Inicial (Antes primera quincena Enero/Febrero)</option>
+            <option value="marzo">1ra Variación (Marzo)</option>
+            <option value="junio">2da Variación (Junio)</option>
+            <option value="septiembre">3ra Variación (Septiembre)</option>
+            <option value="diciembre">4ta Variación (Diciembre)</option>
+          </select>
+        </div>
+        <div>
+          <label>Valor Unidad Tributaria (Bs./U.T.)</label>
+          <input type="number" step="0.01" id="valorUt" value="43.00" oninput="recalc()">
+        </div>
+        <div>
+          <label>Agente de Retención (Empresa Activa)</label>
+          <input type="text" id="empAgente" readonly>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 1.15rem;">Estimación de Remuneraciones Anuales (Bs.)</h3>
+      <div class="form-grid">
+        <div>
+          <label>Empresa A (Principal) · Sueldos, Bonos, Utilidades</label>
+          <input type="number" step="0.01" id="remEmpA" value="180000" oninput="recalc()">
+        </div>
+        <div>
+          <label>Empresa B · Otras Remuneraciones Anuales</label>
+          <input type="number" step="0.01" id="remEmpB" value="0" oninput="recalc()">
+        </div>
+        <div>
+          <label>Empresa C · Otras Remuneraciones Anuales</label>
+          <input type="number" step="0.01" id="remEmpC" value="0" oninput="recalc()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Desgravámenes, Rebajas y Variación -->
+    <div class="card">
+      <h3>Desgravámenes (Arts. 59 y 60 LISLR) y Rebajas (Art. 61)</h3>
+      <div class="form-grid" style="margin-bottom: 0.85rem;">
+        <div>
+          <label>Tipo de Desgravamen</label>
+          <select id="tipoDesg" onchange="recalc()">
+            <option value="unico">Desgravamen Único (774 U.T. automático)</option>
+            <option value="detallado">Desgravámenes Detallados (Educación, HCM, Médicos, Vivienda)</option>
+          </select>
+        </div>
+        <div>
+          <label>Cargas Familiares (10 U.T. c/u)</label>
+          <input type="number" min="0" max="20" id="cargasFam" value="2" oninput="recalc()">
+        </div>
+        <div>
+          <label>Impuesto Retenido de Más Años Anteriores (Bs.)</label>
+          <input type="number" step="0.01" id="retExcesoAnt" value="0" oninput="recalc()">
+        </div>
+      </div>
+
+      <div id="boxDesgDetallado" class="form-grid hidden" style="margin-bottom: 0.85rem; padding: 0.75rem; background: var(--surface-2); border-radius: 12px;">
+        <div>
+          <label>1. Institutos Docentes (Bs.)</label>
+          <input type="number" step="0.01" id="desgEdu" value="0" oninput="recalc()">
+        </div>
+        <div>
+          <label>2. Primas de Seguro HCM (Bs.)</label>
+          <input type="number" step="0.01" id="desgHcm" value="0" oninput="recalc()">
+        </div>
+        <div>
+          <label>3. Servicios Médicos/Odontológicos (Bs.)</label>
+          <input type="number" step="0.01" id="desgMed" value="0" oninput="recalc()">
+        </div>
+        <div>
+          <label>4. Intereses/Alquiler Vivienda Principal (Bs.)</label>
+          <input type="number" step="0.01" id="desgViv" value="0" oninput="recalc()">
+        </div>
+      </div>
+
+      <h3>Datos de Variación en el Año (Casilla K — Art. 7 Decreto 1.808)</h3>
+      <div class="form-grid">
+        <div>
+          <label>Remuneraciones Percibidas hasta la Fecha (Bs.)</label>
+          <input type="number" step="0.01" id="remPercibida" value="0" oninput="recalc()">
+        </div>
+        <div>
+          <label>Impuesto Retenido hasta la Fecha (Bs.)</label>
+          <input type="number" step="0.01" id="impRetenidoFecha" value="0" oninput="recalc()">
+        </div>
+      </div>
+
+      <!-- Tabla Resumen Oficial de Casillas AR-I -->
+      <table style="margin-top: 1rem;">
+        <thead>
+          <tr>
+            <th>Casilla Planilla AR-I</th>
+            <th class="num">Unidades Tributarias</th>
+            <th class="num">Bolívares (Bs.)</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCasillasAri"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: NÓMINA DE TRABAJADORES AR-I -->
+<div id="tab-nomina" class="hidden">
+  <div class="card">
+    <h3>
+      <span>Registro de Porcentajes AR-I de Trabajadores</span>
+      <input type="number" step="0.01" id="sueldoSimMensual" placeholder="Simular sueldo mensual (Bs.)" style="max-width: 230px;" oninput="renderNomina()">
+    </h3>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Trabajador</th>
+            <th>Cédula / RIF</th>
+            <th>Variación</th>
+            <th class="num">Remuneración Anual</th>
+            <th class="num">Enriq. Neto (U.T.)</th>
+            <th class="num">Cargas</th>
+            <th class="num">% Retención AR-I</th>
+            <th class="num">Retención Mensual</th>
+            <th class="no-print">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyNomina"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: TARIFA N° 1 Y BASE LEGAL -->
+<div id="tab-tarifa" class="hidden">
+  <div class="card">
+    <h3>Tarifa N.° 1 · Personas Naturales Residentes (Art. 50 LISLR)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Tramo</th>
+          <th>Fracción Comprendida</th>
+          <th class="num">Tasa (%)</th>
+          <th class="num">Sustraendo (U.T.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Hasta 1.000,00 U.T.</td><td class="num">6,00 %</td><td class="num">0 U.T.</td></tr>
+        <tr><td>2</td><td>De 1.000,01 a 1.500,00 U.T.</td><td class="num">9,00 %</td><td class="num">30 U.T.</td></tr>
+        <tr><td>3</td><td>De 1.500,01 a 2.000,00 U.T.</td><td class="num">12,00 %</td><td class="num">75 U.T.</td></tr>
+        <tr><td>4</td><td>De 2.000,01 a 2.500,00 U.T.</td><td class="num">16,00 %</td><td class="num">155 U.T.</td></tr>
+        <tr><td>5</td><td>De 2.500,01 a 3.000,00 U.T.</td><td class="num">20,00 %</td><td class="num">255 U.T.</td></tr>
+        <tr><td>6</td><td>De 3.000,01 a 4.000,00 U.T.</td><td class="num">24,00 %</td><td class="num">375 U.T.</td></tr>
+        <tr><td>7</td><td>De 4.000,01 a 6.000,00 U.T.</td><td class="num">29,00 %</td><td class="num">575 U.T.</td></tr>
+        <tr><td>8</td><td>Mayor de 6.000,00 U.T.</td><td class="num">34,00 %</td><td class="num">875 U.T.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  var ARI_KEY = "ari_state_v1";
+  var TRAMOS_T1 = [
+    { max: 1000, pct: 0.06, sus: 0 },
+    { max: 1500, pct: 0.09, sus: 30 },
+    { max: 2000, pct: 0.12, sus: 75 },
+    { max: 2500, pct: 0.16, sus: 155 },
+    { max: 3000, pct: 0.20, sus: 255 },
+    { max: 4000, pct: 0.24, sus: 375 },
+    { max: 6000, pct: 0.29, sus: 575 },
+    { max: Infinity, pct: 0.34, sus: 875 }
+  ];
+
+  var state = {
+    form: {
+      trabNombre: "Pérez Rodríguez, Juan Carlos",
+      trabRif: "V-18456789-0",
+      anioGravable: 2026,
+      tipoVariacion: "inicial",
+      valorUt: 43.00,
+      remEmpA: 180000,
+      remEmpB: 0,
+      remEmpC: 0,
+      tipoDesg: "unico",
+      cargasFam: 2,
+      retExcesoAnt: 0,
+      desgEdu: 0,
+      desgHcm: 0,
+      desgMed: 0,
+      desgViv: 0,
+      remPercibida: 0,
+      impRetenidoFecha: 0
+    },
+    nomina: []
+  };
+
+  function fmt(n) {
+    return (Number(n) || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function calcularTarifa1(utNeto) {
+    if (utNeto <= 0) return { impUt: 0, tramo: 1, pct: 6, sus: 0 };
+    for (var i = 0; i < TRAMOS_T1.length; i++) {
+      if (utNeto <= TRAMOS_T1[i].max) {
+        var imp = Math.max(0, utNeto * TRAMOS_T1[i].pct - TRAMOS_T1[i].sus);
+        return { impUt: imp, tramo: i + 1, pct: TRAMOS_T1[i].pct * 100, sus: TRAMOS_T1[i].sus };
+      }
+    }
+    return { impUt: 0, tramo: 1, pct: 6, sus: 0 };
+  }
+
+  function switchTab(id) {
+    ["form", "nomina", "tarifa"].forEach(function(t) {
+      document.getElementById("tab-" + t).classList.toggle("hidden", t !== id);
+    });
+    document.querySelectorAll(".tab-btn").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-tab") === id);
+    });
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(ARI_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.form) state.form = Object.assign(state.form, parsed.form);
+        if (parsed && Array.isArray(parsed.nomina)) state.nomina = parsed.nomina;
+      }
+    } catch (e) {}
+
+    var E = window.EMPRESA || {};
+    document.getElementById("empAgente").value = (E.nombre || "Empresa Activa") + (E.rif ? " (" + E.rif + ")" : "");
+    Object.keys(state.form).forEach(function(k) {
+      var el = document.getElementById(k);
+      if (el) el.value = state.form[k];
+    });
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(ARI_KEY, JSON.stringify(state));
+    } catch (e) {}
+    reportStatus();
+  }
+
+  function computeAri() {
+    var f = state.form;
+    var ut = Math.max(0.01, Number(f.valorUt) || 43);
+    var remTotalBs = (Number(f.remEmpA) || 0) + (Number(f.remEmpB) || 0) + (Number(f.remEmpC) || 0);
+    var remTotalUt = remTotalBs / ut;
+
+    var desgUt = 774;
+    var desgBs = 774 * ut;
+    if (f.tipoDesg === "detallado") {
+      desgBs = (Number(f.desgEdu) || 0) + (Number(f.desgHcm) || 0) + (Number(f.desgMed) || 0) + (Number(f.desgViv) || 0);
+      desgUt = desgBs / ut;
+    }
+
+    var enriqNetoUt = Math.max(0, remTotalUt - desgUt);
+    var t1 = calcularTarifa1(enriqNetoUt);
+
+    var rebajaPersonalUt = 10;
+    var rebajaCargasUt = Math.max(0, parseInt(f.cargasFam, 10) || 0) * 10;
+    var rebajaExcesoUt = (Number(f.retExcesoAnt) || 0) / ut;
+    var totalRebajasUt = rebajaPersonalUt + rebajaCargasUt + rebajaExcesoUt;
+
+    var impRetenerUt = Math.max(0, t1.impUt - totalRebajasUt);
+    var impRetenerBs = impRetenerUt * ut;
+
+    var pctInicial = remTotalUt > 0 ? (impRetenerUt / remTotalUt) * 100 : 0;
+    var pctFinal = pctInicial;
+
+    var remPerc = Number(f.remPercibida) || 0;
+    var impRetFecha = Number(f.impRetenidoFecha) || 0;
+    if (f.tipoVariacion !== "inicial" && (remPerc > 0 || impRetFecha > 0)) {
+      var remRestante = Math.max(0, remTotalBs - remPerc);
+      var impRestante = Math.max(0, impRetenerBs - impRetFecha);
+      pctFinal = remRestante > 0 ? (impRestante / remRestante) * 100 : 0;
+    }
+    pctFinal = Math.min(34, Math.max(0, pctFinal));
+
+    return {
+      ut: ut,
+      remTotalBs: remTotalBs,
+      remTotalUt: remTotalUt,
+      obligado: remTotalUt > 1000,
+      desgUt: desgUt,
+      desgBs: desgBs,
+      enriqNetoUt: enriqNetoUt,
+      t1: t1,
+      totalRebajasUt: totalRebajasUt,
+      impRetenerUt: impRetenerUt,
+      impRetenerBs: impRetenerBs,
+      pctFinal: pctFinal,
+      retMensualEst: (remTotalBs / 12) * (pctFinal / 100)
+    };
+  }
+
+  function recalc() {
+    Object.keys(state.form).forEach(function(k) {
+      var el = document.getElementById(k);
+      if (el) state.form[k] = el.value;
+    });
+
+    document.getElementById("boxDesgDetallado").classList.toggle("hidden", state.form.tipoDesg !== "detallado");
+
+    var r = computeAri();
+    document.getElementById("kpiRemBs").textContent = "Bs. " + fmt(r.remTotalBs);
+    document.getElementById("kpiRemUt").textContent = fmt(r.remTotalUt) + " U.T. (Mínimo legal: 1.000 U.T.)";
+    document.getElementById("kpiNetoUt").textContent = fmt(r.enriqNetoUt) + " U.T.";
+    document.getElementById("kpiDesgInfo").textContent = (state.form.tipoDesg === "unico" ? "Desgravamen Único: " : "Desgravamen Detallado: ") + fmt(r.desgUt) + " U.T.";
+    document.getElementById("kpiImpBs").textContent = "Bs. " + fmt(r.impRetenerBs);
+    document.getElementById("kpiImpUt").textContent = fmt(r.impRetenerUt) + " U.T. (Tramo " + r.t1.tramo + " · " + r.t1.pct + "%)";
+    document.getElementById("kpiPctAri").textContent = fmt(r.pctFinal) + " %";
+    document.getElementById("kpiRetMensual").textContent = "Retención mensual est.: Bs. " + fmt(r.retMensualEst);
+
+    var b = document.getElementById("badgeObligado");
+    if (r.obligado) {
+      b.className = "badge badge-ok";
+      b.textContent = "Obligado a presentar AR-I (> 1.000 U.T.)";
+    } else {
+      b.className = "badge badge-warn";
+      b.textContent = "No supera 1.000 U.T. anuales";
+    }
+
+    document.getElementById("tablaCasillasAri").innerHTML = [
+      ["A/B. Total Remuneraciones Estimadas", fmt(r.remTotalUt) + " U.T.", "Bs. " + fmt(r.remTotalBs)],
+      ["C/E. Desgravamen Aplicado", fmt(r.desgUt) + " U.T.", "Bs. " + fmt(r.desgBs)],
+      ["F. Enriquecimiento Neto Gravable (B - E)", fmt(r.enriqNetoUt) + " U.T.", "Bs. " + fmt(r.enriqNetoUt * r.ut)],
+      ["G. Impuesto según Tarifa N.° 1 (Tramo " + r.t1.tramo + " · " + r.t1.pct + "%)", fmt(r.t1.impUt) + " U.T.", "Bs. " + fmt(r.t1.impUt * r.ut)],
+      ["H. Total Rebajas (Personal 10 U.T. + Cargas)", fmt(r.totalRebajasUt) + " U.T.", "Bs. " + fmt(r.totalRebajasUt * r.ut)],
+      ["I. Impuesto Estimado a Retener en el Año (G - H)", fmt(r.impRetenerUt) + " U.T.", "Bs. " + fmt(r.impRetenerBs)],
+      ["J/K. Porcentaje de Retención AR-I Aplicable", fmt(r.pctFinal) + " %", "Bs. " + fmt(r.retMensualEst) + " / mes"]
+    ].map(function(row) {
+      return "<tr><td>" + row[0] + "</td><td class='num'>" + row[1] + "</td><td class='num'><strong>" + row[2] + "</strong></td></tr>";
+    }).join("");
+
+    renderNomina();
+    saveState();
+  }
+
+  function guardarTrabajador() {
+    var r = computeAri();
+    var item = {
+      id: Date.now(),
+      nombre: state.form.trabNombre || "Trabajador",
+      rif: state.form.trabRif || "V-00000000",
+      variacion: state.form.tipoVariacion,
+      remTotalBs: r.remTotalBs,
+      enriqNetoUt: r.enriqNetoUt,
+      cargas: state.form.cargasFam,
+      pct: r.pctFinal
+    };
+    state.nomina.unshift(item);
+    renderNomina();
+    saveState();
+    switchTab("nomina");
+  }
+
+  function eliminarTrabajador(id) {
+    state.nomina = state.nomina.filter(function(x) { return x.id !== id; });
+    renderNomina();
+    saveState();
+  }
+
+  function renderNomina() {
+    document.getElementById("countNomina").textContent = state.nomina.length;
+    var sueldoSim = Number(document.getElementById("sueldoSimMensual").value) || 0;
+    var tb = document.getElementById("tbodyNomina");
+    if (!state.nomina.length) {
+      tb.innerHTML = "<tr><td colspan='9' style='text-align:center;color:var(--muted);padding:1.5rem;'>No hay trabajadores guardados en la nómina AR-I. Pulse «+ Guardar en Nómina» para registrar el cálculo actual.</td></tr>";
+      return;
+    }
+    tb.innerHTML = state.nomina.map(function(w) {
+      var baseMes = sueldoSim > 0 ? sueldoSim : (w.remTotalBs / 12);
+      var retMes = baseMes * (w.pct / 100);
+      return "<tr>" +
+        "<td><strong>" + w.nombre + "</strong></td>" +
+        "<td>" + w.rif + "</td>" +
+        "<td>" + w.variacion.toUpperCase() + "</td>" +
+        "<td class='num'>Bs. " + fmt(w.remTotalBs) + "</td>" +
+        "<td class='num'>" + fmt(w.enriqNetoUt) + " U.T.</td>" +
+        "<td class='num'>" + w.cargas + "</td>" +
+        "<td class='num'><span class='badge badge-ok'>" + fmt(w.pct) + " %</span></td>" +
+        "<td class='num'>Bs. " + fmt(retMes) + "</td>" +
+        "<td class='no-print'><button type='button' class='btn' onclick='eliminarTrabajador(" + w.id + ")'>Eliminar</button></td>" +
+      "</tr>";
+    }).join("");
+  }
+
+  function reportStatus() {
+    var r = computeAri();
+    var E = window.EMPRESA || {};
+    if (!E.id) return;
+    var est = (state.nomina.length > 0 || r.pctFinal > 0) ? "ok" : "proc";
+    var det = "AR-I: " + fmt(r.pctFinal) + "% (" + state.nomina.length + " trab.)";
+    try {
+      parent.postMessage({
+        type: "ux-status",
+        emp: E.id,
+        mod: "ari",
+        st: { e: est, d: det }
+      }, "*");
+    } catch (e) {}
+  }
+
+  window.addEventListener("message", function(e) {
+    if (e.data && e.data.type === "ux-do-print") window.print();
+  });
+
+  loadState();
+  recalc();
+</script>
+<script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
+</html>

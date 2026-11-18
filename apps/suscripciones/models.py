@@ -23,15 +23,17 @@ METODOS_PAGO = [
 ]
 
 MODULOS_DISPONIBLES = [
-    ('planificacion', 'Planificación Fiscal SPE'),
-    ('retenciones_islr', 'Retenciones ISLR'),
-    ('retenciones_iva', 'Retenciones IVA'),
-    ('calendario', 'Calendario Fiscal'),
-    ('impuesto_diferido', 'Impuesto Diferido'),
-    ('grandes_patrimonios', 'Grandes Patrimonios'),
-    ('conciliacion', 'Conciliación Bancaria'),
-    ('ajuste_inicial', 'Ajuste Inicial Fiscal'),
-    ('cedula_fiscal', 'Cédula Fiscal ISLR'),
+    ('planificacion', 'Planificación fiscal'),
+    ('retenciones_islr', 'Retenciones (ISLR)'),
+    ('sanciones_cot', 'Simulador Sanciones'),
+    ('calendario', 'Calendario fiscal'),
+    ('calculo_ari', 'Calculo ARI'),
+    ('estimada_islr', 'ISLR Estimada'),
+    ('grandes_patrimonios', 'Grandes patrimonios'),
+    ('auditoria_ingresos', 'Conciliacion Ingresos'),
+    ('conciliacion', 'Conciliación bancaria'),
+    ('conciliacion_islr', 'Conciliacion Fiscal Pro (8)'),
+    ('precios_transferencia', 'Precios de Transferencia'),
 ]
 
 
@@ -123,6 +125,10 @@ class Suscripcion(models.Model):
         if not self.vence:
             return None
         return (self.vence - timezone.localdate()).days
+
+    @property
+    def fecha_fin(self):
+        return self.vence
 
     def registrar_pago(self, monto, moneda='USD', dias=None, registrado_por=None, nota='', referencia='', metodo='pago_movil', plan=None, ciclo='mensual', estado='aprobado'):
         dias = dias or settings.TRIBUTOVE.get('DIAS_POR_PAGO', 30)
@@ -247,3 +253,7 @@ class ConfiguracionPago(models.Model):
     def obtener(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    @property
+    def monto_mensualidad_usd(self):
+        return self.monto

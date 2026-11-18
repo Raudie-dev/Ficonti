@@ -8,7 +8,7 @@
     document.documentElement.className = t === 'dark' ? 'theme-dark' : 'theme-light';
     document.documentElement.setAttribute('data-theme', t);
   }
-  var initT = localStorage.getItem('tv-theme') || 'dark';
+  var initT = localStorage.getItem('tv-theme-mode') || localStorage.getItem('tv-theme') || 'light';
   setT(initT);
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'tv-theme-change') {
@@ -120,6 +120,24 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .f{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 18px}
 .f label{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--l);padding:4px 0}
 @media print{header,nav,.np{display:none!important}body{background:#fff}.c{break-inside:avoid}}
+
+/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
+  display: none !important;
+}
+#ux-top {
+  margin-bottom: 0.75rem !important;
+  gap: 0.4rem !important;
+}
+nav {
+  align-items: center !important;
+  padding: 0.25rem 0 !important;
+  margin-bottom: 0.65rem !important;
+}
+
 </style>
 
 
@@ -128,7 +146,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
    TributoVE - Sistema Visual Verde Fintech Moderno
    Espaciado amplio, responsive y PWA Ready
    Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
-           #2D5128 (Verde Base) | #D2F865 (Lima Acento) | #8B958E (Muted)
+           #2D5128 (Verde Base) | #1A6B4A (Lima Acento) | #8B958E (Muted)
    ========================================================================== */
 
 :root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
@@ -142,9 +160,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   --lt: #1a201c !important;
   --zb: #171c18 !important;
   --ok: #2D5128 !important;
-  --okt: #D2F865 !important;
+  --okt: #1A6B4A !important;
   --wn: #2D5128 !important;
-  --wnt: #D2F865 !important;
+  --wnt: #1A6B4A !important;
   --rd: #3a1c1a !important;
   --rdt: #f87171 !important;
   --past: #525a54 !important;
@@ -155,15 +173,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   --ink: #ffffff !important;
   --muted: #8b958e !important;
   --rule: rgba(255, 255, 255, 0.08) !important;
-  --rule-strong: rgba(210, 248, 101, 0.3) !important;
+  --rule-strong: rgba(26, 107, 74, 0.3) !important;
   --royal: #2D5128 !important;
   --royal-deep: #141815 !important;
   --on-royal: #ffffff !important;
-  --focus: #D2F865 !important;
+  --focus: #1A6B4A !important;
   --pnr-bg: rgba(34, 197, 94, 0.15) !important;
   --pnr-ink: #22c55e !important;
-  --pnnr-bg: rgba(210, 248, 101, 0.15) !important;
-  --pnnr-ink: #D2F865 !important;
+  --pnnr-bg: rgba(26, 107, 74, 0.15) !important;
+  --pnnr-ink: #1A6B4A !important;
   --pjd-bg: rgba(45, 81, 40, 0.3) !important;
   --pjd-ink: #a7f3d0 !important;
   --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
@@ -181,16 +199,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   --m: #8b958e !important;
   --l: rgba(255, 255, 255, 0.08) !important;
   --b: rgba(255, 255, 255, 0.08) !important;
-  --a: #D2F865 !important;
+  --a: #1A6B4A !important;
   --tv-bg: #0b0e0c !important;
   --bg: #0b0e0c !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(210, 248, 101, 0.04) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #141815;
   --tv-surface-subtle: #1a201c;
   --tv-surface-hover: #222a24;
   --tv-border: rgba(255, 255, 255, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #ffffff;
 }
 
@@ -233,13 +250,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   --a: #537B2F !important;
   --tv-bg: #f2f5f1 !important;
   --bg: #f2f5f1 !important;
-  --tv-bg-gradient: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(141, 167, 80, 0.05) 0%, transparent 40%);
+  --tv-bg-gradient: none;
   --tv-surface: #ffffff;
   --tv-surface-subtle: #f7faf5;
   --tv-surface-hover: #eaf0e6;
   --tv-border: rgba(0, 0, 0, 0.08);
-  --tv-lime: #D2F865;
+  --tv-lime: #1A6B4A;
   --tv-text: #0b0e0c;
 }
 
@@ -370,11 +386,10 @@ nav button:hover, .chips button:hover, .chip:hover {
   color: var(--tv-text) !important;
 }
 nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
+  background: #1A6B4A !important; color: #ffffff !important;
   border-color: var(--tv-lime) !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 10px rgba(210, 248, 101, 0.25) !important;
+  box-shadow: 0 2px 10px rgba(26, 107, 74, 0.25) !important;
 }
 
 /* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
@@ -406,9 +421,9 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   font-weight: 700 !important;
 }
 #ux-bar .ux-chip {
-  background: rgba(210, 248, 101, 0.12) !important;
+  background: rgba(26, 107, 74, 0.12) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border: 1px solid rgba(26, 107, 74, 0.25) !important;
   border-radius: 20px !important;
   padding: 0.35rem 0.85rem !important;
   font-size: 0.78rem !important;
@@ -469,7 +484,7 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
 #q:focus, .search input#q:focus, .search-box input:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 3px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.2) !important;
 }
 .hint {
   margin: 0.85rem 0 1.25rem !important;
@@ -596,7 +611,7 @@ td.rate {
   font-size: 0.98rem !important;
 }
 td.next {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
 }
@@ -609,10 +624,10 @@ td.past {
   color: var(--past) !important;
 }
 .tot td, tfoot td {
-  background: rgba(210, 248, 101, 0.08) !important;
+  background: rgba(26, 107, 74, 0.08) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
-  border-top: 1px solid rgba(210, 248, 101, 0.25) !important;
+  border-top: 1px solid rgba(26, 107, 74, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -677,7 +692,7 @@ input, select, textarea, td input, td select {
 input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 2px rgba(210, 248, 101, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2) !important;
 }
 
 /* Calendario Hero y Paneles */
@@ -714,7 +729,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 }
 .dig {
   background: #2D5128 !important;
-  border: 1px solid rgba(210, 248, 101, 0.35) !important;
+  border: 1px solid rgba(26, 107, 74, 0.35) !important;
   color: var(--tv-lime) !important;
   border-radius: 12px !important;
   font-weight: 800 !important;
@@ -734,15 +749,14 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   gap: 0.45rem !important;
 }
 .b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
-  background: var(--tv-lime) !important;
-  color: #0b0e0c !important;
-  box-shadow: 0 2px 8px rgba(210, 248, 101, 0.2) !important;
+  background: #1A6B4A !important; color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(26, 107, 74, 0.2) !important;
   border: 0 !important;
 }
 .b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
-  background: #e0fb80 !important;
+  background: #14573C !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(210, 248, 101, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(26, 107, 74, 0.35) !important;
 }
 .b.s, .sec, header .btn, button#rs {
   background: var(--tv-surface-subtle) !important;
@@ -774,9 +788,9 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 .wa, .wr, .tag.PNNR {
-  background: rgba(210, 248, 101, 0.15) !important;
+  background: rgba(26, 107, 74, 0.15) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(210, 248, 101, 0.3) !important;
+  border: 1px solid rgba(26, 107, 74, 0.3) !important;
 }
 .tag.PJD {
   background: rgba(45, 81, 40, 0.35) !important;
@@ -800,7 +814,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 /* ==========================================================================
    ADAPTACIÓN RESPONSIVE AVANZADA (TABLETS Y SMARTPHONES)
    ========================================================================== */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .wrap, .w, main, #v, #m {
     padding: 0.25rem 0.25rem 2rem !important;
   }
@@ -896,7 +910,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .grid {
     grid-template-columns: 1fr !important;
   }
@@ -933,6 +947,119 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   }
 }
 </style>
+<style id="tv-print-clean">
+/* Ocultar barras redundantes en pantalla e impresión */
+#emp-banner, #ux-bar {
+  display: none !important;
+}
+#ux-pt {
+  display: none;
+}
+
+/* ==========================================================================
+   CORRECCIÓN DE CELDAS DE TABLA (<td class="ok|wa|ba|gr">) Y BADGES LEGIBLES
+   ========================================================================== */
+td.ok, td.wa, td.ba, td.gr,
+th.ok, th.wa, th.ba, th.gr {
+  display: table-cell !important;
+  border-radius: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* Colores de alto contraste para estados (En tolerancia, Revisar, Advertencia, Sin datos) */
+.pill.ok, td.ok {
+  background: rgba(22, 163, 74, 0.16) !important;
+  color: #15803d !important;
+  border: 1px solid rgba(22, 163, 74, 0.35) !important;
+}
+[data-theme="dark"] .pill.ok, html.theme-dark .pill.ok,
+[data-theme="dark"] td.ok, html.theme-dark td.ok {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #4ade80 !important;
+  border-color: rgba(34, 197, 94, 0.38) !important;
+}
+
+.pill.wa, td.wa {
+  background: rgba(217, 119, 6, 0.16) !important;
+  color: #b45309 !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+}
+[data-theme="dark"] .pill.wa, html.theme-dark .pill.wa,
+[data-theme="dark"] td.wa, html.theme-dark td.wa {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.38) !important;
+}
+
+.pill.ba, td.ba {
+  background: rgba(220, 38, 38, 0.16) !important;
+  color: #b91c1c !important;
+  border: 1px solid rgba(220, 38, 38, 0.35) !important;
+}
+[data-theme="dark"] .pill.ba, html.theme-dark .pill.ba,
+[data-theme="dark"] td.ba, html.theme-dark td.ba {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.42) !important;
+}
+
+.pill.gr, td.gr {
+  background: var(--tv-surface-subtle) !important;
+  color: var(--mut) !important;
+  border: 1px solid var(--bd) !important;
+}
+
+/* Ajuste de proporción de columnas e inputs en tablas anchas (Seguimiento) */
+.sc table th, .sc table thead th {
+  padding: 0.7rem 0.65rem !important;
+  white-space: nowrap !important;
+}
+.sc table td, .sc table tbody td {
+  padding: 0.6rem 0.65rem !important;
+}
+.sc table td input[type="number"] {
+  width: 110px !important;
+  padding: 0.45rem 0.6rem !important;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+}
+table.heat td {
+  padding: 0.55rem 0.4rem !important;
+  text-align: center !important;
+}
+table.heat td:first-child {
+  text-align: left !important;
+  padding-left: 0.75rem !important;
+}
+
+@media print {
+  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
+    display: none !important;
+  }
+  #ux-pt {
+    display: block !important;
+    border-bottom: 2px solid #1A6B4A !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 12px !important;
+    color: #111827 !important;
+    font-size: 9.5pt !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+  }
+  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border-color: #d1d5db !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
 <div class="w">
@@ -1013,11 +1140,11 @@ const sc=["Adverso","Base","Optimista"].map(sce);
 return C(`Tributos del año, escenario ${S.esc}`,`<p>Escenario: ${Sel("esc",["Adverso","Base","Optimista"],S.esc)}</p>`+TB(H("Tributo propio","Monto anual","Reserva mensual","Sobre ingresos"),[...rw.map(a=>R(a[0],f(a[1]),f(a[1]/12),pc(a[1]/c.i,0))),R("<b>Total tributos propios</b>",`<b>${f(c.own)}</b>`,`<b>${f(c.own/12)}</b>`,`<b>${pc(c.own/c.i)}</b>`),R("IVA neto a pagar (tránsito)",f(Math.max(c.ivn,0)),f(Math.max(c.ivn,0)/12),""),R("IGTF percibido de clientes (tránsito)",f(c.igtf),f(c.igtf/12),"")]))+
 C("Resultado",TB(H("Concepto","Monto"),[R("Ingresos",f(c.i)),R("Utilidad antes de ISLR",f(c.ut)),R("Utilidad después de tributos propios",f(c.net)),R("Margen después de tributos propios",pc(c.net/c.i))]))+
 C("Comparación de escenarios",TB(H("Concepto","Adverso","Base","Optimista"),[["Ingresos","i"],["Utilidad antes de ISLR","ut"],["ISLR","isl"],["Tributos propios","own"],["IVA neto","ivn"],["Utilidad después de tributos","net"]].map(a=>R(a[0],...sc.map(x=>f(x[a[1]])))).concat([R("Tributos propios sobre ingresos",...sc.map(x=>pc(x.own/x.i))),R("Margen después de tributos",...sc.map(x=>pc(x.net/x.i)))])))}
-function segv(){const g=seg(),b=g.b;let r=g.rows.map((x,m)=>`<tr><td><b>${M[m]}</b></td>${[0,1,2,3].map(k=>`<td class="n">${I(`real.${k}.${m}`,S.real[k][m])}</td>`).join("")}${x.d.map(d=>`<td class="n ${cl(d)}">${d==null?"":pc(d,1)}</td>`).join("")}<td>${P(x.st,sp(x.st))}</td></tr>`).join("");
+function segv(){const g=seg(),b=g.b;let r=g.rows.map((x,m)=>`<tr><td><b>${M[m]}</b></td>${[0,1,2,3].map(k=>`<td class="n">${I(`real.${k}.${m}`,S.real[k][m])}</td>`).join("")}${x.d.map(d=>`<td class="n">${d==null?'<span class="pill gr">–</span>':P(pc(d,1),cl(d))}</td>`).join("")}<td class="n">${P(x.st,sp(x.st))}</td></tr>`).join("");
 const yr=[0,1,2,3].map(k=>g.pj[k]/g.bud[k]-1);yr.push((g.pj[0]-g.pj[1]-g.pj[2])/(g.bm*12)-1);
-r+=`<tr><td><b>Acumulado</b></td><td colspan="4"></td>${[0,1,2,3,4].map(k=>`<td class="n ${cl(acd(g,k))}"><b>${pc(acd(g,k),1)}</b></td>`).join("")}<td></td></tr><tr><td><b>Año proyectado</b></td><td colspan="4"></td>${yr.map(d=>`<td class="n ${cl(d)}"><b>${pc(d,1)}</b></td>`).join("")}<td></td></tr>`;
+r+=`<tr><td><b>Acumulado</b></td><td colspan="4"></td>${[0,1,2,3,4].map(k=>`<td class="n">${acd(g,k)==null?'<span class="pill gr">–</span>':P(pc(acd(g,k),1),cl(acd(g,k)))}</td>`).join("")}<td></td></tr><tr><td><b>Año proyectado</b></td><td colspan="4"></td>${yr.map(d=>`<td class="n">${d==null?'<span class="pill gr">–</span>':P(pc(d,1),cl(d))}</td>`).join("")}<td></td></tr>`;
 const rp=g.rp,rr=[["Ingresos",b.i,g.pj[0]],["Costos",b.c,g.pj[1]],["Gastos (incluye nómina)",S.gas,g.pj[2]],["Nómina",S.nom,g.pj[3]],["Utilidad antes de ISLR",b.ut,rp.ut],["ISLR",b.isl,rp.isl],["Tributos propios",b.own,rp.own],["IVA neto",b.ivn,rp.ivn]];
-return C("Seguimiento: real contra presupuesto",`<div class="sc"><table style="min-width:980px">${H("Mes","Ingresos","Costos","Gastos","Nómina","Δ Ingresos","Δ Costos","Δ Gastos","Δ Nómina","Δ Resultado","Estado")}${r}</table></div>`,`Escribe las cifras reales de cada mes. El presupuesto es el escenario Base en 12 partes iguales. Tolerancia: ${pc(S.tol)}, editable en Supuestos.`)+
+return C("Seguimiento: real contra presupuesto",`<div class="sc"><table style="min-width:960px">${H("Mes","Ingresos","Costos","Gastos","Nómina","Δ Ingresos","Δ Costos","Δ Gastos","Δ Nómina","Δ Resultado","Estado")}${r}</table></div>`,`Escribe las cifras reales de cada mes. El presupuesto es el escenario Base en 12 partes iguales. Tolerancia: ${pc(S.tol)}, editable en Supuestos.`)+
 C("Reproyección del ejercicio",TB(H("Concepto","Presupuesto","Proyección ajustada","Desviación","Desviación %","Estado"),rr.map(a=>{const d=a[2]-a[1],p=a[1]?d/a[1]:0,s=Math.abs(p)>S.tol?"Revisar":"En tolerancia";return R(a[0],f(a[1]),f(a[2]),f(d),pc(p,1),P(s,sp(s)))})),"Usa lo real de los meses con datos y el presupuesto de los meses restantes.")}
 function obl(){const fs=["Todas","Diaria","Quincenal o mensual","Mensual","Trimestral","Anual"];
 return C("Obligaciones y deberes formales",`<div class="chips">${fs.map(x=>`<button data-f="${x}" aria-pressed="${x==fq}">${x}</button>`).join("")}</div>`+TB(H("Frecuencia","Obligación","Fecha límite","Estado","Alerta"),OB.map((o,i)=>[o,i]).filter(a=>fq=="Todas"||a[0][0]==fq).map(a=>{const o=S.ob[a[1]]||{},x=al(a[1]);return `<tr><td>${a[0][0]}</td><td><b>${a[0][1]}</b></td><td class="n"><input type="date" data-p="ob.${a[1]}.f" value="${o.f||""}"></td><td class="n">${Sel(`ob.${a[1]}.e`,["Pendiente","En curso","Listo"],o.e||"Pendiente")}</td><td class="n">${P(x[0],x[1])}</td></tr>`})),"Pon la fecha límite del calendario SPE 2027 cuando el SENIAT lo publique.")}
@@ -1104,7 +1231,7 @@ function run(){
 var d=document,B=d.body,E=window.EMPRESA||{};
 var header=d.querySelector('header,.masthead');
 if(!header||d.getElementById('ux-bar'))return;
-var nav=d.querySelector('nav');
+var nav=d.querySelector('nav');var rsBtnMove=d.getElementById('rs');if(nav&&rsBtnMove){rsBtnMove.style.marginLeft='auto';nav.appendChild(rsBtnMove);}
 function mk(t,fn,c){var b=d.createElement('button');b.type='button';b.textContent=t;b.className='ux-b '+(c||'');b.onclick=fn;return b}
 function h1text(){var h=d.querySelector('header h1,.masthead h1');return h?(h.firstChild&&h.firstChild.nodeType==3?h.firstChild.textContent:h.textContent).trim():''}
 function active(){var x=d.querySelector('nav .on,nav .a,nav [aria-selected="true"]');return x?x.textContent.trim():''}
@@ -1186,5 +1313,6 @@ new MutationObserver(function(){relabel();upd();sched()}).observe(B,{childList:t
 relabel();upd();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-})();</script></body>
+})();</script><script src="/static/js/tv_reportes.js?v=1.0"></script>
+</body>
 </html>
