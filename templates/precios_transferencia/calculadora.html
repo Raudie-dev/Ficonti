@@ -254,6 +254,7 @@ function load(){
  try{const j=localStorage.getItem('tpve2');if(j){const o=JSON.parse(j);if(o&&o.cs&&o.cs.length)return o}}catch(e){}
  const c=mk();return{cs:[c],a:c.id}
 }
+const C=()=>S.cs.find(c=>c.id===S.a)||S.cs[0];
 function syncActiveCompany(){
  const c=C();
  if(window.EMPRESA){
@@ -264,7 +265,6 @@ function syncActiveCompany(){
 }
 syncActiveCompany();
 function save(){try{localStorage.setItem('tpve2',JSON.stringify(S))}catch(e){}}
-const C=()=>S.cs.find(c=>c.id===S.a)||S.cs[0];
 const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
 const money=(v,c)=>nf.format(v)+' '+(c||C()).cur;
 const pct=v=>nf.format(v)+'%';
@@ -333,7 +333,7 @@ document.addEventListener('input',e=>{const t=e.target,c=C();
 document.addEventListener('click',e=>{const t=e.target,c=C();
  if(t.dataset.del){c.ops=c.ops.filter(o=>o.id!==t.dataset.del);save();renderOps()}
  if(t.dataset.rd){c.far=c.far.filter(r=>r.id!==t.dataset.rd);save();renderFar()}});
-$('#nav').onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};
+$('#nav').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)show(b.dataset.t)};
 $('#bOp').onclick=()=>{C().ops.push({id:uid(),desc:'',m:$('#newm').value,dir:'ing',pli:'ros',f:{}});save();renderOps()};
 $('#bFar').onclick=()=>{C().far.push({id:uid(),t:'Función',d:'',l:'Media',v:'Media'});save();renderFar()};
 $('#bDemo').onclick=()=>{const c=C();c.ops=[

@@ -23,10 +23,15 @@ from django.utils import timezone
 CACHE_TTL_SECONDS = 1800  # 30 minutos
 CACHE_FILE = Path(settings.BASE_DIR) / '.bcv_cache.json'
 
+DEFAULT_USD_COP = 4200.0
+
 # Valores iniciales de respaldo si aún no se ha consultado la red
 DEFAULT_BCV = {
     'usd': 65.0000,
     'eur': 70.2000,
+    'usd_cop': DEFAULT_USD_COP,
+    'cop': round(65.0000 / DEFAULT_USD_COP, 6),
+    'ves_cop': round(DEFAULT_USD_COP / 65.0000, 4),
     'fecha': timezone.localdate().isoformat(),
     'actualizado': '',
     'fuente': 'BCV (Referencia local)',
@@ -149,12 +154,43 @@ def _save_disk_cache(data):
         pass
 
 
+def _fetch_usd_cop(fallback=DEFAULT_USD_COP):
+    """Obtiene la TRM oficial (COP por 1 USD) para calcular la paridad COP/VES."""
+    try:
+        raw = _http_get('https://co.dolarapi.com/v1/trm', timeout=3.0)
+        data = json.loads(raw)
+        val = _parse_decimal_ve(data.get('valor'))
+        if val and val > 100:
+            return float(val)
+    except Exception:
+        pass
+    return float(fallback)
+
+
+def _enriquecer_cop(data, permitir_red=False):
+    """Garantiza que el diccionario BCV incluya las tasas cruzadas COP ↔ VES."""
+    if not isinstance(data, dict):
+        return dict(DEFAULT_BCV)
+    usd = float(data.get('usd') or DEFAULT_BCV['usd'])
+    usd_cop = data.get('usd_cop')
+    if not usd_cop and permitir_red:
+        usd_cop = _fetch_usd_cop()
+    usd_cop = float(usd_cop or DEFAULT_USD_COP)
+    data['usd_cop'] = round(usd_cop, 4)
+    data['cop'] = round(usd / usd_cop, 6) if usd_cop > 0 else 0.0
+    data['ves_cop'] = round(usd_cop / usd, 4) if usd > 0 else 0.0
+    return data
+
+
 def obtener_tasas_bcv(forzar=False, permitir_red=True):
     """
     Devuelve un diccionario con la tasa BCV vigente:
     {
         'usd': float,
         'eur': float,
+        'usd_cop': float,
+        'cop': float,      # 1 COP en Bs.
+        'ves_cop': float,  # 1 Bs. en COP
         'fecha': 'YYYY-MM-DD',
         'actualizado': 'DD/MM/YYYY HH:MM',
         'fuente': str,
@@ -163,23 +199,27 @@ def obtener_tasas_bcv(forzar=False, permitir_red=True):
     """
     now = time.time()
     if not forzar and _MEM_CACHE['data'] and (now - _MEM_CACHE['timestamp'] < CACHE_TTL_SECONDS):
-        return _MEM_CACHE['data']
+        return _enriquecer_cop(_MEM_CACHE['data'], permitir_red=False)
 
     if not _MEM_CACHE['data']:
         disk = _load_disk_cache()
         if disk:
+            disk = _enriquecer_cop(disk, permitir_red=False)
             _MEM_CACHE['data'] = disk
             _MEM_CACHE['timestamp'] = now - (CACHE_TTL_SECONDS // 2)
             if not forzar and not permitir_red:
                 return disk
 
     if not permitir_red:
-        return _MEM_CACHE['data'] or dict(DEFAULT_BCV)
+        return _enriquecer_cop(_MEM_CACHE['data'] or dict(DEFAULT_BCV), permitir_red=False)
 
     for fetcher in (_fetch_from_bcv_portal, _fetch_from_dolarapi):
         try:
             res = fetcher()
             if res and res.get('usd'):
+                prev_cop = (_MEM_CACHE['data'] or {}).get('usd_cop') or DEFAULT_USD_COP
+                res['usd_cop'] = _fetch_usd_cop(fallback=prev_cop)
+                res = _enriquecer_cop(res, permitir_red=False)
                 _MEM_CACHE['data'] = res
                 _MEM_CACHE['timestamp'] = now
                 _save_disk_cache(res)
@@ -188,4 +228,4 @@ def obtener_tasas_bcv(forzar=False, permitir_red=True):
             continue
 
     fallback = _MEM_CACHE['data'] or _load_disk_cache() or dict(DEFAULT_BCV)
-    return fallback
+    return _enriquecer_cop(fallback, permitir_red=False)

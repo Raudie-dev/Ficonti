@@ -169,6 +169,19 @@ a:hover {
   flex-direction: column;
   min-width: 0;
   background: transparent;
+  transition: margin-left 0.25s ease-in-out;
+}
+
+@media (min-width: 992px) {
+  body.sidebar-collapsed .app-sidebar {
+    transform: translateX(-100%);
+  }
+  body.sidebar-collapsed .app-content {
+    margin-left: 0;
+  }
+  body:not(.sidebar-collapsed) #sidebarToggle {
+    display: none;
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -531,8 +544,79 @@ a:hover {
   border: 1px solid var(--tv-border);
   border-left: 4px solid var(--tv-primary);
   border-radius: var(--tv-radius-card);
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.35rem;
   box-shadow: var(--tv-shadow-card);
+}
+.company-banner-identity {
+  flex: 1 1 auto;
+}
+.company-banner-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--tv-primary);
+}
+.company-active-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tv-primary);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.company-banner-title {
+  font-size: 1.24rem;
+  line-height: 1.25;
+  color: var(--tv-text);
+  letter-spacing: -0.015em;
+}
+.company-banner-rif {
+  font-size: 0.82rem;
+  color: var(--tv-text-muted);
+  font-weight: 600;
+  background: var(--tv-surface-subtle);
+  border: 1px solid var(--tv-border);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.company-switcher-form {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  flex: 1 1 210px;
+  max-width: 100%;
+}
+.company-switcher-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tv-text-muted);
+  white-space: nowrap;
+  margin: 0;
+}
+.company-banner-select {
+  height: 36px;
+  min-width: 180px;
+  max-width: 260px;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  text-overflow: ellipsis;
+}
+.company-banner-btns .btn {
+  height: 36px;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  padding: 0 0.95rem;
+}
+@media (min-width: 992px) {
+  .company-banner-actions {
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+  .company-switcher-form {
+    flex: 0 1 auto;
+  }
 }
 
 /* Tarjetas de Módulos (Claras y Directas) */
@@ -742,7 +826,15 @@ a:hover {
   border: 1px solid var(--tv-border) !important;
   color: var(--tv-text) !important;
   border-radius: 8px !important;
+}
+.form-control {
   padding: 0.5rem 0.75rem !important;
+}
+.form-select {
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem !important;
+}
+.form-select.form-select-sm {
+  padding: 0.35rem 2rem 0.35rem 0.75rem !important;
 }
 .form-control:focus, .form-select:focus {
   border-color: var(--tv-primary) !important;

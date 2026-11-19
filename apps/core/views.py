@@ -108,10 +108,10 @@ def api_tasa_bcv(request):
 
     aplicar = (request.GET.get('aplicar') or request.POST.get('aplicar') or '').strip().upper()
     empresa_actualizada = False
-    if aplicar in ('USD', 'EUR') and getattr(request, 'user', None) and request.user.is_authenticated:
+    if aplicar in ('USD', 'EUR', 'COP') and getattr(request, 'user', None) and request.user.is_authenticated:
         emp = obtener_empresa_activa(request)
         if emp:
-            tasa_val = datos.get('eur') if aplicar == 'EUR' else datos.get('usd')
+            tasa_val = datos.get('eur') if aplicar == 'EUR' else (datos.get('cop') if aplicar == 'COP' else datos.get('usd'))
             if tasa_val:
                 emp.moneda = aplicar
                 emp.tasa = Decimal(str(tasa_val))

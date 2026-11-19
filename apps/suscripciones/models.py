@@ -30,9 +30,9 @@ MODULOS_DISPONIBLES = [
     ('calculo_ari', 'Calculo ARI'),
     ('estimada_islr', 'ISLR Estimada'),
     ('grandes_patrimonios', 'Grandes patrimonios'),
-    ('auditoria_ingresos', 'Conciliacion Ingresos'),
+    ('auditoria_ingresos', 'Conciliación de Ingresos'),
     ('conciliacion', 'Conciliación bancaria'),
-    ('conciliacion_islr', 'Conciliacion Fiscal Pro (8)'),
+    ('conciliacion_islr', 'Conciliacion Fiscal Pro'),
     ('precios_transferencia', 'Precios de Transferencia'),
 ]
 

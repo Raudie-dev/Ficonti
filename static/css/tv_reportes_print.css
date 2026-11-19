@@ -27,7 +27,7 @@
     --tv-border: #cbd5e1 !important;
     --tv-text: #111827 !important;
     --tv-muted: #4b5563 !important;
-    --tv-accent: #1A6B4A !important;
+    --tv-accent: #2D5128 !important;
     --bg: #ffffff !important;
     --pap: #ffffff !important;
     --paper: #ffffff !important;
@@ -92,7 +92,7 @@
   /* Encabezado Formal Corporativo */
   #tv-rpt-header {
     display: block !important;
-    border-bottom: 2px solid #1A6B4A !important;
+    border-bottom: 2px solid #2D5128 !important;
     padding-bottom: 9px !important;
     margin-bottom: 14px !important;
     color: #111827 !important;
@@ -110,7 +110,7 @@
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
-    color: #1A6B4A !important;
+    color: #2D5128 !important;
     margin-bottom: 2px !important;
   }
   .tv-rpt-title {
@@ -183,7 +183,7 @@
     page-break-inside: avoid !important;
   }
   .card h2, .card h3, .c h2, .c h3, .pn h3 {
-    color: #1A6B4A !important;
+    color: #2D5128 !important;
     background: #f4f7f5 !important;
     border-bottom: 1px solid #cbd5e1 !important;
     font-size: 9.5pt !important;
@@ -192,11 +192,11 @@
     margin: -10px -12px 8px -12px !important;
   }
   .hero, .total {
-    border-left: 4px solid #1A6B4A !important;
+    border-left: 4px solid #2D5128 !important;
     background: #f8faf9 !important;
   }
   .hero .big, .total .big, .k b, .kpi-val, .kpi-val.accent {
-    color: #1A6B4A !important;
+    color: #2D5128 !important;
   }
   .hero .n, .kpi-label, .kpi-sub, .note, .hint, small, .muted, .mut {
     color: #374151 !important;
@@ -218,13 +218,13 @@
     page-break-inside: avoid !important;
   }
   thead th, table th {
-    background: #1A6B4A !important;
+    background: #2D5128 !important;
     color: #ffffff !important;
     font-weight: 700 !important;
     font-size: 7.5pt !important;
     text-transform: uppercase !important;
     padding: 5px 6px !important;
-    border: 1px solid #14573C !important;
+    border: 1px solid #142C14 !important;
   }
   tbody td, table td {
     background: #ffffff !important;
@@ -240,7 +240,7 @@
     background: #eef5f1 !important;
     color: #111827 !important;
     font-weight: 800 !important;
-    border-top: 1.5px solid #1A6B4A !important;
+    border-top: 1.5px solid #2D5128 !important;
   }
 
   /* Modales de liquidación individual (ej. Retención ISLR) */
@@ -264,7 +264,7 @@
   .mh {
     background: #f4f7f5 !important;
     color: #111827 !important;
-    border-bottom: 1.5px solid #1A6B4A !important;
+    border-bottom: 1.5px solid #2D5128 !important;
     padding: 10px 14px !important;
     position: static !important;
   }

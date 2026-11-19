@@ -5,45 +5,43 @@
 {% block content %}
 <div class="container-fluid p-0">
 
-  <!-- 1. BARRA SUPERIOR DE EMPRESA ACTIVA (Sencilla, Directa y Sin Destellos Neón) -->
+  <!-- 1. BARRA SUPERIOR DE EMPRESA ACTIVA -->
   <div class="active-company-banner mb-3">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-      <div class="d-flex align-items-center gap-3">
-        <div class="sidebar-user-avatar" style="width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
-          {% if empresa_activa %}{{ empresa_activa.nombre|slice:":1"|upper }}{% else %}<i class="bi bi-building"></i>{% endif %}
-        </div>
-        <div>
-          <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.05em; color: var(--tv-primary);">
-              Empresa Activa
-            </span>
-            {% if empresa_activa %}
-              <span class="badge {% if empresa_activa.es_sujeto_pasivo_especial %}badge-dash-lime{% else %}badge-dash-dim{% endif %}">
-                {{ empresa_activa.get_condicion_display }}
-              </span>
-            {% endif %}
-          </div>
-
+    <div class="company-banner-layout d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+      <div class="company-banner-identity min-w-0">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <span class="company-banner-eyebrow d-inline-flex align-items-center gap-1 text-uppercase fw-bold">
+            <span class="company-active-dot" aria-hidden="true"></span>
+            Empresa Activa
+          </span>
           {% if empresa_activa %}
-            <h4 class="fw-bold mb-0" style="font-size: 1.2rem; color: var(--tv-text);">
-              {{ empresa_activa.nombre }}
-              <span class="text-muted fw-normal" style="font-size: 0.92rem;">· RIF {{ empresa_activa.rif }}</span>
-            </h4>
-          {% else %}
-            <h5 class="fw-bold mb-0" style="color: var(--tv-text);">Sin empresa registrada</h5>
-            <p class="text-muted small mb-0">Registre su primera empresa (Nombre, RIF y Condición) para activar los módulos.</p>
+            <span class="badge {% if empresa_activa.es_sujeto_pasivo_especial %}badge-dash-lime{% else %}badge-dash-dim{% endif %}">
+              {{ empresa_activa.get_condicion_display }}
+            </span>
           {% endif %}
         </div>
+
+        {% if empresa_activa %}
+          <div class="d-flex flex-wrap align-items-baseline gap-2">
+            <h4 class="fw-bold mb-0 company-banner-title" title="{{ empresa_activa.nombre }}">
+              {{ empresa_activa.nombre }}
+            </h4>
+            <span class="company-banner-rif">RIF {{ empresa_activa.rif }}</span>
+          </div>
+        {% else %}
+          <h5 class="fw-bold mb-0" style="color: var(--tv-text);">Sin empresa registrada</h5>
+          <p class="text-muted small mb-0">Registre su primera empresa (Nombre, RIF y Condición) para activar los módulos.</p>
+        {% endif %}
       </div>
 
-      <!-- Selector directo de Empresa + Botón Nueva Empresa -->
-      <div class="d-flex flex-wrap align-items-center gap-2">
-        {% if empresas_usuario %}
-        <form method="post" action="{% url 'empresas:activar_select' %}" class="d-flex align-items-center gap-2 m-0">
+      <!-- Selector directo de Empresa + Acciones -->
+      <div class="company-banner-actions d-flex flex-wrap align-items-center gap-2 ms-lg-auto">
+        {% if empresas_usuario|length > 1 %}
+        <form method="post" action="{% url 'empresas:activar_select' %}" class="company-switcher-form">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <label for="selectEmpresaActiva" class="small fw-semibold text-muted mb-0 d-none d-sm-inline">Cambiar:</label>
-          <select id="selectEmpresaActiva" name="empresa" class="form-select form-select-sm" style="min-width: 220px; font-size: 0.84rem; font-weight: 600;" onchange="this.form.submit()">
+          <label for="selectEmpresaActiva" class="company-switcher-label d-none d-sm-inline">Cambiar:</label>
+          <select id="selectEmpresaActiva" name="empresa" class="form-select form-select-sm company-banner-select" onchange="this.form.submit()" aria-label="Cambiar empresa activa">
             {% for emp in empresas_usuario %}
               <option value="{{ emp.pk }}" {% if empresa_activa and emp.pk == empresa_activa.pk %}selected{% endif %}>
                 {{ emp.nombre }} ({{ emp.rif }})
@@ -53,15 +51,17 @@
         </form>
         {% endif %}
 
-        <button type="button" class="btn btn-sm btn-dash-primary d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresaDashboard">
-          <i class="bi bi-plus-lg"></i>
-          <span>Nueva Empresa</span>
-        </button>
+        <div class="company-banner-btns d-flex flex-wrap align-items-center gap-2">
+          <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-secondary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-buildings"></i>
+            <span>Mis Empresas ({{ total_empresas }})</span>
+          </a>
 
-        <a href="{% url 'empresas:lista' %}" class="btn btn-sm btn-dash-secondary d-inline-flex align-items-center gap-1">
-          <i class="bi bi-buildings"></i>
-          <span>Mis Empresas ({{ total_empresas }})</span>
-        </a>
+          <button type="button" class="btn btn-sm btn-dash-primary d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalNuevaEmpresaDashboard">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nueva Empresa</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

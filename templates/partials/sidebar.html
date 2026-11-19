@@ -1,13 +1,13 @@
 <aside class="app-sidebar" id="appSidebar">
   <!-- Cabecera de Marca (Alineada exactamente a la altura del Navbar) -->
   <div class="sidebar-user-header">
-    <div class="sidebar-user-avatar">
-      {{ user.nombre_mostrar|slice:":1"|upper }}
-    </div>
     <div class="sidebar-user-info">
       <div class="sidebar-user-name">TributoVE</div>
       <div class="sidebar-user-role">Gestión fiscal · Venezuela</div>
     </div>
+    <button type="button" class="action-circle-btn ms-auto" id="sidebarCloseBtn" aria-label="Ocultar menú" title="Ocultar menú">
+      <i class="bi bi-layout-sidebar"></i>
+    </button>
   </div>
 
   <!-- Aviso si no ha registrado al menos una empresa -->
@@ -17,11 +17,10 @@
   </div>
   {% endif %}
 
-  <!-- Buscador con Shortcut ⌘ K -->
+  <!-- Buscador de módulos -->
   <div class="sidebar-search-box">
     <i class="bi bi-search search-icon"></i>
     <input type="text" id="sidebarSearchInput" placeholder="Buscar módulo..." autocomplete="off" aria-label="Buscar módulo">
-    <span class="shortcut-tag">⌘ K</span>
   </div>
 
   <!-- LOS 4 MENÚS DESPLEGABLES (1. PLANIFICACIÓN, 2. CONSULTAS, 3. CONTABILIDAD FISCAL, 4. CUENTA) -->

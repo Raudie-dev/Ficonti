@@ -2,8 +2,8 @@
 <header class="app-navbar">
   <!-- Izquierda: Botón Menú Móvil + Título de la Sección Actual -->
   <div class="d-flex align-items-center gap-2">
-    <button class="action-circle-btn d-lg-none" id="sidebarToggle" aria-label="Abrir menú">
-      <i class="bi bi-list"></i>
+    <button class="action-circle-btn" id="sidebarToggle" aria-label="Mostrar u ocultar menú" title="Mostrar u ocultar menú">
+      <i class="bi bi-layout-sidebar"></i>
     </button>
 
     <div class="navbar-breadcrumb d-flex align-items-center gap-2">
@@ -74,6 +74,33 @@
             </div>
             <div class="bcv-rate-value">Bs. <span data-bcv-eur-full>{{ tasa_bcv.eur|floatformat:4 }}</span></div>
           </div>
+
+          <div class="bcv-rate-item">
+            <div class="bcv-rate-left">
+              <span class="bcv-currency-tag">COP</span>
+              <div class="min-w-0 overflow-hidden">
+                <div class="bcv-rate-title">Peso Colombiano</div>
+                <div class="bcv-rate-sub">1 Bs ≈ <span data-bcv-ves-cop>{{ tasa_bcv.ves_cop|floatformat:2 }}</span> COP</div>
+              </div>
+            </div>
+            <div class="bcv-rate-value">Bs. <span data-bcv-cop-full>{{ tasa_bcv.cop|floatformat:4 }}</span></div>
+          </div>
+        </div>
+
+        <!-- Conversor rápido COP ↔ Bs -->
+        <div class="mb-2.5 p-2 rounded-3" style="background: var(--tv-surface-subtle); border: 1px solid var(--tv-border);">
+          <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.65rem; letter-spacing: 0.04em;">Conversor COP ↔ Bolívares</div>
+          <div class="d-flex align-items-center gap-1.5">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="font-size: 0.68rem; font-weight: 700;">COP</span>
+              <input type="number" step="any" min="0" id="copConvCop" class="form-control form-control-sm" placeholder="10000" aria-label="Monto en Pesos Colombianos">
+            </div>
+            <span class="text-muted small fw-bold">⇄</span>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="font-size: 0.68rem; font-weight: 700;">Bs</span>
+              <input type="number" step="any" min="0" id="copConvBs" class="form-control form-control-sm" placeholder="0,00" aria-label="Monto en Bolívares">
+            </div>
+          </div>
         </div>
 
         <div class="d-flex align-items-center justify-content-between text-muted mb-2" style="font-size: 0.7rem;">
@@ -95,6 +122,7 @@
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem; color: var(--tv-primary);" onclick="window.aplicarTasaBcvEmpresa('USD')">Usar USD</button>
               <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem; color: var(--tv-primary);" onclick="window.aplicarTasaBcvEmpresa('EUR')">Usar EUR</button>
+              <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem; color: var(--tv-primary);" onclick="window.aplicarTasaBcvEmpresa('COP')">Usar COP</button>
             </div>
           </div>
           <div class="d-flex gap-1.5">

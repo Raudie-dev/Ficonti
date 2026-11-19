@@ -953,6 +953,72 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     gap: 0.75rem !important;
   }
 }
+/* Refinamiento visual IGP: header compacto, sin doble tarjeta, alerta alineada */
+header {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 1rem 1.35rem !important;
+  margin-bottom: 0.85rem !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+}
+header > div {
+  width: auto !important;
+}
+header .kp {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  text-align: right;
+  color: var(--mut) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+}
+header .kp > div {
+  background: var(--tv-surface-subtle, var(--sub)) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 10px !important;
+  padding: 6px 12px !important;
+  min-width: 130px;
+}
+header .kp b {
+  display: block !important;
+  font-size: 14.5px !important;
+  font-weight: 800 !important;
+  color: var(--tv-text) !important;
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+#bn {
+  max-width: 100% !important;
+  margin: 0 0 0.85rem !important;
+  padding: 0 !important;
+}
+.bnx {
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 13px !important;
+}
+section.panel {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.card {
+  padding: 1.15rem 1.35rem !important;
+  border-radius: 14px !important;
+  margin-bottom: 0.9rem !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+.card h2 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.85rem !important;
+  color: var(--tv-text) !important;
+}
 </style>
 <style id="tv-print-clean">
 td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }

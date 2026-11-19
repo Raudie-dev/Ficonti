@@ -164,6 +164,23 @@ header.keep-header {
 header.keep-header > .wrap {
   padding: 0 !important;
 }
+/* Ocultar encabezados internos que solo duplican el título de la barra superior */
+header:not(.keep-header):not(:has(button, .btn, .kp, select, input, a)) {
+  display: none !important;
+}
+/* Compactar encabezados internos que sí tienen acciones o KPIs */
+body > header:not(.keep-header),
+.wrap > header:not(.keep-header) {
+  padding: 0.65rem 1rem !important;
+  margin-bottom: 0.65rem !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+body > header:not(.keep-header) h1,
+.wrap > header:not(.keep-header) h1 {
+  font-size: 1.05rem !important;
+  margin: 0 !important;
+}
 
 /* Pestañas superiores (Línea 2) */
 nav, .top-nav, .tabs {

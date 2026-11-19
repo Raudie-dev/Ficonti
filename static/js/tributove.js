@@ -61,17 +61,35 @@ document.addEventListener('DOMContentLoaded', function () {
     toast.show();
   });
 
-  // 3. Control del Sidebar en móviles
+  // 3. Control del Sidebar (Escritorio colapsable + Móvil drawer)
   var toggleBtn = document.getElementById('sidebarToggle');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
   var sidebar = document.getElementById('appSidebar');
   var backdrop = document.getElementById('sidebarBackdrop');
+  var SIDEBAR_KEY = 'tv-sidebar-collapsed';
+
+  try {
+    if (window.innerWidth >= 992 && localStorage.getItem(SIDEBAR_KEY) === '1') {
+      document.body.classList.add('sidebar-collapsed');
+    }
+  } catch (e) {}
 
   function openSidebar() {
+    if (window.innerWidth >= 992) {
+      document.body.classList.remove('sidebar-collapsed');
+      try { localStorage.setItem(SIDEBAR_KEY, '0'); } catch (e) {}
+      return;
+    }
     if (sidebar) sidebar.classList.add('show');
     if (backdrop) backdrop.classList.add('show');
   }
 
   function closeSidebar() {
+    if (window.innerWidth >= 992) {
+      document.body.classList.add('sidebar-collapsed');
+      try { localStorage.setItem(SIDEBAR_KEY, '1'); } catch (e) {}
+      return;
+    }
     if (sidebar) sidebar.classList.remove('show');
     if (backdrop) backdrop.classList.remove('show');
   }
@@ -79,11 +97,26 @@ document.addEventListener('DOMContentLoaded', function () {
   if (toggleBtn) {
     toggleBtn.addEventListener('click', function (e) {
       e.preventDefault();
-      if (sidebar && sidebar.classList.contains('show')) {
-        closeSidebar();
+      if (window.innerWidth >= 992) {
+        if (document.body.classList.contains('sidebar-collapsed')) {
+          openSidebar();
+        } else {
+          closeSidebar();
+        }
       } else {
-        openSidebar();
+        if (sidebar && sidebar.classList.contains('show')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
       }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeSidebar();
     });
   }
 
@@ -234,6 +267,16 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-bcv-eur-full]').forEach(function (el) {
       el.textContent = fmtVe(data.eur, 4);
     });
+    if (data.cop) {
+      document.querySelectorAll('[data-bcv-cop-full]').forEach(function (el) {
+        el.textContent = fmtVe(data.cop, 4);
+      });
+    }
+    if (data.ves_cop) {
+      document.querySelectorAll('[data-bcv-ves-cop]').forEach(function (el) {
+        el.textContent = fmtVe(data.ves_cop, 2);
+      });
+    }
     document.querySelectorAll('[data-bcv-fecha]').forEach(function (el) {
       el.textContent = data.fecha || '';
     });
@@ -297,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.syncInputTasaConBcv = function (moneda) {
     var inp = document.getElementById('id_tasa_nav');
     if (inp) inp.style.display = moneda === 'VES' ? 'none' : 'block';
-    if (moneda === 'USD' || moneda === 'EUR') {
+    if (moneda === 'USD' || moneda === 'EUR' || moneda === 'COP') {
       window.rellenarInputConBcv(moneda);
     }
   };
@@ -307,11 +350,42 @@ document.addEventListener('DOMContentLoaded', function () {
     var inp = document.getElementById('id_tasa_nav');
     if (!inp) return;
     var mon = monedaForzada || (sel ? sel.value : 'USD');
-    var val = mon === 'EUR' ? window.TASA_BCV.eur : window.TASA_BCV.usd;
+    var val = mon === 'EUR' ? window.TASA_BCV.eur : (mon === 'COP' ? window.TASA_BCV.cop : window.TASA_BCV.usd);
     if (val) {
       inp.value = Number(val).toFixed(4);
     }
   };
+
+  // Conversor bidireccional rápido COP <-> Bolívares
+  var copIn = document.getElementById('copConvCop');
+  var bsIn = document.getElementById('copConvBs');
+  function getCopRate() {
+    var bcv = window.TASA_BCV || {};
+    if (bcv.cop && Number(bcv.cop) > 0) return Number(bcv.cop);
+    var usd = Number(bcv.usd) || 0;
+    var usdCop = Number(bcv.usd_cop) || 4200;
+    return usd > 0 ? (usd / usdCop) : 0;
+  }
+  if (copIn && bsIn) {
+    copIn.addEventListener('input', function () {
+      var v = parseFloat(copIn.value);
+      var rate = getCopRate();
+      if (!isNaN(v) && rate > 0) {
+        bsIn.value = (v * rate).toFixed(2);
+      } else {
+        bsIn.value = '';
+      }
+    });
+    bsIn.addEventListener('input', function () {
+      var v = parseFloat(bsIn.value);
+      var rate = getCopRate();
+      if (!isNaN(v) && rate > 0) {
+        copIn.value = (v / rate).toFixed(2);
+      } else {
+        copIn.value = '';
+      }
+    });
+  }
 
   // Consulta automática no bloqueante de la tasa BCV al cargar el panel
   if (document.querySelector('[data-bcv-usd]')) {

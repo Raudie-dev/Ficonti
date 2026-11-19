@@ -176,6 +176,8 @@
       box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2);
       background: #222a24;
     }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     html:not(.dark) body {
       background-color: #f2f5f1;
@@ -345,49 +347,38 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center shadow-lg shrink-0">
-              <svg class="w-5 h-5 text-midnight-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-[11px] font-bold tracking-widest uppercase text-gold-400">TRIBUTOVE | CONTABILIDAD E IMPUESTOS</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">LISLR · VEN-NIF · NIC 12</span>
-              </div>
-              <h1 class="text-base sm:text-xl font-extrabold text-white tracking-tight">
-                Sistema Integral de Conciliación Fiscal ISLR
-              </h1>
-            </div>
-          </div>
+          <h1 class="text-base sm:text-xl font-extrabold text-white tracking-tight">
+            Sistema Integral de Conciliación Fiscal ISLR
+          </h1>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 no-print">
+        <div class="relative flex items-center gap-2 no-print" id="header-actions-wrapper">
           <select id="profile-selector" onchange="switchProfile(this.value)" class="hidden"></select>
+          <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
 
-          <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-midnight-800 hover:bg-midnight-700 text-slate-200 border border-slate-700 hover:border-gold-500/50 text-xs font-semibold transition">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
-            <span>Importar Excel/CSV</span>
-            <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
-          </label>
-
-          <button onclick="exportToExcel()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>Exportar .XLSX</span>
+          <button type="button" id="header-actions-btn" onclick="toggleHeaderActionsMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Más acciones" title="Acciones" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-midnight-800 hover:bg-slate-100 dark:hover:bg-midnight-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm transition">
+            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
           </button>
 
-          <button onclick="printExecutiveReport()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 text-xs font-bold transition">
-            <i data-lucide="printer" class="w-4 h-4"></i>
-            <span>Reporte PDF</span>
-          </button>
-
-          <button onclick="openResetModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-midnight-800 hover:bg-midnight-700 text-slate-300 border border-slate-700 text-xs font-semibold transition" title="Cargar Demo o Nuevo Ejercicio">
-            <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-400"></i>
-            <span>Demo / Limpiar</span>
-          </button>
+          <div id="header-actions-menu" role="menu" aria-labelledby="header-actions-btn" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl bg-white dark:bg-midnight-900 border border-slate-200 dark:border-slate-700 shadow-xl py-1.5 z-50">
+            <button type="button" role="menuitem" onclick="closeHeaderActionsMenu(); document.getElementById('excel-upload').click();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-midnight-800 transition">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+              <span>Importar Excel/CSV</span>
+            </button>
+            <button type="button" role="menuitem" onclick="closeHeaderActionsMenu(); exportToExcel();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-midnight-800 transition">
+              <i data-lucide="download" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+              <span>Exportar .XLSX</span>
+            </button>
+            <button type="button" role="menuitem" onclick="closeHeaderActionsMenu(); printExecutiveReport();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-midnight-800 transition">
+              <i data-lucide="printer" class="w-4 h-4 text-sky-600 dark:text-sky-400"></i>
+              <span>Reporte PDF</span>
+            </button>
+            <div class="my-1 border-t border-slate-200 dark:border-slate-800"></div>
+            <button type="button" role="menuitem" onclick="closeHeaderActionsMenu(); openResetModal();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-midnight-800 transition">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Demo / Limpiar</span>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -395,67 +386,67 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   </header>
 
   <!-- PANEL DE IDENTIFICACIÓN DEL CONTRIBUYENTE Y PARÁMETROS FISCALES -->
-  <section class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-4">
+  <section class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-3">
     <div class="luxury-card rounded-2xl p-4 sm:p-5">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 items-end">
-        
-        <div class="lg:col-span-2">
-          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Razón Social del Contribuyente</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+
+        <div class="sm:col-span-2 lg:col-span-3">
+          <label for="meta-company" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Razón Social del Contribuyente</label>
           <div class="relative">
-            <input type="text" id="meta-company" oninput="updateMeta('companyName', this.value)" class="cell-input w-full text-sm font-semibold pl-3 pr-8 py-2" placeholder="Ej. Empresa Ejemplo, C.A." />
-            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-3"></i>
+            <input type="text" id="meta-company" oninput="updateMeta('companyName', this.value)" class="cell-input w-full h-[38px] text-sm font-semibold pl-3 pr-8" placeholder="Ej. Empresa Ejemplo, C.A." />
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
           </div>
         </div>
 
-        <div>
-          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">RIF</label>
-          <input type="text" id="meta-rif" oninput="updateMeta('rif', this.value)" class="cell-input w-full text-sm font-mono uppercase py-2" placeholder="J-00000000-0" />
+        <div class="lg:col-span-2">
+          <label for="meta-rif" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">RIF</label>
+          <input type="text" id="meta-rif" oninput="updateMeta('rif', this.value)" class="cell-input w-full h-[38px] text-sm font-mono uppercase px-3" placeholder="J-00000000-0" />
         </div>
 
-        <div>
-          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Ejercicio Fiscal</label>
-          <input type="text" id="meta-period" oninput="updateMeta('fiscalYear', this.value)" class="cell-input w-full text-sm font-medium py-2" placeholder="01/01/2026 al 31/12/2026" />
+        <div class="lg:col-span-2">
+          <label for="meta-period" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Ejercicio Fiscal</label>
+          <input type="text" id="meta-period" oninput="updateMeta('fiscalYear', this.value)" class="cell-input w-full h-[38px] text-sm font-medium px-3" placeholder="01/01/2026 al 31/12/2026" />
         </div>
 
-        <div>
-          <label class="block text-[11px] font-semibold uppercase tracking-wider text-gold-400 mb-1">Tipo de Contribuyente</label>
-          <select id="meta-taxpayer-type" onchange="updateMeta('taxpayerType', this.value)" class="cell-input w-full text-sm font-semibold py-2 border-gold-500/40 bg-midnight-900 cursor-pointer">
+        <div class="lg:col-span-2">
+          <label for="meta-taxpayer-type" class="block text-[11px] font-semibold uppercase tracking-wider text-gold-400 mb-1.5">Tipo de Contribuyente</label>
+          <select id="meta-taxpayer-type" onchange="updateMeta('taxpayerType', this.value)" class="cell-input w-full h-[38px] text-sm font-semibold px-3 border-gold-500/40 bg-midnight-900 cursor-pointer">
             <option value="Sujeto Pasivo Especial">Sujeto Pasivo Especial</option>
             <option value="Contribuyente Ordinario">Contribuyente Ordinario</option>
           </select>
         </div>
 
-        <div>
-          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Tarifa del Impuesto</label>
-          <select id="meta-tarifa-mode" onchange="updateMeta('tarifaMode', this.value)" class="cell-input w-full text-sm font-semibold py-2 border-gold-500/40 bg-midnight-900 cursor-pointer">
-            <option value="TARIFA2">Tarifa N.º 2 (15% / 22% / 34%)</option>
-            <option value="FIJA">Tasa fija manual (%)</option>
-          </select>
-          <div class="relative mt-1.5">
-            <input type="number" step="0.01" min="0" max="100" id="meta-tax-rate" oninput="updateMeta('taxRate', this.value === '' ? '' : parseFloat(this.value))" class="cell-input w-full text-sm font-mono font-bold text-right pr-7 py-2 text-gold-400" />
-            <span class="absolute right-2.5 top-2 text-sm font-bold text-slate-400">%</span>
+        <div class="sm:col-span-2 lg:col-span-3">
+          <label for="meta-tarifa-mode" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Tarifa del Impuesto</label>
+          <div class="flex items-center gap-2">
+            <select id="meta-tarifa-mode" onchange="updateMeta('tarifaMode', this.value)" class="cell-input flex-1 min-w-0 h-[38px] text-sm font-semibold px-3 border-gold-500/40 bg-midnight-900 cursor-pointer">
+              <option value="TARIFA2">Tarifa N.º 2 (15% / 22% / 34%)</option>
+              <option value="FIJA">Tasa fija manual (%)</option>
+            </select>
+            <div class="relative w-20 shrink-0">
+              <input type="number" step="0.01" min="0" max="100" id="meta-tax-rate" oninput="updateMeta('taxRate', this.value === '' ? '' : parseFloat(this.value))" class="cell-input w-full h-[38px] text-sm font-mono font-bold text-right pr-6 pl-2 text-gold-400" aria-label="Porcentaje de tasa" />
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 dark:text-slate-400 pointer-events-none">%</span>
+            </div>
           </div>
         </div>
 
       </div>
 
-      <div id="regime-banner" class="mt-4 rounded-xl px-4 py-3 border flex items-start sm:items-center gap-3 transition-all">
-        <div id="regime-icon" class="p-2 rounded-lg shrink-0 mt-0.5 sm:mt-0"></div>
-        <div class="flex-1">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <p id="regime-text" class="text-xs sm:text-sm font-medium leading-relaxed"></p>
-            <span id="autosave-indicator" class="text-[11px] text-slate-400 flex items-center gap-1 shrink-0 no-print">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Guardado automático en servidor
-            </span>
-          </div>
+      <div id="regime-banner" class="mt-3.5 rounded-xl px-4 py-2.5 border flex items-center gap-3 transition-all">
+        <div id="regime-icon" class="p-1.5 rounded-lg shrink-0"></div>
+        <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <p id="regime-text" class="text-xs sm:text-[13px] font-medium leading-snug"></p>
+          <span id="autosave-indicator" class="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1.5 shrink-0 no-print">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Guardado automático en servidor
+          </span>
         </div>
       </div>
     </div>
   </section>
 
   <!-- NAVEGACIÓN POR PESTAÑAS CON ALERTAS EN TIEMPO REAL -->
-  <nav class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-4 no-print" role="tablist">
-    <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none" id="main-tabs">
+  <nav class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-3 no-print" role="tablist">
+    <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar" id="main-tabs">
       <button onclick="switchTab('dashboard')" data-tab="dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
         <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
         <span>Dashboard Ejecutivo</span>
@@ -565,22 +556,22 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
             </h3>
             <span class="text-xs text-slate-400">Cifras en Bs.</span>
           </div>
-          <div class="relative flex-1 min-h-[300px]">
+          <div class="relative flex-1 h-[210px]">
             <canvas id="chart-bridge"></canvas>
           </div>
         </div>
 
         <div class="luxury-card rounded-2xl p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-bold text-gold-400 flex items-center gap-2">
               <i data-lucide="pie-chart" class="w-4 h-4"></i>
               <span>Análisis de Gastos</span>
             </h3>
           </div>
-          <div class="relative flex-1 min-h-[240px] flex items-center justify-center">
+          <div class="relative flex-1 h-[185px] flex items-center justify-center">
             <canvas id="chart-expenses"></canvas>
           </div>
-          <div id="expenses-legend-summary" class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800 text-center text-xs"></div>
+          <div id="expenses-legend-summary" class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs"></div>
         </div>
       </div>
 
@@ -1333,18 +1324,20 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
     const THEME_STORAGE_KEY = 'tv-theme';
 
     function initTheme() {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+      const savedTheme = localStorage.getItem('tv-theme-mode') || localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       applyTheme(savedTheme);
     }
 
     function applyTheme(theme) {
+      const isDark = theme === 'dark';
       const htmlEl = document.documentElement;
-      if (theme === 'dark') {
-        htmlEl.classList.add('dark');
-      } else {
-        htmlEl.classList.remove('dark');
-      }
+      htmlEl.className = isDark ? 'theme-dark dark' : 'theme-light';
+      htmlEl.setAttribute('data-theme', isDark ? 'dark' : 'light');
       if (typeof lucide !== 'undefined') lucide.createIcons();
+      if (typeof currentModel !== 'undefined' && currentModel) {
+        renderCharts(currentModel);
+        renderDictamenSection(currentModel);
+      }
     }
 
     function round2(n) {
@@ -1983,16 +1976,16 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       if (expLegend) {
         expLegend.innerHTML = `
           <div>
-            <span class="text-slate-400 block">Deducibles</span>
-            <span class="font-mono font-bold text-emerald-400">${fmtBs(m.conciliation.totalDeducible, false)}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium block">Deducibles</span>
+            <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400">${fmtBs(m.conciliation.totalDeducible, false)}</span>
           </div>
           <div>
-            <span class="text-slate-400 block">Dif. Perm.</span>
-            <span class="font-mono font-bold text-amber-400">${fmtBs(m.conciliation.difPermanentes, false)}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium block">Dif. Perm.</span>
+            <span class="font-mono font-bold text-amber-700 dark:text-amber-400">${fmtBs(m.conciliation.difPermanentes, false)}</span>
           </div>
           <div>
-            <span class="text-slate-400 block">Dif. Temp.</span>
-            <span class="font-mono font-bold text-sky-400">${fmtBs(m.conciliation.difTemporarias, false)}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium block">Dif. Temp.</span>
+            <span class="font-mono font-bold text-sky-700 dark:text-sky-400">${fmtBs(m.conciliation.difTemporarias, false)}</span>
           </div>
         `;
       }
@@ -2044,9 +2037,16 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 
     function renderCharts(m) {
       if (typeof Chart === 'undefined') return;
-      const isDark = document.documentElement.classList.contains('dark');
-      const tickColor = isDark ? '#CBD5E1' : '#374151';
-      const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+      const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+      const tickColor = isDark ? '#E2E8F0' : '#1E293B';
+      const gridColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.08)';
+      const borderColor = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.15)';
+      const bridgeColors = isDark
+        ? ['#22c55e', '#fbbf24', '#38bdf8', '#818cf8', '#fb7185', '#f43f5e', '#34d399']
+        : ['#16a34a', '#d97706', '#0284c7', '#4f46e5', '#e11d48', '#be123c', '#1A6B4A'];
+      const expColors = isDark
+        ? ['#22c55e', '#fbbf24', '#38bdf8']
+        : ['#16a34a', '#d97706', '#0284c7'];
 
       const ctxBridge = document.getElementById('chart-bridge');
       if (ctxBridge) {
@@ -2066,8 +2066,11 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
                 -m.conciliation.priorLosses,
                 m.conciliation.rentaNetaGravable
               ],
-              backgroundColor: ['#22c55e', '#f59e0b', '#38bdf8', '#6366F1', '#E11D48', '#F43F5E', '#1A6B4A'],
-              borderRadius: 8
+              backgroundColor: bridgeColors,
+              borderRadius: 6,
+              maxBarThickness: 28,
+              barPercentage: 0.45,
+              categoryPercentage: 0.65
             }]
           },
           options: {
@@ -2075,8 +2078,16 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { display: false } },
-              y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }
+              x: {
+                ticks: { color: tickColor, font: { size: 11, weight: '600' } },
+                grid: { display: false },
+                border: { color: borderColor }
+              },
+              y: {
+                ticks: { color: tickColor, font: { size: 11 } },
+                grid: { color: gridColor },
+                border: { color: borderColor }
+              }
             }
           }
         });
@@ -2095,16 +2106,24 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
                 Math.max(0, m.conciliation.difPermanentes),
                 Math.max(0, m.conciliation.difTemporarias)
               ],
-              backgroundColor: ['#22c55e', '#f59e0b', '#38bdf8'],
+              backgroundColor: expColors,
               borderWidth: 0
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '66%',
+            cutout: '76%',
             plugins: {
-              legend: { position: 'bottom', labels: { color: tickColor, font: { size: 11 } } }
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: tickColor,
+                  font: { size: 11, weight: '600' },
+                  boxWidth: 12,
+                  padding: 12
+                }
+              }
             }
           }
         });
@@ -2174,9 +2193,10 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       const ctxDict = document.getElementById('chart-dictamen');
       if (ctxDict && typeof Chart !== 'undefined') {
         if (chartDictamenInstance) chartDictamenInstance.destroy();
-        const isDark = document.documentElement.classList.contains('dark');
-        const tickColor = isDark ? '#CBD5E1' : '#374151';
-        const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+        const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+        const tickColor = isDark ? '#E2E8F0' : '#1E293B';
+        const gridColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(15,23,42,0.08)';
+        const borderColor = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.15)';
 
         chartDictamenInstance = new Chart(ctxDict, {
           type: 'bar',
@@ -2191,8 +2211,13 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
                 m.conciliation.creditosFiscales,
                 m.journal.gastoNetoImpuestos
               ],
-              backgroundColor: ['#2D5128', '#1A6B4A', '#22c55e', '#38bdf8', '#15803d'],
-              borderRadius: 8
+              backgroundColor: isDark
+                ? ['#34d399', '#1A6B4A', '#22c55e', '#38bdf8', '#4ade80']
+                : ['#2D5128', '#1A6B4A', '#16a34a', '#0284c7', '#15803d'],
+              borderRadius: 6,
+              maxBarThickness: 28,
+              barPercentage: 0.45,
+              categoryPercentage: 0.65
             }]
           },
           options: {
@@ -2200,8 +2225,8 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { display: false } },
-              y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }
+              x: { ticks: { color: tickColor, font: { size: 11, weight: '600' } }, grid: { display: false }, border: { color: borderColor } },
+              y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor }, border: { color: borderColor } }
             }
           }
         });
@@ -2327,18 +2352,39 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       recalculateAndRenderAll();
     }
 
+    function focusNewTableRow(tbodyId, message) {
+      const tbody = document.getElementById(tbodyId);
+      const lastRow = tbody ? tbody.querySelector('tr:last-child') : null;
+      if (lastRow) {
+        lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const firstInput = lastRow.querySelector('input, select');
+        if (firstInput) firstInput.focus({ preventScroll: true });
+      }
+      if (typeof showToast === 'function' && message) {
+        showToast(message, 'success');
+      }
+    }
+
     function addBalanceRow() {
+      state.balance = state.balance || [];
+      const searchEl = document.getElementById('bal-search');
+      if (searchEl && searchEl.value) searchEl.value = '';
+      const filterEl = document.getElementById('bal-filter-type');
+      const selectedType = (filterEl && filterEl.value && filterEl.value !== 'ALL') ? filterEl.value : 'Gasto';
+      const nature = ['Activo', 'Costo', 'Gasto'].includes(selectedType) ? 'Deudora' : 'Acreedora';
+
       state.balance.push({
         id: 'b_' + Date.now(),
         code: (() => { let n = 99, c; do { c = '6.1.' + n; n++; } while (state.balance.some(b => String(b.code).trim() === c)); return c; })(),
         name: 'Nueva Cuenta Contable',
-        type: 'Gasto',
-        nature: 'Deudora',
+        type: selectedType,
+        nature: nature,
         debit: 0,
         credit: 0
       });
       saveStore();
       recalculateAndRenderAll();
+      focusNewTableRow('balance-tbody', 'Cuenta contable agregada al Balance.');
     }
 
     function deleteBalanceRow(id) {
@@ -2801,6 +2847,9 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
     }
 
     function addConciliationRow() {
+      state.balance = state.balance || [];
+      state.conciliation = state.conciliation || { rows: [] };
+      state.conciliation.rows = state.conciliation.rows || [];
       const firstExpense = state.balance.find(b => b.type === 'Gasto') || state.balance[0];
       const newRow = {
         id: 'c_' + Date.now(),
@@ -2813,6 +2862,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       state.conciliation.rows.push(newRow);
       saveStore();
       recalculateAndRenderAll();
+      focusNewTableRow('conciliation-tbody', 'Partida agregada a Conciliación.');
     }
 
     function deleteConciliationRow(id) {
@@ -2873,6 +2923,8 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
     }
 
     function addApiInitialRow() {
+      state.api = state.api || {};
+      state.api.initialRows = state.api.initialRows || [];
       state.api.initialRows.push({
         id: 'ai_' + Date.now(),
         code: '1.2.02',
@@ -2887,6 +2939,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       });
       saveStore();
       recalculateAndRenderAll();
+      focusNewTableRow('api-initial-tbody', 'Partida inicial agregada.');
     }
 
     function deleteApiInitialRow(id) {
@@ -2905,6 +2958,8 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
     }
 
     function addApiRegularRow() {
+      state.api = state.api || {};
+      state.api.regularRows = state.api.regularRows || [];
       state.api.regularRows.push({
         id: 'ar_' + Date.now(),
         code: '1.2.02',
@@ -2919,6 +2974,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       });
       saveStore();
       recalculateAndRenderAll();
+      focusNewTableRow('api-regular-tbody', 'Partida de reajuste agregada.');
     }
 
     function deleteApiRegularRow(id) {
@@ -2945,6 +3001,8 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
     }
 
     function addRetentionRow() {
+      state.retentions = state.retentions || { rows: [] };
+      state.retentions.rows = state.retentions.rows || [];
       state.retentions.rows.push({
         id: 'r_' + Date.now(),
         date: '2026-10-01',
@@ -2960,6 +3018,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       });
       saveStore();
       recalculateAndRenderAll();
+      focusNewTableRow('retentions-tbody', 'Retención agregada.');
     }
 
     function deleteRetentionRow(id) {
@@ -3230,6 +3289,34 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
         } catch (e) {}
       }
     }
+
+    function toggleHeaderActionsMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('header-actions-menu');
+      const btn = document.getElementById('header-actions-btn');
+      if (!menu || !btn) return;
+      const isHidden = menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', !isHidden);
+      btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    }
+
+    function closeHeaderActionsMenu() {
+      const menu = document.getElementById('header-actions-menu');
+      const btn = document.getElementById('header-actions-btn');
+      if (menu) menu.classList.add('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('header-actions-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeHeaderActionsMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeHeaderActionsMenu();
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
