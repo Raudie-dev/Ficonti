@@ -531,19 +531,20 @@ tbody tr:hover td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 36px;
-  border: 1px solid var(--tv-border);
-  background: var(--tv-surface);
-  color: var(--tv-text);
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 1px;
+  gap: 7px;
+  width: auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #1A6B4A;
+  background: #1A6B4A;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 .tv-dots-btn:hover {
-  background: var(--tv-surface-hover);
-  border-color: var(--tv-accent);
+  background: #145339;
+  border-color: #145339;
 }
 .tv-dots-menu {
   position: absolute;

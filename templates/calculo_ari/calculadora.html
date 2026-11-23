@@ -135,18 +135,38 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
     .top-bar {
       position: sticky;
       top: 0;
-      z-index: 7;
-      background: var(--bg);
-    }
-    header {
+      z-index: 95;
+      background: var(--tv-bg, var(--bg));
       border-bottom: 1px solid var(--tv-border, var(--bd));
-      background: var(--tv-surface, var(--cd));
-      color: var(--tv-text, var(--tx));
-      padding: 10px 14px;
       display: flex;
-      gap: 10px;
       align-items: center;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 8px;
+    }
+    .top-bar > header {
+      order: 2;
+      flex: 0 0 auto;
+      border: 0 !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .top-bar > header h1,
+    .top-bar > header #co,
+    .top-bar > header #nc,
+    .top-bar > header #dc {
+      display: none !important;
+    }
+    .top-bar > nav {
+      order: 1;
+      flex: 1 1 auto;
+      min-width: 0;
+      position: static !important;
+      border-bottom: 0 !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
     h1 {
       font: 700 17px/1.2 var(--font-main);
@@ -634,7 +654,7 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       .badge { border: 1px solid #000 !important; }
     }
   </style>
-  <link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
+  <link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
   <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
@@ -646,18 +666,13 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
         <button class="b" id="nc">Nueva empresa</button>
         <button class="s" id="dc">Eliminar empresa</button>
         <div class="dd-wrap">
-          <button class="s" id="optBtn" type="button" aria-label="Menú de opciones" title="Menú de opciones" aria-haspopup="true" aria-expanded="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <button class="s" id="optBtn" type="button" aria-label="Opciones del módulo" aria-haspopup="true" aria-expanded="false" style="gap:6px;padding:6px 12px;background:#1A6B4A;color:#ffffff;border-color:#1A6B4A;">
+            <span>Opciones ▾</span>
           </button>
           <div class="dd-menu" id="optMenu" role="menu" hidden>
-            <label role="menuitem" tabindex="0">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span>Importar archivo</span>
-              <input id="ijTop" type="file" accept=".json" hidden>
-            </label>
-            <button type="button" role="menuitem" id="ejTop">
+            <button type="button" role="menuitem" id="csTop">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Exportar archivo</span>
+              <span>Exportar Excel (CSV)</span>
             </button>
             <div class="dd-sep"></div>
             <button type="button" role="menuitem" id="th">
@@ -704,14 +719,16 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
     <section id="trab" hidden>
       <div class="sp">
         <div class="cd np">
-          <div class="row" style="justify-content:space-between;margin-bottom:10px">
-            <h2 style="margin:0">Trabajadores</h2>
-            <div class="row">
+          <div class="row" style="justify-content:space-between;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;flex:1 1 220px;min-width:0;">
+              <h2 style="margin:0;white-space:nowrap;">Trabajador</h2>
+              <select id="lsSel" aria-label="Seleccionar trabajador" style="flex:1;min-width:140px;max-width:360px;"></select>
+            </div>
+            <div class="row" style="flex-shrink:0;">
               <button class="b" id="ad">+ Agregar</button>
               <button class="s" id="dl">Eliminar</button>
             </div>
           </div>
-          <div class="ls" id="ls"></div>
         </div>
         <div>
           <div class="cd np">
@@ -729,8 +746,6 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
         <div class="row np" style="margin-bottom:10px">
           <button class="b" id="cs">Exportar CSV (Excel)</button>
           <button class="b" id="xm">Exportar XML (SENIAT)</button>
-          <button class="s" id="ej">Respaldo JSON</button>
-          <label class="s" style="flex-direction:row;cursor:pointer">Importar JSON<input id="ij" type="file" accept=".json" hidden></label>
           <button class="s" id="rs">Restablecer</button>
           <button class="s" id="pr">Imprimir</button>
           <button class="s" id="ds">Eliminar seleccionados</button>
@@ -965,6 +980,13 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       DB = { cur: 0, cos: [clean(null)] };
     }
     S = DB.cos[DB.cur];
+    if (window.EMPRESA && window.EMPRESA.nombre) {
+      if (!S.p.emp || S.p.emp === "EMPRESA EJEMPLO, C.A." || S.p.rif === "J-00000000-0" || DB.cur === 0) {
+        S.p.emp = window.EMPRESA.nombre;
+        if (window.EMPRESA.rif) S.p.rif = window.EMPRESA.rif;
+        if (window.EMPRESA.condicion) S.p.cf = window.EMPRESA.condicion === "Sujeto pasivo especial" ? "spe" : "ordinario";
+      }
+    }
 
     const save = () => { try { localStorage.setItem("ari_pro_v2", JSON.stringify(DB)); } catch (e) {} };
     const lg = (a, d) => {
@@ -1048,8 +1070,8 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
     function efm() {
       const e = S.e[sel];
       if (!e) {
-        $("#ef").innerHTML = '<p class="nt">No hay trabajadores. Use Agregar.</p>';
-        $("#ls").innerHTML = "";
+        $("#ef").innerHTML = '<p class="nt">No hay trabajadores. Use + Agregar.</p>';
+        $("#lsSel").innerHTML = '<option value="">Sin trabajadores</option>';
         return;
       }
       $("#ef").innerHTML = [
@@ -1070,7 +1092,7 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
         ["exceso", "Retenido de más, ejercicio anterior (Bs.)", "n"]
       ].map(([k, l, t]) => fld("e", k, l, t, e[k])).join("") +
         slc("e", "tipo", "Desgravámenes", [["U", "Desgravamen único"], ["D", "Detallados"]], e.tipo);
-      $("#ls").innerHTML = S.e.map((x, i) => `<button data-i="${i}" aria-pressed="${i === sel}">${esc(x.nombre || "Sin nombre")}</button>`).join("");
+      $("#lsSel").innerHTML = S.e.map((x, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${esc(x.nombre || "Sin nombre")}${x.cedula ? " · " + esc(x.cedula) : ""}</option>`).join("");
     }
 
     function plan() {
@@ -1947,30 +1969,16 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       setTimeout(() => URL.revokeObjectURL(a.href), 500);
     };
 
-    const doExportJson = () => {
-      lg("Respaldo exportado", "JSON de todas las empresas");
-      dlf("ARI_Respaldo_empresas.json", JSON.stringify(DB, null, 1), "application/json");
-    };
-
-    const handleImportJson = ev => {
-      const f = ev.target.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => {
-        try {
-          const o = JSON.parse(r.result);
-          if (o && Array.isArray(o.cos) && o.cos.length) DB = { cur: 0, cos: o.cos.map(clean) };
-          else { DB.cos.push(clean(o)); DB.cur = DB.cos.length - 1; }
-          S = DB.cos[DB.cur]; sel = 0; vIdx = 0;
-          lg("Respaldo importado", DB.cos.length + " empresa(s)");
-          coSel(); forms(); pre(); R();
-          note("Archivo importado correctamente.");
-        } catch (e) {
-          note("El archivo JSON no es válido.");
-        }
-      };
-      r.readAsText(f);
-      ev.target.value = "";
+    const exportCsvNomina = () => {
+      const q = s => { s = String(s); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; },
+        n = x => String(Math.round(x * 100) / 100).replace(".", ",");
+      const L = [["Cedula", "Nombre", "A_Remun_Bs", "B_UT", "Retiene", "F_UT", "I_UT", "J_Pct", "Ret_Mensual_Bs", "Ret_Utilid_Bono_Bs", "Ret_Anual_Bs"].join(";")];
+      S.e.forEach(e => {
+        const c = calc(e);
+        L.push([q(e.cedula), q(e.nombre), n(c.A), n(c.B), c.obl ? "SI" : "NO", n(c.F), n(c.I), n(c.J), n(c.rm), n(c.rx), n(c.ra)].join(";"));
+      });
+      lg("Nómina exportada", "CSV");
+      dlf(`Nomina_ARI_${S.p.ej}.csv`, "\ufeff" + L.join("\r\n"), "text/csv;charset=utf-8");
     };
 
     const closeOptMenu = () => {
@@ -1996,22 +2004,8 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       if (ev.key === "Escape") closeOptMenu();
     });
 
-    $("#ej").onclick = doExportJson;
-    $("#ejTop").onclick = () => { closeOptMenu(); doExportJson(); };
-    $("#ij").onchange = handleImportJson;
-    $("#ijTop").onchange = ev => { closeOptMenu(); handleImportJson(ev); };
-
-    $("#cs").onclick = () => {
-      const q = s => { s = String(s); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; },
-        n = x => String(Math.round(x * 100) / 100).replace(".", ",");
-      const L = [["Cedula", "Nombre", "A_Remun_Bs", "B_UT", "Retiene", "F_UT", "I_UT", "J_Pct", "Ret_Mensual_Bs", "Ret_Utilid_Bono_Bs", "Ret_Anual_Bs"].join(";")];
-      S.e.forEach(e => {
-        const c = calc(e);
-        L.push([q(e.cedula), q(e.nombre), n(c.A), n(c.B), c.obl ? "SI" : "NO", n(c.F), n(c.I), n(c.J), n(c.rm), n(c.rx), n(c.ra)].join(";"));
-      });
-      lg("Nómina exportada", "CSV");
-      dlf(`Nomina_ARI_${S.p.ej}.csv`, "\ufeff" + L.join("\r\n"), "text/csv;charset=utf-8");
-    };
+    $("#cs").onclick = exportCsvNomina;
+    $("#csTop").onclick = () => { closeOptMenu(); exportCsvNomina(); };
 
     $("#th").onclick = () => {
       closeOptMenu();
@@ -2043,9 +2037,9 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       } else if (t.dataset.s === "e" && S.e[sel]) {
         const k = t.dataset.k;
         S.e[sel][k] = t.dataset.nt === "int" ? Math.floor(pnum(t.value)) : (t.dataset.nt === "dec" ? pnum(t.value) : t.value);
-        if (k === "nombre") {
-          const btn = document.querySelector(`#ls button[data-i="${sel}"]`);
-          if (btn) btn.textContent = t.value || "Sin nombre";
+        if (k === "nombre" || k === "cedula") {
+          const opt = document.querySelector(`#lsSel option[value="${sel}"]`);
+          if (opt) opt.textContent = (S.e[sel].nombre || "Sin nombre") + (S.e[sel].cedula ? " · " + S.e[sel].cedula : "");
         }
         save(); R();
       } else if (t.dataset.s === "v") {
@@ -2082,6 +2076,11 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
       }
       if (t.id === "ve") {
         pre(+t.value);
+      }
+      if (t.id === "lsSel") {
+        sel = +t.value;
+        efm();
+        plan();
       }
     });
 

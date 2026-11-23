@@ -1,7 +1,7 @@
 {% load humanize %}
 <header class="app-navbar">
   <!-- Izquierda: Botón Menú Móvil + Título de la Sección Actual -->
-  <div class="d-flex align-items-center gap-2">
+  <div class="navbar-left d-flex align-items-center gap-2">
     <button class="action-circle-btn" id="sidebarToggle" aria-label="Mostrar u ocultar menú" title="Mostrar u ocultar menú">
       <i class="bi bi-layout-sidebar"></i>
     </button>
@@ -199,10 +199,10 @@
       </button>
     </div>
 
-    <!-- Menú Compacto [...] en Móvil (< md) -->
+    <!-- Menú Compacto [⋮] en Móvil (< md) -->
     <div class="dropdown d-md-none nav-more-drop">
-      <button class="action-circle-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Más opciones" title="Más opciones">
-        <i class="bi bi-three-dots"></i>
+      <button class="action-circle-btn nav-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Más opciones" title="Más opciones">
+        <i class="bi bi-three-dots-vertical"></i>
       </button>
       <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 12px; min-width: 200px;">
         {% if modulo %}

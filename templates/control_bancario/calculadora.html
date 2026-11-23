@@ -134,7 +134,7 @@ td input,td select,.f input,.f select,textarea{font-size:16px}.row select{max-wi
 .dm button{display:flex;gap:10px;align-items:center;width:100%;background:none;color:var(--ink);border:0;text-align:left;padding:10px;font:600 .88rem var(--f);cursor:pointer}.dm button:hover{background:var(--pri2)}.dm .ic{color:var(--pri)}
 @media print{:root[data-theme=dark]{--bg:#fff;--card:#fff;--ink:#000;--mut:#555;--bd:#ccc;--pri:#1f5c4a;--pri2:#e9f1ed;--ok:#1f7a4d;--okb:#dff2e7;--wr:#9a5b00;--wrb:#fdebc8;--er:#b3261e;--erb:#fbe0dd}#top,header,nav,.no{display:none!important}body{background:#fff;color:#000}.card{border:0;padding:0}.pg{display:none!important}#informe{display:block!important}}
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head><body>
 <div id="top"><header><div><h1>ConciliaIngresos</h1><small>Separe sus ventas de los demás abonos bancarios y demuéstrelo ante el SENIAT</small></div>
@@ -150,6 +150,7 @@ const f=n=>grp(n,2),gi=n=>grp(n,2);
 const today=()=>new Date().toISOString().slice(0,10);
 let KEY=(()=>{try{return localStorage.getItem('ci_cur')||'ci1'}catch(e){return'ci1'}})();
 let S=load()||demo(),tab='inicio',flt='all',fs='all';
+if(window.EMPRESA&&window.EMPRESA.nombre){S.co.name=window.EMPRESA.nombre;if(window.EMPRESA.rif)S.co.rif=window.EMPRESA.rif;if(window.EMPRESA.condicion)S.co.cond=window.EMPRESA.condicion;}
 function nd(v){return String(v||'').replace(/\D/g,'')}
 function nref(v){const d=nd(v);return d?d.slice(-8).padStart(8,'0'):''}
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.tx)d.tx.forEach(t=>{if(/\d/.test(t.ref))t.ref=nref(t.ref)});return d}catch(e){return null}}

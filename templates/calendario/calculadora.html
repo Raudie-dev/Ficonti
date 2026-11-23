@@ -1564,18 +1564,21 @@ html.theme-dark .share-actions a.b.wa {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  border: 1px solid var(--bd);
-  background: var(--tv-surface, var(--card));
-  color: var(--tx);
+  gap: 7px;
+  width: auto;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #1A6B4A;
+  background: #1A6B4A;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .share-dots-btn:hover {
-  background: var(--tv-surface-subtle, var(--lt));
-  border-color: #1A6B4A;
+  background: #145339;
+  border-color: #145339;
 }
 .share-dropdown {
   position: absolute;
@@ -1636,7 +1639,7 @@ html.theme-dark .share-dropdown-item.gm { color: #fca5a5; }
 [data-theme="dark"] .share-dropdown-item.wa,
 html.theme-dark .share-dropdown-item.wa { color: #6ee7b7; }
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head><body>
 <div id="cal-print-sheet"></div>
@@ -1725,7 +1728,7 @@ function renderShare(x){const e=x.r.emp;if(!S.toDirty)S.to=e&&e.em||"";if(!S.waD
  const tx=shareText(x),sub="Obligaciones fiscales "+Y+(e?" — "+e.n:"");
  $("share").innerHTML=`<div class="share-inputs"><label>Correo del destinatario<input id="to" type="email" placeholder="cliente@gmail.com" value="${S.to}"></label><label>WhatsApp (código de país + número)<input id="wa" placeholder="584141234567" value="${S.wa}"></label></div>
  <div class="share-menu-wrap" id="cal-share-wrap">
-  <button type="button" id="cal-share-btn" class="share-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para compartir o imprimir" title="Más opciones" style="font-size: 16px; font-weight: 800; line-height: 1; letter-spacing: 1px;">...</button>
+  <button type="button" id="cal-share-btn" class="share-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para compartir o imprimir">Exportar / Enviar ▾</button>
   <div id="cal-share-menu" class="share-dropdown hid" role="menu" aria-labelledby="cal-share-btn">
    <a class="share-dropdown-item gm" id="gm" role="menuitem" target="_blank" rel="noopener">Enviar por Gmail</a>
    <a class="share-dropdown-item wa" id="wl" role="menuitem" target="_blank" rel="noopener">Enviar por WhatsApp</a>

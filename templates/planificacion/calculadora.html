@@ -1180,7 +1180,7 @@ table.heat td:first-child {
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
@@ -1299,7 +1299,7 @@ return C("Informe ejecutivo",`<p><b>${S.emp}</b> | RIF ${S.rif} | Escenario ${S.
 C("Desviaciones del ejercicio, mes por mes",heat(g),`Tolerancia ${pc(S.tol)}. ISLR proyectado del año: ${f(g.rp.isl)} contra ${f(b.isl)} presupuestado (${pc(g.rp.isl/b.isl-1,1)}).`)+
 C("Riesgo cambiario e inflación",TB(H("Concepto","Moderada","Acelerada","Abrupta"),[R("Devaluación del año",...cs.map(x=>pc(x.dev))),R("Utilidad antes de ISLR",...cs.map(x=>f(x.ut))),R("Desviación contra presupuesto",...cs.map(x=>pc(x.dv,1)))]),`Posición neta en divisas: ${f(net())} USD (${est()}).`)+
 C("Principales riesgos",TB(H("Riesgo","Acción"),top.map(a=>`<tr><td><b>${a[0][0]}</b></td><td>${a[0][1]}</td></tr>`)))+
-`<section class="c np"><h2>Compartir</h2><div class="f"><label>Correo del destinatario ${TX("mail",S.mail)}</label><label>WhatsApp con código de país ${TX("wa",S.wa)}</label></div><div class="tv-dots-wrap"><button type="button" class="tv-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para compartir o imprimir" title="Más opciones" onclick="var m=this.nextElementSibling;var h=m.hidden;m.hidden=!h;this.setAttribute('aria-expanded',h?'true':'false')">...</button><div class="tv-dots-menu" role="menu" hidden><a class="tv-dots-item gm" role="menuitem" target="_blank" rel="noopener" href="${gm}">Enviar por Gmail</a><a class="tv-dots-item wa" role="menuitem" target="_blank" rel="noopener" href="${wa}">Enviar por WhatsApp</a><button type="button" class="tv-dots-item" role="menuitem" onclick="window.print()">Guardar en PDF o imprimir</button></div></div><p class="note">Gmail y WhatsApp envían un resumen. Para el PDF completo, elige Guardar como PDF en la ventana de impresión y adjúntalo a mano.</p></section>`}
+`<section class="c np"><h2>Compartir</h2><div class="f"><label>Correo del destinatario ${TX("mail",S.mail)}</label><label>WhatsApp con código de país ${TX("wa",S.wa)}</label></div><div class="tv-dots-wrap"><button type="button" class="tv-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para compartir o imprimir" onclick="var m=this.nextElementSibling;var h=m.hidden;m.hidden=!h;this.setAttribute('aria-expanded',h?'true':'false')">Exportar / Enviar ▾</button><div class="tv-dots-menu" role="menu" hidden><a class="tv-dots-item gm" role="menuitem" target="_blank" rel="noopener" href="${gm}">Enviar por Gmail</a><a class="tv-dots-item wa" role="menuitem" target="_blank" rel="noopener" href="${wa}">Enviar por WhatsApp</a><button type="button" class="tv-dots-item" role="menuitem" onclick="window.print()">Guardar en PDF o imprimir</button></div></div><p class="note">Gmail y WhatsApp envían un resumen. Para el PDF completo, elige Guardar como PDF en la ventana de impresión y adjúntalo a mano.</p></section>`}
 function render(){const V={dash,sup,pro,seg:segv,obl,rie,cam:camv,inf};
 $("m").innerHTML=V[tab]();$("nav").innerHTML=T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]==tab}">${t[1]}</button>`).join("");
 $("sub").textContent=`${S.emp} | RIF ${S.rif} | Escenario ${S.esc}`}
