@@ -321,7 +321,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-gold-500/30 selection:text-gold-400">
@@ -356,11 +356,11 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
           <select id="profile-selector" onchange="switchProfile(this.value)" class="hidden"></select>
           <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
 
-          <button type="button" id="header-actions-btn" onclick="toggleHeaderActionsMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Más acciones" title="Acciones" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-midnight-800 hover:bg-slate-100 dark:hover:bg-midnight-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm transition">
+          <button type="button" id="header-actions-btn" onclick="toggleHeaderActionsMenu(event)" aria-haspopup="true" aria-expanded="false" aria-label="Más acciones" title="Acciones" class="inline-flex items-center justify-center w-9 h-9 bg-white dark:bg-midnight-800 hover:bg-slate-100 dark:hover:bg-midnight-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition">
             <i data-lucide="more-horizontal" class="w-4 h-4"></i>
           </button>
 
-          <div id="header-actions-menu" role="menu" aria-labelledby="header-actions-btn" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl bg-white dark:bg-midnight-900 border border-slate-200 dark:border-slate-700 shadow-xl py-1.5 z-50">
+          <div id="header-actions-menu" role="menu" aria-labelledby="header-actions-btn" class="hidden absolute right-0 top-full mt-2 w-52 max-w-[calc(100vw-24px)] bg-white dark:bg-midnight-900 border border-slate-200 dark:border-slate-700 py-1.5 z-50">
             <button type="button" role="menuitem" onclick="closeHeaderActionsMenu(); document.getElementById('excel-upload').click();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-midnight-800 transition">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
               <span>Importar Excel/CSV</span>

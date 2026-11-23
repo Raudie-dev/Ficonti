@@ -146,31 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
       if (moduloOverlay) moduloOverlay.classList.add('is-hidden');
     };
 
-    var resizeIframe = function () {
-      try {
-        if (iframe.contentWindow && iframe.contentDocument) {
-          var doc = iframe.contentDocument;
-          var h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
-          if (h > 400) {
-            iframe.style.height = (h + 30) + 'px';
-          }
-        }
-      } catch (e) {}
-    };
-
     iframe.addEventListener('load', function () {
       var t = document.documentElement.getAttribute('data-bs-theme') || 'light';
       try {
         iframe.contentWindow.postMessage({ type: 'tv-theme-change', theme: t }, '*');
       } catch (e) {}
       hideModuloLoader();
-      setTimeout(resizeIframe, 200);
-      setTimeout(resizeIframe, 1000);
     });
 
     // Respaldo por si el navegador usa caché instantánea
     setTimeout(hideModuloLoader, 3500);
-    window.addEventListener('resize', resizeIframe);
   }
 
   // 5. Listener para postMessage de los módulos en iframes (estados y UX)
@@ -239,6 +224,13 @@ document.addEventListener('DOMContentLoaded', function () {
   if (pwaInstallBtn) pwaInstallBtn.addEventListener('click', triggerPwaInstall);
   var sidebarPwaInstallBtn = document.getElementById('sidebarPwaInstallBtn');
   if (sidebarPwaInstallBtn) sidebarPwaInstallBtn.addEventListener('click', triggerPwaInstall);
+
+  // Evita que modales Bootstrap queden detrás del backdrop por contextos de apilamiento (.tv-fade-in, etc.)
+  document.addEventListener('show.bs.modal', function (e) {
+    if (e.target && e.target.parentElement !== document.body) {
+      document.body.appendChild(e.target);
+    }
+  });
 
   // 7. Sincronización de Tasa Oficial del Banco Central de Venezuela (BCV)
   window.TASA_BCV = window.TASA_BCV || { usd: 65.0, eur: 70.2 };

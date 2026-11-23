@@ -7,9 +7,6 @@
     </button>
 
     <div class="navbar-breadcrumb d-flex align-items-center gap-2">
-      <a href="{% url 'empresas:resumen' %}" class="nav-icon-box" title="Ir a Resumen de empresas">
-        <i class="bi {% if modulo %}{{ modulo.icono }}{% else %}bi-layers-half{% endif %}" style="color: var(--tv-primary);"></i>
-      </a>
       <span class="breadcrumb-item active" style="font-size: 0.9rem;">
         {% if modulo %}
           {{ modulo.nombre }}
@@ -26,11 +23,12 @@
     </div>
   </div>
 
-  <!-- Derecha: Control Unificado BCV + Moneda, Empresa Activa, Imprimir y Tema -->
+  <!-- Derecha: Control Unificado BCV + Moneda + Empresa Activa, Imprimir y Tema -->
   <div class="navbar-actions">
 
+    <div class="nav-pill-group">
     <!-- Control Unificado: Tasa Oficial BCV + Moneda de Trabajo -->
-    <div class="dropdown">
+    <div class="dropdown nav-bcv-drop">
       <button class="bcv-nav-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Tasa Oficial BCV y Moneda">
         <i class="bi bi-bank" style="color: var(--tv-primary);"></i>
         <span class="d-none d-sm-inline text-muted fw-semibold">BCV:</span>
@@ -143,9 +141,8 @@
 
     <!-- Selector Rápido de Empresa Activa -->
     {% if empresa_activa %}
-    <div class="dropdown">
+    <div class="dropdown nav-pill-emp">
       <button class="btn btn-sm btn-dash-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.78rem;">
-        <span class="table-avatar" style="width: 22px; height: 22px; font-size: 0.68rem;">{{ empresa_activa.nombre|slice:":1"|upper }}</span>
         <span class="fw-bold text-truncate" style="max-width: 155px;">{{ empresa_activa.nombre }}</span>
         <span class="text-muted d-none d-xl-inline" style="font-size: 0.72rem;">· {{ empresa_activa.rif }}</span>
       </button>
@@ -177,25 +174,60 @@
       <i class="bi bi-plus-lg me-1"></i> Registrar Empresa
     </a>
     {% endif %}
+    </div><!-- /.nav-pill-group -->
 
-    {% if modulo %}
-    <!-- Botón Imprimir Formal -->
-    <button type="button" class="btn btn-sm btn-dash-secondary py-1 px-2.5 d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;"
-            onclick="var f=document.getElementById('moduloFrame');if(f&&f.contentWindow){f.contentWindow.postMessage({type:'ux-do-print'},'*');}"
-            title="Imprimir reporte formal del módulo">
-      <i class="bi bi-printer"></i>
-      <span class="d-none d-md-inline">Imprimir</span>
-    </button>
-    {% endif %}
+    <!-- Acciones en Escritorio (>= md) -->
+    <div class="d-none d-md-inline-flex align-items-center gap-2">
+      {% if modulo %}
+      <!-- Botón Imprimir Formal -->
+      <button type="button" class="btn btn-sm btn-dash-secondary py-1 px-2.5 d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;"
+              onclick="var f=document.getElementById('moduloFrame');if(f&&f.contentWindow){f.contentWindow.postMessage({type:'ux-do-print'},'*');}"
+              title="Imprimir reporte formal del módulo">
+        <i class="bi bi-printer"></i>
+        <span>Imprimir</span>
+      </button>
+      {% endif %}
 
-    <!-- Botón Instalar PWA (solo visible si el navegador permite instalar) -->
-    <button type="button" id="pwaInstallBtn" class="action-circle-btn d-none" title="Instalar aplicación">
-      <i class="bi bi-download" style="color: var(--tv-primary);"></i>
-    </button>
+      <!-- Botón Instalar PWA (solo visible si el navegador permite instalar) -->
+      <button type="button" id="pwaInstallBtn" class="action-circle-btn d-none" title="Instalar aplicación">
+        <i class="bi bi-download" style="color: var(--tv-primary);"></i>
+      </button>
 
-    <!-- Botón Toggle de Modo Claro / Oscuro -->
-    <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)" aria-label="Cambiar tema">
-      <i class="bi bi-sun-fill theme-toggle-icon"></i>
-    </button>
+      <!-- Botón Toggle de Modo Claro / Oscuro -->
+      <button type="button" class="action-circle-btn theme-toggle-btn" title="Cambiar tema (Claro / Oscuro)" aria-label="Cambiar tema">
+        <i class="bi bi-sun-fill theme-toggle-icon"></i>
+      </button>
+    </div>
+
+    <!-- Menú Compacto [...] en Móvil (< md) -->
+    <div class="dropdown d-md-none nav-more-drop">
+      <button class="action-circle-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Más opciones" title="Más opciones">
+        <i class="bi bi-three-dots"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-lg border" style="border-radius: 12px; min-width: 200px;">
+        {% if modulo %}
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                  onclick="var f=document.getElementById('moduloFrame');if(f&&f.contentWindow){f.contentWindow.postMessage({type:'ux-do-print'},'*');}">
+            <i class="bi bi-printer"></i>
+            <span>Imprimir reporte</span>
+          </button>
+        </li>
+        {% endif %}
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"
+                  onclick="var b=document.getElementById('pwaInstallBtn');if(b&&!b.classList.contains('d-none')){b.click();}">
+            <i class="bi bi-download" style="color: var(--tv-primary);"></i>
+            <span>Instalar aplicación</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 theme-toggle-btn">
+            <i class="bi bi-sun-fill theme-toggle-icon"></i>
+            <span>Cambiar tema</span>
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
 </header>

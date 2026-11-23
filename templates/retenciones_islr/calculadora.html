@@ -251,19 +251,23 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 
 /* Mobile: filas como tarjetas (Solo en pantalla, nunca en impresión) */
 @media screen and (max-width:760px){
-  .wrap{padding:0 14px}
+  .wrap{padding:0 6px!important}
   .masthead{padding-bottom:56px}
-  table{min-width:0}
-  .table-scroll{background:transparent;border:0;overflow:visible}
+  table{min-width:0!important}
+  #results.table-scroll{background:transparent!important;border:0!important;padding:0!important;overflow:visible!important}
   thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   tbody,tr,td{display:block}
-  tbody tr{background:var(--surface);border:1px solid var(--rule);border-radius:12px;margin-bottom:12px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
-  tbody td{border:0;padding:0;font-size:.92rem}
-  tbody tr:hover td{background:transparent}
-  td.concept{grid-column:1 / -1;max-width:none;min-width:0;font-size:1rem}
-  td[data-label]::before{content:attr(data-label);display:block;font-size:.75rem;color:var(--muted);font-weight:400}
-  td.concept::before{display:none}
-  td.num{text-align:left}
+  #results tbody tr{background:var(--tv-surface,var(--surface))!important;border:1px solid var(--tv-border,var(--rule))!important;border-radius:0!important;margin-bottom:8px!important;padding:10px 12px!important;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px 10px!important}
+  #results tbody td,
+  #results tbody tr:nth-child(even) td,
+  #results tbody tr:hover td{background:transparent!important;border:0!important;padding:0!important;font-size:.86rem!important;text-align:left!important;min-width:0!important;grid-column:span 3!important}
+  #results tbody td:nth-child(2),
+  #results tbody td:nth-child(3),
+  #results tbody td:nth-child(4){grid-column:span 2!important}
+  #results td.concept{grid-column:1 / -1!important;max-width:none!important;min-width:0!important;font-size:.92rem!important;font-weight:700!important;padding-bottom:6px!important;margin-bottom:0!important;border-bottom:1px solid var(--tv-border,var(--rule))!important}
+  #results td[data-label]::before{content:attr(data-label);display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.03em;color:var(--tv-muted,var(--muted));font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #results td.concept::before{display:none!important}
+  #results td.num{text-align:left!important;font-weight:700!important}
   .legend{grid-template-columns:1fr}
 }
 
@@ -286,12 +290,13 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 /*mdl*/
 #rows tr[data-r]{cursor:pointer}
 #rows tr[data-r]:focus-visible{outline:2px solid var(--royal);outline-offset:-2px}
-.mdl-bg{position:fixed;inset:0;background:rgba(10,14,30,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
-.mdl-bg[hidden]{display:none}
-.mdl{background:var(--tv-surface, var(--surface));color:var(--tv-text, var(--ink));border:1px solid var(--bd, var(--rule));border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:min(540px,100%);max-height:85vh;overflow:auto}
-.mh{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--surface);z-index:1}
+.mdl-bg{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;min-height:100dvh!important;background:rgba(15,23,20,.62)!important;z-index:9999!important;display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto}
+.mdl-bg[hidden]{display:none!important}
+.mdl{background:var(--tv-surface, var(--surface));color:var(--tv-text, var(--ink));border:1px solid var(--tv-border, var(--bd, var(--rule)));border-radius:0;box-shadow:none;width:min(540px,100%);max-height:85vh;overflow:auto}
+.mdl .note, .mdl .muted{font-size:0.9rem!important;line-height:1.45!important}
+.mh{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--tv-border, var(--bd, var(--rule)));position:sticky;top:0;background:var(--tv-surface, var(--surface));z-index:1}
 .mh b{display:block;margin-top:5px;line-height:1.25}
-.mx{border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--muted);padding:0 4px}
+.mx{border:0;background:none;font-size:24px;line-height:1;cursor:pointer;color:var(--tv-muted, var(--muted));width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
 .mb{padding:14px 16px 16px}
 .vars{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0 0 12px}
 .vars div{min-width:0}.vars dt{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
@@ -313,7 +318,7 @@ footer{color:var(--muted);font-size:.85rem;padding:0 0 40px;max-width:80ch}
 .sugg li{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer}
 .sugg li.on,.sugg li:hover{background:color-mix(in srgb,var(--royal) 10%,var(--surface))}
 .sugg .sc{flex:1;min-width:0;font-weight:500}.sugg small{color:var(--muted);white-space:nowrap}
-@media (max-width:760px){.sugg small{display:none}.mdl-bg{align-items:flex-end;padding:0}.mdl{border-radius:14px 14px 0 0;max-height:92vh}}
+@media (max-width:760px){.sugg small{display:none}.mdl-bg{align-items:flex-start;padding:12px 10px}.mdl{width:100%;border-radius:14px;max-height:88vh}.vars{gap:8px 10px}}
 @media print{.mdl-bg,.sugg{display:none!important}}
 
 /* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
@@ -1436,7 +1441,7 @@ header.masthead dl.facts {
   }
 }
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
@@ -1635,7 +1640,7 @@ header.masthead dl.facts {
       var tarifa = r.t2
         ? '<button type="button" class="pill" data-t2="1" aria-label="Tarifa N.º 2, ver tabla">Tarifa N.º 2</button>'
         : cell(r.t, "pct");
-      return '<tr tabindex="0" data-r="' + rows.indexOf(r) + '" title="Tocar para calcular la retención">' +
+      return '<tr tabindex="0" data-r="' + rows.indexOf(r) + '">' +
         '<td class="concept">' + highlight(r.c, toks) + '</td>' +
         '<td data-label="Condición"><span class="tag ' + r.k + '" title="' + esc(CONDNAME[r.k]) + '">' + r.k + '</span></td>' +
         '<td class="lit" data-label="Numeral-literal">' + esc(r.n) + '</td>' +
@@ -1816,27 +1821,30 @@ header.masthead dl.facts {
       '<div style="margin-top:12px;display:flex;justify-content:flex-end;"><button type="button" class="btn" id="btnPrintModal" onclick="window.print()">🖨 Imprimir cálculo</button></div></div>';
 
     // Posicionar el modal justo en el área visible del usuario (incluso dentro de un iframe alto)
-    var topOffset = 24;
+    var topOffset = 20;
+    var vh = window.innerHeight || 640;
     try {
       if (window.frameElement && window.parent) {
         var frameTop = window.frameElement.getBoundingClientRect().top;
         var visibleTop = Math.max(0, -frameTop);
-        topOffset = visibleTop + 28;
+        vh = window.parent.innerHeight || vh;
+        topOffset = visibleTop + 16;
       } else if (anchorEl && anchorEl.getBoundingClientRect) {
-        topOffset = Math.max(24, anchorEl.getBoundingClientRect().top + window.scrollY - 60);
+        topOffset = Math.max(16, anchorEl.getBoundingClientRect().top + window.scrollY - 60);
       }
     } catch (e) {
       if (anchorEl && anchorEl.getBoundingClientRect) {
-        topOffset = Math.max(24, anchorEl.getBoundingClientRect().top - 40);
+        topOffset = Math.max(16, anchorEl.getBoundingClientRect().top - 40);
       }
     }
     mdl.style.paddingTop = topOffset + "px";
+    mbox.style.maxHeight = Math.max(320, vh - 40) + "px";
 
     mdl.hidden = false; document.body.style.overflow = "hidden";
     $("mm").addEventListener("input", paintRes); $("mx").addEventListener("click", closeCalc);
     paintRes(); $("mm").focus({ preventScroll: true });
   }
-  mdl.addEventListener("mousedown", function(e){ if(e.target === mdl) closeCalc(); });
+  mdl.addEventListener("click", function(e){ if(e.target === mdl) closeCalc(); });
   document.addEventListener("keydown", function(e){
     if(mdl.hidden) return;
     if(e.key === "Escape"){ closeCalc(); return; }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <script id="tv-theme-listener">
@@ -47,18 +47,18 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
   }
 
   Storage.prototype.getItem = function(key) {
-    if (key === 'tv-theme') return origGet.call(this, key);
+    if (key === 'tv-theme' || key === 'tv-theme-mode') return origGet.call(this, key);
     return origGet.call(this, prefix + key);
   };
   Storage.prototype.setItem = function(key, val) {
-    if (key === 'tv-theme') return origSet.call(this, key, val);
+    if (key === 'tv-theme' || key === 'tv-theme-mode') return origSet.call(this, key, val);
     origSet.call(this, prefix + key, val);
     saveQueue[key] = val;
     clearTimeout(saveTimer);
     saveTimer = setTimeout(syncToServer, 500);
   };
   Storage.prototype.removeItem = function(key) {
-    if (key === 'tv-theme') return origRemove.call(this, key);
+    if (key === 'tv-theme' || key === 'tv-theme-mode') return origRemove.call(this, key);
     origRemove.call(this, prefix + key);
     saveQueue[key] = null;
     clearTimeout(saveTimer);
@@ -66,734 +66,2102 @@ window.EMPRESA = {{ tv_config.empresa|safe }};
   };
 })();
 </script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cálculo AR-I · Determinación % Retención ISLR (Decreto 1.808)</title>
-<style>
-  :root, [data-theme="dark"] {
-    --bg: #0b0e0c;
-    --surface: #141815;
-    --surface-2: #1a201c;
-    --border: rgba(255,255,255,0.08);
-    --text: #f3f6f4;
-    --muted: #8b958e;
-    --lime: #1A6B4A;
-    --lime-ink: #0b0e0c;
-    --green: #22c55e;
-    --warn: #f59e0b;
-    --danger: #ef4444;
-  }
-  [data-theme="light"] {
-    --bg: #f2f5f1;
-    --surface: #ffffff;
-    --surface-2: #f7faf5;
-    --border: rgba(0,0,0,0.09);
-    --text: #0b0e0c;
-    --muted: #5f6861;
-    --lime: #2D5128;
-    --lime-ink: #ffffff;
-    --green: #16a34a;
-    --warn: #d97706;
-    --danger: #dc2626;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 0.75rem 1rem 2rem;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-  }
-  .top-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 0.65rem 1rem;
-  }
-  .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-  }
-  .tab-btn {
-    background: var(--surface-2);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.45rem 0.95rem;
-    font-weight: 600;
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .tab-btn.active {
-    background: #1A6B4A ; color: #ffffff ;
-    border-color: #1A6B4A;
-    font-weight: 700;
-  }
-  .actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-  .btn {
-    background: var(--surface-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.45rem 0.9rem;
-    font-weight: 600;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  .btn-primary {
-    background: #1A6B4A ; color: #ffffff ;
-    border-color: #1A6B4A;
-    font-weight: 700;
-  }
-  .grid-2 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 1rem;
-  }
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 0.85rem;
-    margin-bottom: 1rem;
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.15rem 1.25rem;
-    margin-bottom: 1rem;
-  }
-  .card h3 {
-    margin: 0 0 0.85rem;
-    font-size: 0.98rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .kpi-label {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.3rem;
-  }
-  .kpi-val {
-    font-size: 1.55rem;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .kpi-val.accent {
-    color: #22c55e;
-  }
-  [data-theme="dark"] .kpi-val.accent {
-    color: #1A6B4A;
-  }
-  .kpi-sub {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 0.2rem;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.75rem;
-  }
-  label {
-    display: block;
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 0.25rem;
-  }
-  input, select {
-    width: 100%;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 0.5rem 0.65rem;
-    color: var(--text);
-    font: inherit;
-  }
-  input:focus, select:focus {
-    outline: 2px solid #1A6B4A;
-    border-color: transparent;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.83rem;
-  }
-  th, td {
-    padding: 0.6rem 0.65rem;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
-  }
-  th {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-  }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .badge {
-    display: inline-block;
-    padding: 0.22rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-  .badge-ok { background: rgba(34,197,94,0.16); color: #22c55e; }
-  .badge-warn { background: rgba(245,158,11,0.16); color: #f59e0b; }
-  .hidden { display: none !important; }
-  @media print {
-    .top-nav, .no-print { display: none !important; }
-    body { background: #fff; color: #000; }
-    .card { border: 1px solid #ccc; box-shadow: none; }
-  }
-
-/* Optimización de espacio a 2 líneas (Elimina #emp-banner, #ux-bar y cabeceras redundantes) */
-#emp-banner, #ux-bar {
-  display: none !important;
-}
-header. header-hidden-when-nav, body:has(nav) > header:not(.keep-header), body:has(nav) > .wrap > header:not(.keep-header) {
-  display: none !important;
-}
-#ux-top {
-  margin-bottom: 0.75rem !important;
-  gap: 0.4rem !important;
-}
-nav {
-  align-items: center !important;
-  padding: 0.25rem 0 !important;
-  margin-bottom: 0.65rem !important;
-}
-
-</style>
-<style id="tv-print-clean">
-td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
-
-/* Ocultar barras redundantes en pantalla e impresión */
-#emp-banner, #ux-bar {
-  display: none !important;
-}
-#ux-pt {
-  display: none;
-}
-@media print {
-  #emp-banner, #ux-bar, #ux-top, nav, header .btn, .noprint, .no-print, .np {
-    display: none !important;
-  }
-  #ux-pt {
-    display: block !important;
-    border-bottom: 2px solid #1A6B4A !important;
-    padding-bottom: 6px !important;
-    margin-bottom: 12px !important;
-    color: #111827 !important;
-    font-size: 9.5pt !important;
-  }
-  html, body {
-    background: #ffffff !important;
-    background-image: none !important;
-    color: #111827 !important;
-  }
-  .card, .c, .pn, section.c, div.card, .table-scroll, .panel {
-    background: #ffffff !important;
-    color: #111827 !important;
-    box-shadow: none !important;
-    border-color: #d1d5db !important;
-  }
-}
-
-</style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
-<link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ARI Pro · Cálculo AR-I y ARC (ISLR Venezuela)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-main: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      --bg: #f3f4f2;
+      --cd: #ffffff;
+      --tx: #1b2420;
+      --mu: #5d6b64;
+      --bd: #d6ddd8;
+      --fo: #0d5233;
+      --go: #d4af37;
+      --so: #e8f3ee;
+      --bad: #b3261e;
+      --wa: #8a5a00;
+      --ok: #176b3f;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1412;
+        --cd: #18201c;
+        --tx: #e6ece8;
+        --mu: #9aa9a1;
+        --bd: #2c3832;
+        --fo: #4fb584;
+        --so: #16261f;
+        --bad: #ff8a80;
+        --wa: #e8b04a;
+        --ok: #6fd49e;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f1412;
+      --cd: #18201c;
+      --tx: #e6ece8;
+      --mu: #9aa9a1;
+      --bd: #2c3832;
+      --fo: #4fb584;
+      --so: #16261f;
+      --bad: #ff8a80;
+      --wa: #e8b04a;
+      --ok: #6fd49e;
+      color-scheme: dark;
+    }
+    html {
+      scroll-padding-top: calc(125px + env(safe-area-inset-top, 0px));
+    }
+    * {
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--tx);
+      font: 400 14px/1.45 var(--font-main);
+      -webkit-font-smoothing: antialiased;
+    }
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 7;
+      background: var(--bg);
+    }
+    header {
+      border-bottom: 1px solid var(--tv-border, var(--bd));
+      background: var(--tv-surface, var(--cd));
+      color: var(--tv-text, var(--tx));
+      padding: 10px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    h1 {
+      font: 700 17px/1.2 var(--font-main);
+      letter-spacing: -0.01em;
+      margin: 0;
+      flex: 1;
+      min-width: 220px;
+      color: var(--tv-text, var(--tx));
+    }
+    h1 small {
+      display: block;
+      font: 400 12px/1.35 var(--font-main);
+      letter-spacing: 0;
+      color: var(--tv-muted, var(--mu));
+      margin-top: 2px;
+    }
+    header label {
+      color: var(--tv-muted, var(--mu));
+    }
+    header select {
+      background: var(--tv-surface-subtle, var(--bg));
+      color: var(--tv-text, var(--tx));
+      border: 1px solid var(--tv-border, var(--bd));
+    }
+    header select option {
+      background: var(--tv-surface, var(--cd));
+      color: var(--tv-text, var(--tx));
+    }
+    header button.b {
+      background: #1A6B4A;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    header button.s {
+      background: var(--tv-surface-subtle, var(--bg));
+      color: var(--tv-text, var(--tx));
+      border-color: var(--tv-border, var(--bd));
+    }
+    header button.s:hover {
+      background: var(--tv-surface-hover, var(--so));
+    }
+    .dd-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .dd-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      min-width: 205px;
+      background: var(--cd);
+      color: var(--tx);
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      padding: 5px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .dd-menu[hidden] {
+      display: none !important;
+    }
+    .dd-menu button, .dd-menu label {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 9px;
+      width: 100%;
+      background: transparent;
+      color: var(--tx);
+      border: 0;
+      border-radius: 0;
+      padding: 8px 10px;
+      font: 400 13px/1.3 var(--font-main);
+      text-align: left;
+      cursor: pointer;
+    }
+    .dd-menu svg, #optBtn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #optBtn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 9px;
+    }
+    .dd-menu button:hover, .dd-menu label:hover {
+      background: var(--so);
+      color: var(--fo);
+    }
+    .dd-sep {
+      height: 1px;
+      background: var(--bd);
+      margin: 3px 0;
+    }
+    nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      padding: 8px 16px;
+      background: var(--cd);
+      border-bottom: 1px solid var(--bd);
+    }
+    nav button {
+      border: 1px solid var(--bd);
+      background: var(--bg);
+      color: var(--tx);
+      padding: 7px 13px;
+      border-radius: 0;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    nav button[aria-pressed=true] {
+      background: var(--fo);
+      color: #ffffff;
+      border-color: var(--fo);
+      font-weight: 600;
+    }
+    :root[data-theme="dark"] nav button[aria-pressed=true] {
+      color: #06140d;
+    }
+    main {
+      padding: 14px 16px 24px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .cd {
+      background: var(--cd);
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .cd h2 {
+      font: 600 15px/1.3 var(--font-main);
+      letter-spacing: -0.01em;
+      margin: 0 0 10px;
+    }
+    .g {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .g-var {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    @media (max-width: 960px) {
+      .g-var {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 560px) {
+      .g, .g-var {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 10px;
+      }
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      font-size: 12px;
+      line-height: 1.3;
+      color: var(--mu);
+      gap: 5px;
+      min-width: 0;
+    }
+    input, select, textarea {
+      font: inherit;
+      padding: 7px 9px;
+      min-height: 36px;
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      background: var(--bg);
+      color: var(--tx);
+      width: 100%;
+    }
+    input.ve-num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    input:focus-visible, select:focus-visible, button:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--go);
+      outline-offset: 1px;
+    }
+    button.b {
+      background: #1A6B4A;
+      color: #ffffff;
+      border: 1px solid #1A6B4A;
+      border-radius: 0;
+      padding: 6px 14px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font: 600 13px/1.2 var(--font-main);
+      cursor: pointer;
+    }
+    :root[data-theme="dark"] button.b {
+      color: #ffffff;
+    }
+    button.s {
+      background: var(--tv-surface, var(--cd));
+      color: var(--tv-text, var(--tx));
+      border: 1px solid var(--tv-border, var(--bd));
+      border-radius: 0;
+      padding: 6px 14px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font: 600 13px/1.2 var(--font-main);
+      cursor: pointer;
+    }
+    button.s:hover {
+      background: var(--tv-surface-hover, var(--so));
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .sp {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .ls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 0;
+    }
+    .ls button {
+      display: inline-flex;
+      align-items: center;
+      width: auto;
+      min-height: 34px;
+      text-align: left;
+      margin-bottom: 0;
+      border: 1px solid var(--tv-border, var(--bd));
+      background: var(--tv-surface-subtle, var(--bg));
+      color: var(--tv-text, var(--tx));
+      padding: 6px 12px;
+      border-radius: 0;
+      cursor: pointer;
+      font: 500 13px/1.2 var(--font-main);
+    }
+    .ls button[aria-pressed=true] {
+      border-color: #1A6B4A;
+      background: #e6f4ec;
+      color: #14532d;
+      font-weight: 700;
+    }
+    :root[data-theme="dark"] .ls button[aria-pressed=true] {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.45);
+    }
+    .tw {
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--bd);
+      padding: 5px 8px;
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    th {
+      background: var(--so);
+      text-align: center;
+    }
+    td:nth-child(2), td.l {
+      text-align: left;
+      white-space: normal;
+    }
+    #tf {
+      table-layout: fixed;
+    }
+    #tf th, #tf td {
+      text-align: center;
+      width: 33.333%;
+    }
+    #ar table {
+      table-layout: fixed;
+    }
+    #ar th, #ar td, #ar td.l, #ar td:nth-child(2) {
+      text-align: center;
+    }
+    #ar input.ve-num {
+      text-align: center;
+      max-width: 210px;
+      margin: 0 auto;
+      display: block;
+    }
+    tr.k td {
+      font-weight: 700;
+      background: var(--so);
+    }
+    tr.j td {
+      font-weight: 700;
+      background: rgba(212, 175, 55, .25);
+    }
+    .kp {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .kp div {
+      flex: 1;
+      min-width: 140px;
+      border: 1px solid var(--bd);
+      border-left: 4px solid var(--go);
+      border-radius: 0;
+      padding: 8px 10px;
+    }
+    .kp b {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: var(--font-main);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+    .w {
+      border-left: 4px solid var(--wa);
+      background: var(--so);
+      padding: 7px 10px;
+      margin: 6px 0;
+      border-radius: 0;
+      font-size: 13px;
+    }
+    .w.e {
+      border-color: var(--bad);
+    }
+    .au {
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+      background: var(--cd);
+    }
+    .au b {
+      margin-right: 6px;
+    }
+    .t-A { color: var(--bad); }
+    .t-M { color: var(--wa); }
+    .t-OK { color: var(--ok); }
+    .nt {
+      font-size: 12px;
+      color: var(--mu);
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+    .badge-borrador {
+      background: rgba(212, 175, 55, .22);
+      color: var(--wa);
+      border: 1px solid var(--go);
+    }
+    .badge-conciliado {
+      background: var(--so);
+      color: var(--ok);
+      border: 1px solid var(--fo);
+    }
+    .arc-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--go);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .arc-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      background: var(--so);
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .ov {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9;
+      padding: 16px;
+    }
+    .ov .cd {
+      max-width: 540px;
+      width: 100%;
+      margin: 0;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .ub {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      background: var(--tx);
+      color: var(--bg);
+      padding: 9px 14px;
+      border-radius: 0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      z-index: 8;
+      max-width: 92vw;
+    }
+    .ub button {
+      border: 1px solid currentColor;
+      background: transparent;
+      color: inherit;
+      border-radius: 0;
+      padding: 3px 9px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button.d {
+      background: var(--bad);
+      color: var(--bg);
+      border: 0;
+      border-radius: 0;
+      padding: 7px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    pre.xml-box {
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: 0;
+      padding: 8px 10px;
+      font: 11px/1.4 Consolas, Monaco, monospace;
+      overflow-x: auto;
+      max-height: 210px;
+      margin: 8px 0;
+      white-space: pre;
+    }
+    @media print {
+      .np { display: none !important; }
+      body { background: #fff; color: #000; }
+      .cd { border: 0; padding: 0; }
+      [hidden] { display: none !important; }
+      .arc-meta { background: #f5f7f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .badge { border: 1px solid #000 !important; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
+  <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
-
-<div class="top-nav">
-  <div class="tabs" role="tablist">
-    <button type="button" class="tab-btn active" data-tab="form" onclick="switchTab('form')">1. Formulario AR-I</button>
-    <button type="button" class="tab-btn" data-tab="nomina" onclick="switchTab('nomina')">2. Nómina AR-I (<span id="countNomina">0</span>)</button>
-    <button type="button" class="tab-btn" data-tab="tarifa" onclick="switchTab('tarifa')">3. Tarifa N.° 1 y Base Legal</button>
-  </div>
-  <div class="actions">
-    <button type="button" class="btn btn-primary" onclick="guardarTrabajador()">+ Guardar en Nómina</button>
-    <button type="button" class="btn" onclick="window.print()">Imprimir AR-I</button>
-  </div>
-</div>
-
-<!-- KPIs Principales -->
-<div class="kpi-row">
-  <div class="card" style="margin:0;">
-    <div class="kpi-label">Remuneración Anual Estimada</div>
-    <div class="kpi-val" id="kpiRemBs">Bs. 0,00</div>
-    <div class="kpi-sub" id="kpiRemUt">0,00 U.T. (Mínimo legal: 1.000 U.T.)</div>
-  </div>
-  <div class="card" style="margin:0;">
-    <div class="kpi-label">Enriquecimiento Neto Gravable</div>
-    <div class="kpi-val" id="kpiNetoUt">0,00 U.T.</div>
-    <div class="kpi-sub" id="kpiDesgInfo">Desgravamen Único: 774,00 U.T.</div>
-  </div>
-  <div class="card" style="margin:0;">
-    <div class="kpi-label">Impuesto Estimado del Año</div>
-    <div class="kpi-val" id="kpiImpBs">Bs. 0,00</div>
-    <div class="kpi-sub" id="kpiImpUt">0,00 U.T. neto de rebajas</div>
-  </div>
-  <div class="card" style="margin:0;">
-    <div class="kpi-label">% de Retención AR-I (Casilla J)</div>
-    <div class="kpi-val accent" id="kpiPctAri">0,00 %</div>
-    <div class="kpi-sub" id="kpiRetMensual">Retención mensual est.: Bs. 0,00</div>
-  </div>
-</div>
-
-<!-- TAB 1: FORMULARIO AR-I -->
-<div id="tab-form">
-  <div class="grid-2">
-    <!-- Datos del Trabajador y Parámetros -->
-    <div class="card">
-      <h3>
-        <span>Datos del Trabajador y Ejercicio</span>
-        <span id="badgeObligado" class="badge badge-ok">Verifica 1.000 U.T.</span>
-      </h3>
-      <div class="form-grid">
-        <div>
-          <label>Apellidos y Nombres del Trabajador</label>
-          <input type="text" id="trabNombre" placeholder="Ej. Pérez Rodríguez, Juan Carlos" oninput="recalc()">
-        </div>
-        <div>
-          <label>Cédula de Identidad / RIF</label>
-          <input type="text" id="trabRif" placeholder="Ej. V-18456789-0" oninput="recalc()">
-        </div>
-        <div>
-          <label>Año Gravable</label>
-          <input type="number" id="anioGravable" value="2026" oninput="recalc()">
-        </div>
-        <div>
-          <label>Mes de Presentación / Variación</label>
-          <select id="tipoVariacion" onchange="recalc()">
-            <option value="inicial">Inicial (Antes primera quincena Enero/Febrero)</option>
-            <option value="marzo">1ra Variación (Marzo)</option>
-            <option value="junio">2da Variación (Junio)</option>
-            <option value="septiembre">3ra Variación (Septiembre)</option>
-            <option value="diciembre">4ta Variación (Diciembre)</option>
-          </select>
-        </div>
-        <div>
-          <label>Valor Unidad Tributaria (Bs./U.T.)</label>
-          <input type="number" step="0.01" id="valorUt" value="43.00" oninput="recalc()">
-        </div>
-        <div>
-          <label>Agente de Retención (Empresa Activa)</label>
-          <input type="text" id="empAgente" readonly>
+  <div class="top-bar np">
+    <header>
+      <h1>ARI Pro<small>Cálculo y control del formulario AR-I y ARC · Reglamento de Retenciones (Decreto 1.808) · Art. 50 LISLR</small></h1>
+      <div class="row">
+        <select id="co" aria-label="Seleccionar empresa" style="width:auto;min-width:190px"></select>
+        <button class="b" id="nc">Nueva empresa</button>
+        <button class="s" id="dc">Eliminar empresa</button>
+        <div class="dd-wrap">
+          <button class="s" id="optBtn" type="button" aria-label="Menú de opciones" title="Menú de opciones" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <div class="dd-menu" id="optMenu" role="menu" hidden>
+            <label role="menuitem" tabindex="0">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Importar archivo</span>
+              <input id="ijTop" type="file" accept=".json" hidden>
+            </label>
+            <button type="button" role="menuitem" id="ejTop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Exportar archivo</span>
+            </button>
+            <div class="dd-sep"></div>
+            <button type="button" role="menuitem" id="th">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <span>Tema</span>
+            </button>
+            <button type="button" role="menuitem" id="prTop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Imprimir</span>
+            </button>
+            <button type="button" role="menuitem" id="pdfTop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="11" y2="11"/></svg>
+              <span>PDF</span>
+            </button>
+            <div class="dd-sep"></div>
+            <button type="button" role="menuitem" id="gmTop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
+              <span>Compartir por Gmail</span>
+            </button>
+            <button type="button" role="menuitem" id="waTop">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span>Compartir por WhatsApp</span>
+            </button>
+          </div>
         </div>
       </div>
-
-      <h3 style="margin-top: 1.15rem;">Estimación de Remuneraciones Anuales (Bs.)</h3>
-      <div class="form-grid">
-        <div>
-          <label>Empresa A (Principal) · Sueldos, Bonos, Utilidades</label>
-          <input type="number" step="0.01" id="remEmpA" value="180000" oninput="recalc()">
-        </div>
-        <div>
-          <label>Empresa B · Otras Remuneraciones Anuales</label>
-          <input type="number" step="0.01" id="remEmpB" value="0" oninput="recalc()">
-        </div>
-        <div>
-          <label>Empresa C · Otras Remuneraciones Anuales</label>
-          <input type="number" step="0.01" id="remEmpC" value="0" oninput="recalc()">
-        </div>
-      </div>
-    </div>
-
-    <!-- Desgravámenes, Rebajas y Variación -->
-    <div class="card">
-      <h3>Desgravámenes (Arts. 59 y 60 LISLR) y Rebajas (Art. 61)</h3>
-      <div class="form-grid" style="margin-bottom: 0.85rem;">
-        <div>
-          <label>Tipo de Desgravamen</label>
-          <select id="tipoDesg" onchange="recalc()">
-            <option value="unico">Desgravamen Único (774 U.T. automático)</option>
-            <option value="detallado">Desgravámenes Detallados (Educación, HCM, Médicos, Vivienda)</option>
-          </select>
-        </div>
-        <div>
-          <label>Cargas Familiares (10 U.T. c/u)</label>
-          <input type="number" min="0" max="20" id="cargasFam" value="2" oninput="recalc()">
-        </div>
-        <div>
-          <label>Impuesto Retenido de Más Años Anteriores (Bs.)</label>
-          <input type="number" step="0.01" id="retExcesoAnt" value="0" oninput="recalc()">
-        </div>
-      </div>
-
-      <div id="boxDesgDetallado" class="form-grid hidden" style="margin-bottom: 0.85rem; padding: 0.75rem; background: var(--surface-2); border-radius: 12px;">
-        <div>
-          <label>1. Institutos Docentes (Bs.)</label>
-          <input type="number" step="0.01" id="desgEdu" value="0" oninput="recalc()">
-        </div>
-        <div>
-          <label>2. Primas de Seguro HCM (Bs.)</label>
-          <input type="number" step="0.01" id="desgHcm" value="0" oninput="recalc()">
-        </div>
-        <div>
-          <label>3. Servicios Médicos/Odontológicos (Bs.)</label>
-          <input type="number" step="0.01" id="desgMed" value="0" oninput="recalc()">
-        </div>
-        <div>
-          <label>4. Intereses/Alquiler Vivienda Principal (Bs.)</label>
-          <input type="number" step="0.01" id="desgViv" value="0" oninput="recalc()">
-        </div>
-      </div>
-
-      <h3>Datos de Variación en el Año (Casilla K — Art. 7 Decreto 1.808)</h3>
-      <div class="form-grid">
-        <div>
-          <label>Remuneraciones Percibidas hasta la Fecha (Bs.)</label>
-          <input type="number" step="0.01" id="remPercibida" value="0" oninput="recalc()">
-        </div>
-        <div>
-          <label>Impuesto Retenido hasta la Fecha (Bs.)</label>
-          <input type="number" step="0.01" id="impRetenidoFecha" value="0" oninput="recalc()">
-        </div>
-      </div>
-
-      <!-- Tabla Resumen Oficial de Casillas AR-I -->
-      <table style="margin-top: 1rem;">
-        <thead>
-          <tr>
-            <th>Casilla Planilla AR-I</th>
-            <th class="num">Unidades Tributarias</th>
-            <th class="num">Bolívares (Bs.)</th>
-          </tr>
-        </thead>
-        <tbody id="tablaCasillasAri"></tbody>
-      </table>
-    </div>
+    </header>
+    <nav id="nv" aria-label="Secciones principales"></nav>
   </div>
-</div>
 
-<!-- TAB 2: NÓMINA DE TRABAJADORES AR-I -->
-<div id="tab-nomina" class="hidden">
-  <div class="card">
-    <h3>
-      <span>Registro de Porcentajes AR-I de Trabajadores</span>
-      <input type="number" step="0.01" id="sueldoSimMensual" placeholder="Simular sueldo mensual (Bs.)" style="max-width: 230px;" oninput="renderNomina()">
-    </h3>
-    <div style="overflow-x: auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Trabajador</th>
-            <th>Cédula / RIF</th>
-            <th>Variación</th>
-            <th class="num">Remuneración Anual</th>
-            <th class="num">Enriq. Neto (U.T.)</th>
-            <th class="num">Cargas</th>
-            <th class="num">% Retención AR-I</th>
-            <th class="num">Retención Mensual</th>
-            <th class="no-print">Acción</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyNomina"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+  <main>
+    <section id="par" hidden>
+      <div class="cd">
+        <h2>Empresa y parámetros tributarios</h2>
+        <div class="g" id="pf"></div>
+        <p class="nt">Formato numérico venezolano: punto (.) para miles y coma (,) para decimales. Verifique la U.T. vigente en el portal del SENIAT antes de cada ejercicio.</p>
+      </div>
+      <div class="cd">
+        <h2>Tarifa N.° 1 (Art. 50 LISLR)</h2>
+        <div class="tw"><table id="tf"></table></div>
+      </div>
+    </section>
 
-<!-- TAB 3: TARIFA N° 1 Y BASE LEGAL -->
-<div id="tab-tarifa" class="hidden">
-  <div class="card">
-    <h3>Tarifa N.° 1 · Personas Naturales Residentes (Art. 50 LISLR)</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Tramo</th>
-          <th>Fracción Comprendida</th>
-          <th class="num">Tasa (%)</th>
-          <th class="num">Sustraendo (U.T.)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>Hasta 1.000,00 U.T.</td><td class="num">6,00 %</td><td class="num">0 U.T.</td></tr>
-        <tr><td>2</td><td>De 1.000,01 a 1.500,00 U.T.</td><td class="num">9,00 %</td><td class="num">30 U.T.</td></tr>
-        <tr><td>3</td><td>De 1.500,01 a 2.000,00 U.T.</td><td class="num">12,00 %</td><td class="num">75 U.T.</td></tr>
-        <tr><td>4</td><td>De 2.000,01 a 2.500,00 U.T.</td><td class="num">16,00 %</td><td class="num">155 U.T.</td></tr>
-        <tr><td>5</td><td>De 2.500,01 a 3.000,00 U.T.</td><td class="num">20,00 %</td><td class="num">255 U.T.</td></tr>
-        <tr><td>6</td><td>De 3.000,01 a 4.000,00 U.T.</td><td class="num">24,00 %</td><td class="num">375 U.T.</td></tr>
-        <tr><td>7</td><td>De 4.000,01 a 6.000,00 U.T.</td><td class="num">29,00 %</td><td class="num">575 U.T.</td></tr>
-        <tr><td>8</td><td>Mayor de 6.000,00 U.T.</td><td class="num">34,00 %</td><td class="num">875 U.T.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+    <section id="trab" hidden>
+      <div class="sp">
+        <div class="cd np">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <h2 style="margin:0">Trabajadores</h2>
+            <div class="row">
+              <button class="b" id="ad">+ Agregar</button>
+              <button class="s" id="dl">Eliminar</button>
+            </div>
+          </div>
+          <div class="ls" id="ls"></div>
+        </div>
+        <div>
+          <div class="cd np">
+            <h2>Datos del trabajador</h2>
+            <div class="g" id="ef"></div>
+          </div>
+          <div class="cd" id="pl"></div>
+        </div>
+      </div>
+    </section>
 
-<script>
-  var ARI_KEY = "ari_state_v1";
-  var TRAMOS_T1 = [
-    { max: 1000, pct: 0.06, sus: 0 },
-    { max: 1500, pct: 0.09, sus: 30 },
-    { max: 2000, pct: 0.12, sus: 75 },
-    { max: 2500, pct: 0.16, sus: 155 },
-    { max: 3000, pct: 0.20, sus: 255 },
-    { max: 4000, pct: 0.24, sus: 375 },
-    { max: 6000, pct: 0.29, sus: 575 },
-    { max: Infinity, pct: 0.34, sus: 875 }
-  ];
+    <section id="nom" hidden>
+      <div class="cd">
+        <h2>Nómina consolidada</h2>
+        <div class="row np" style="margin-bottom:10px">
+          <button class="b" id="cs">Exportar CSV (Excel)</button>
+          <button class="b" id="xm">Exportar XML (SENIAT)</button>
+          <button class="s" id="ej">Respaldo JSON</button>
+          <label class="s" style="flex-direction:row;cursor:pointer">Importar JSON<input id="ij" type="file" accept=".json" hidden></label>
+          <button class="s" id="rs">Restablecer</button>
+          <button class="s" id="pr">Imprimir</button>
+          <button class="s" id="ds">Eliminar seleccionados</button>
+        </div>
+        <div class="tw"><table id="nt"></table></div>
+        <p class="nt">La retención se aplica sobre cada pago: sueldo mensual × %, y utilidades/bono vacacional × % al momento de pagarse (no como promedio anual ÷ 12).</p>
+      </div>
+    </section>
 
-  var state = {
-    form: {
-      trabNombre: "Pérez Rodríguez, Juan Carlos",
-      trabRif: "V-18456789-0",
-      anioGravable: 2026,
-      tipoVariacion: "inicial",
-      valorUt: 43.00,
-      remEmpA: 180000,
-      remEmpB: 0,
-      remEmpC: 0,
-      tipoDesg: "unico",
-      cargasFam: 2,
-      retExcesoAnt: 0,
-      desgEdu: 0,
-      desgHcm: 0,
-      desgMed: 0,
-      desgViv: 0,
-      remPercibida: 0,
-      impRetenidoFecha: 0
-    },
-    nomina: []
-  };
+    <section id="var" hidden>
+      <div class="cd np">
+        <h2>Variación del porcentaje (casilla K del AR-I)</h2>
+        <p class="nt">Se presenta antes de la primera quincena de marzo, junio, septiembre o diciembre cuando cambian remuneraciones, desgravámenes o cargas.</p>
+        <div class="g g-var" id="vf"></div>
+      </div>
+      <div class="cd" id="vr"></div>
+      <div class="cd">
+        <h2>Variaciones guardadas</h2>
+        <div class="tw"><table id="vt"></table></div>
+      </div>
+    </section>
 
-  function fmt(n) {
-    return (Number(n) || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
+    <section id="arc" hidden>
+      <div class="cd np">
+        <h2>ARC: comprobante de retenciones de ISLR</h2>
+        <p class="nt">Registre lo pagado y retenido cada mes. Autocompletar usa la estimación del AR-I y las variaciones guardadas (utilidades y bono vacacional se asignan a diciembre); corrija con los montos reales de la nómina y marque el estado antes de emitir.</p>
+        <div class="g" style="grid-template-columns:repeat(auto-fit,minmax(175px,1fr));align-items:end">
+          <label>Trabajador<select id="ae"></select></label>
+          <label>Estado del comprobante
+            <select id="ast">
+              <option value="borrador">Borrador (estimado / en revisión)</option>
+              <option value="conciliado">Conciliado con nómina (definitivo)</option>
+            </select>
+          </label>
+          <label>Período / Corte
+            <select id="aper">
+              <option value="Anual (Enero – Diciembre)">Anual (Enero – Diciembre)</option>
+              <option value="1er Trimestre (Enero – Marzo)">1er Trimestre (Enero – Marzo)</option>
+              <option value="1er Semestre (Enero – Junio)">1er Semestre (Enero – Junio)</option>
+              <option value="3er Trimestre (Enero – Septiembre)">3er Trimestre (Enero – Septiembre)</option>
+              <option value="Egreso / Cese de relación laboral">Egreso / Cese de relación laboral</option>
+            </select>
+          </label>
+          <label>Fecha de emisión / corte<input id="afec" type="date"></label>
+          <button class="b" id="aa" style="white-space:nowrap;width:100%">Autocompletar con estimación</button>
+        </div>
+      </div>
+      <div class="cd" id="ar"></div>
+    </section>
 
-  function calcularTarifa1(utNeto) {
-    if (utNeto <= 0) return { impUt: 0, tramo: 1, pct: 6, sus: 0 };
-    for (var i = 0; i < TRAMOS_T1.length; i++) {
-      if (utNeto <= TRAMOS_T1[i].max) {
-        var imp = Math.max(0, utNeto * TRAMOS_T1[i].pct - TRAMOS_T1[i].sus);
-        return { impUt: imp, tramo: i + 1, pct: TRAMOS_T1[i].pct * 100, sus: TRAMOS_T1[i].sus };
+    <section id="bit" hidden>
+      <div class="cd">
+        <h2>Bitácora de la empresa</h2>
+        <div class="row np" style="margin-bottom:10px">
+          <button class="s" id="bx">Exportar CSV</button>
+        </div>
+        <div class="tw"><table id="bt"></table></div>
+        <p class="nt">Registro de solo lectura: cada movimiento queda con fecha y hora.</p>
+      </div>
+    </section>
+
+    <section id="aud" hidden>
+      <div class="cd">
+        <h2>Auditoría y control de cambios</h2>
+        <div id="at"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const K = "ari_pro_v1", $ = s => document.querySelector(s);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    const num = x => {
+      if (typeof x === "number") return isFinite(x) ? x : 0;
+      let s = String(x ?? "").trim();
+      if (!s) return 0;
+      if (s.includes(",")) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else {
+        const parts = s.split(".");
+        if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parts[0].length >= 1)) {
+          s = s.replace(/\./g, "");
+        }
       }
-    }
-    return { impUt: 0, tramo: 1, pct: 6, sus: 0 };
-  }
+      const v = parseFloat(s);
+      return isFinite(v) ? v : 0;
+    };
+    const pnum = x => Math.max(0, num(x));
 
-  function switchTab(id) {
-    ["form", "nomina", "tarifa"].forEach(function(t) {
-      document.getElementById("tab-" + t).classList.toggle("hidden", t !== id);
-    });
-    document.querySelectorAll(".tab-btn").forEach(function(b) {
-      b.classList.toggle("active", b.getAttribute("data-tab") === id);
-    });
-  }
+    const f2 = (n, d = 2) => {
+      const val = Number(num(n)) || 0;
+      const fixed = val.toFixed(d);
+      const [intPart, decPart] = fixed.split(".");
+      const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return d > 0 ? `${intFmt},${decPart}` : intFmt;
+    };
 
-  function loadState() {
-    try {
-      var raw = localStorage.getItem(ARI_KEY);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (parsed && parsed.form) state.form = Object.assign(state.form, parsed.form);
-        if (parsed && Array.isArray(parsed.nomina)) state.nomina = parsed.nomina;
+    const fmtInp = (val, dec = 2) => {
+      const v = pnum(val);
+      if (v === 0) return "0";
+      return Number.isInteger(v) ? f2(v, 0) : f2(v, dec).replace(/,?0+$/, "");
+    };
+
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+
+    const D = {
+      p: {
+        emp: (window.EMPRESA && window.EMPRESA.nombre) || "EMPRESA EJEMPLO, C.A.",
+        rif: (window.EMPRESA && window.EMPRESA.rif) || "J-00000000-0",
+        ej: 2026,
+        ut: 43,
+        min: 1000,
+        unico: 774,
+        rp: 10,
+        rc: 10,
+        tvi: 1000,
+        talq: 800,
+        base: "seniat",
+        transp: 1,
+        red: 1,
+        cf: (window.EMPRESA && window.EMPRESA.condicion === "Sujeto pasivo especial") ? "spe" : "ordinario"
+      },
+      e: [{
+        id: 1,
+        nombre: "Trabajador Ejemplo",
+        cedula: "V-12.345.678",
+        sueldo: 14000,
+        bonos: 3000,
+        transp: 1200,
+        cesta: 2200,
+        util: 52000,
+        bvac: 12000,
+        tipo: "U",
+        edu: 0,
+        hcm: 0,
+        med: 0,
+        int: 0,
+        alq: 0,
+        cargas: 1,
+        exceso: 0
+      }],
+      v: [],
+      log: [],
+      arc: {},
+      arcMeta: {}
+    };
+
+    const blankE = id => ({
+      id, nombre: "", cedula: "", sueldo: 0, bonos: 0, transp: 0, cesta: 0,
+      util: 0, bvac: 0, tipo: "U", edu: 0, hcm: 0, med: 0, int: 0, alq: 0, cargas: 0, exceso: 0
+    });
+
+    function clean(s) {
+      const o = JSON.parse(JSON.stringify(D));
+      if (!s || typeof s !== "object") return o;
+      if (s.p && typeof s.p === "object") {
+        for (const k in o.p) {
+          if (Object.prototype.hasOwnProperty.call(s.p, k)) {
+            o.p[k] = typeof o.p[k] === "number" ? pnum(s.p[k]) : String(s.p[k] ?? "").slice(0, 120);
+          }
+        }
       }
-    } catch (e) {}
+      o.p.ej = Math.max(2000, Math.floor(pnum(o.p.ej)) || 2026);
+      o.p.base = s.p && s.p.base === "normal" ? "normal" : "seniat";
+      o.p.cf = s.p && s.p.cf === "spe" ? "spe" : "ordinario";
+      if (Array.isArray(s.e) && s.e.length) {
+        o.e = s.e.slice(0, 500).map((x, i) => {
+          const r = {};
+          for (const k in D.e[0]) {
+            r[k] = typeof D.e[0][k] === "number" ? pnum(x && x[k]) : String((x && x[k]) ?? "").slice(0, 120);
+          }
+          r.id = Math.max(1, Math.floor(num(x && x.id)) || i + 1);
+          r.cargas = Math.floor(pnum(x && x.cargas));
+          r.tipo = (x && x.tipo) === "D" ? "D" : "U";
+          return r;
+        });
+      }
+      if (Array.isArray(s.v)) {
+        o.v = s.v.slice(0, 2000).map(x => ({
+          eid: Math.floor(pnum(x && x.eid)),
+          mes: ["Marzo", "Junio", "Septiembre", "Diciembre"].includes(x && x.mes) ? x.mes : "Marzo",
+          A2: pnum(x && x.A2),
+          perc: pnum(x && x.perc),
+          ret: pnum(x && x.ret),
+          D2: pnum(x && x.D2),
+          c2: Math.floor(pnum(x && x.c2)),
+          exc2: pnum(x && x.exc2)
+        }));
+      }
+      if (Array.isArray(s.log)) {
+        o.log = s.log.slice(0, 500).map(x => ({
+          t: String((x && x.t) || new Date().toISOString()).slice(0, 30),
+          a: String((x && x.a) || "").slice(0, 60),
+          d: String((x && x.d) || "").slice(0, 300)
+        }));
+      }
+      if (s.arc && typeof s.arc === "object") {
+        for (const k in s.arc) {
+          if (/^\d+_\d+$/.test(k) && Array.isArray(s.arc[k])) {
+            o.arc[k] = Array.from({ length: 12 }, (_, i) => ({
+              r: pnum(s.arc[k][i] && s.arc[k][i].r),
+              i: pnum(s.arc[k][i] && s.arc[k][i].i)
+            }));
+          }
+        }
+      }
+      if (s.arcMeta && typeof s.arcMeta === "object") {
+        for (const k in s.arcMeta) {
+          if (/^\d+_\d+$/.test(k) && s.arcMeta[k] && typeof s.arcMeta[k] === "object") {
+            o.arcMeta[k] = {
+              estado: s.arcMeta[k].estado === "conciliado" ? "conciliado" : "borrador",
+              periodo: String(s.arcMeta[k].periodo || "Anual (Enero – Diciembre)").slice(0, 80),
+              fecha: String(s.arcMeta[k].fecha || todayISO()).slice(0, 20)
+            };
+          }
+        }
+      }
+      return o;
+    }
 
-    var E = window.EMPRESA || {};
-    document.getElementById("empAgente").value = (E.nombre || "Empresa Activa") + (E.rif ? " (" + E.rif + ")" : "");
-    Object.keys(state.form).forEach(function(k) {
-      var el = document.getElementById(k);
-      if (el) el.value = state.form[k];
-    });
-  }
-
-  function saveState() {
+    let DB, S;
     try {
-      localStorage.setItem(ARI_KEY, JSON.stringify(state));
-    } catch (e) {}
-    reportStatus();
-  }
-
-  function computeAri() {
-    var f = state.form;
-    var ut = Math.max(0.01, Number(f.valorUt) || 43);
-    var remTotalBs = (Number(f.remEmpA) || 0) + (Number(f.remEmpB) || 0) + (Number(f.remEmpC) || 0);
-    var remTotalUt = remTotalBs / ut;
-
-    var desgUt = 774;
-    var desgBs = 774 * ut;
-    if (f.tipoDesg === "detallado") {
-      desgBs = (Number(f.desgEdu) || 0) + (Number(f.desgHcm) || 0) + (Number(f.desgMed) || 0) + (Number(f.desgViv) || 0);
-      desgUt = desgBs / ut;
+      const q = localStorage.getItem("ari_pro_v2"), o = q && JSON.parse(q);
+      if (o && Array.isArray(o.cos) && o.cos.length) {
+        DB = { cur: Math.max(0, Math.min(Math.floor(num(o.cur)), o.cos.length - 1)), cos: o.cos.map(clean) };
+      } else {
+        const w = localStorage.getItem(K);
+        DB = { cur: 0, cos: [clean(w && JSON.parse(w))] };
+      }
+    } catch (e) {
+      DB = { cur: 0, cos: [clean(null)] };
     }
+    S = DB.cos[DB.cur];
 
-    var enriqNetoUt = Math.max(0, remTotalUt - desgUt);
-    var t1 = calcularTarifa1(enriqNetoUt);
-
-    var rebajaPersonalUt = 10;
-    var rebajaCargasUt = Math.max(0, parseInt(f.cargasFam, 10) || 0) * 10;
-    var rebajaExcesoUt = (Number(f.retExcesoAnt) || 0) / ut;
-    var totalRebajasUt = rebajaPersonalUt + rebajaCargasUt + rebajaExcesoUt;
-
-    var impRetenerUt = Math.max(0, t1.impUt - totalRebajasUt);
-    var impRetenerBs = impRetenerUt * ut;
-
-    var pctInicial = remTotalUt > 0 ? (impRetenerUt / remTotalUt) * 100 : 0;
-    var pctFinal = pctInicial;
-
-    var remPerc = Number(f.remPercibida) || 0;
-    var impRetFecha = Number(f.impRetenidoFecha) || 0;
-    if (f.tipoVariacion !== "inicial" && (remPerc > 0 || impRetFecha > 0)) {
-      var remRestante = Math.max(0, remTotalBs - remPerc);
-      var impRestante = Math.max(0, impRetenerBs - impRetFecha);
-      pctFinal = remRestante > 0 ? (impRestante / remRestante) * 100 : 0;
-    }
-    pctFinal = Math.min(34, Math.max(0, pctFinal));
-
-    return {
-      ut: ut,
-      remTotalBs: remTotalBs,
-      remTotalUt: remTotalUt,
-      obligado: remTotalUt > 1000,
-      desgUt: desgUt,
-      desgBs: desgBs,
-      enriqNetoUt: enriqNetoUt,
-      t1: t1,
-      totalRebajasUt: totalRebajasUt,
-      impRetenerUt: impRetenerUt,
-      impRetenerBs: impRetenerBs,
-      pctFinal: pctFinal,
-      retMensualEst: (remTotalBs / 12) * (pctFinal / 100)
+    const save = () => { try { localStorage.setItem("ari_pro_v2", JSON.stringify(DB)); } catch (e) {} };
+    const lg = (a, d) => {
+      S.log.unshift({ t: new Date().toISOString(), a, d: String(d || "") });
+      if (S.log.length > 500) S.log.length = 500;
+      save();
     };
-  }
 
-  function recalc() {
-    Object.keys(state.form).forEach(function(k) {
-      var el = document.getElementById(k);
-      if (el) state.form[k] = el.value;
+    let sel = 0, vIdx = 0, VF = {}, tab = "trab";
+    const TR = [[1000, .06, 0], [1500, .09, 30], [2000, .12, 75], [2500, .16, 155], [3000, .2, 255], [4000, .24, 375], [6000, .29, 575], [Infinity, .34, 875]];
+    const tar = u => {
+      if (!(u > 0)) return 0;
+      for (const [l, r, s] of TR) if (u <= l) return Math.max(0, u * r - s);
+      return 0;
+    };
+    const UT = () => S.p.ut > 0 ? S.p.ut : 43, rd = x => S.p.red ? Math.round(x * 100) / 100 : x;
+
+    function calc(e) {
+      const p = S.p, ut = UT();
+      const sueldo = pnum(e.sueldo), bonos = pnum(e.bonos), transp = p.transp ? pnum(e.transp) : 0;
+      const mens = sueldo + bonos + transp;
+      const extra = p.base === "seniat" ? (pnum(e.util) + pnum(e.bvac)) : 0;
+      const A = mens * 12 + extra;
+      const B = ut > 0 ? A / ut : 0;
+      const obl = B > pnum(p.min);
+      const C = pnum(e.edu) + pnum(e.hcm) + pnum(e.med) + Math.min(pnum(e.int), pnum(p.tvi) * ut) + Math.min(pnum(e.alq), pnum(p.talq) * ut);
+      const Cu = ut > 0 ? C / ut : 0;
+      const E = e.tipo === "D" ? Cu : pnum(p.unico);
+      const F = Math.max(0, B - E);
+      const G = tar(F);
+      const H1 = pnum(p.rp);
+      const cargas = Math.floor(pnum(e.cargas));
+      const H2 = cargas * pnum(p.rc);
+      const H3 = ut > 0 ? pnum(e.exceso) / ut : 0;
+      const I = Math.max(0, G - H1 - H2 - H3);
+      const J = (obl && I > 0 && B > 0) ? rd((I / B) * 100) : 0;
+      return { mens, extra, A, B, obl, C, Cu, E, F, G, H1, H2, H3, I, J, rm: mens * (J / 100), rx: extra * (J / 100), ra: A * (J / 100) };
+    }
+
+    function kcalc(v) {
+      const p = S.p, ut = UT();
+      const A2 = pnum(v.A2), perc = pnum(v.perc), ret = pnum(v.ret), D2 = pnum(v.D2), c2 = Math.floor(pnum(v.c2)), exc2 = pnum(v.exc2);
+      const B = ut > 0 ? A2 / ut : 0;
+      const F = Math.max(0, B - D2);
+      const G = tar(F);
+      const I = Math.max(0, G - pnum(p.rp) - c2 * pnum(p.rc) - (ut > 0 ? exc2 / ut : 0));
+      const rest = ut > 0 ? Math.max(0, (A2 - perc) / ut) : 0;
+      const k = (B > pnum(p.min) && rest > 0) ? Math.max(0, (I - (ut > 0 ? ret / ut : 0)) / rest * 100) : 0;
+      return { B, F, G, I, rest, K: rd(k) };
+    }
+
+    const fld = (s, k, l, t, v) => {
+      if (t === "t") return `<label>${l}<input data-s="${s}" data-k="${k}" type="text" value="${esc(v)}"></label>`;
+      if (t === "int") return `<label>${l}<input class="ve-num" data-s="${s}" data-k="${k}" data-nt="int" type="text" inputmode="numeric" value="${esc(Math.floor(pnum(v)))}"></label>`;
+      return `<label>${l}<input class="ve-num" data-s="${s}" data-k="${k}" data-nt="dec" type="text" inputmode="decimal" value="${esc(fmtInp(v))}"></label>`;
+    };
+
+    const slc = (s, k, l, o, v) => `<label>${l}<select data-s="${s}" data-k="${k}">${o.map(([a, b]) => `<option value="${a}"${String(a) === String(v) ? " selected" : ""}>${b}</option>`).join("")}</select></label>`;
+
+    function forms() {
+      const p = S.p;
+      $("#pf").innerHTML = [
+        ["emp", "Razón social", "t"],
+        ["rif", "RIF del agente", "t"],
+        ["ej", "Ejercicio fiscal", "int"],
+        ["ut", "Valor U.T. (Bs.)", "n"],
+        ["min", "Mínimo para retener (U.T.)", "n"],
+        ["unico", "Desgravamen único (U.T.)", "n"],
+        ["rp", "Rebaja personal (U.T.)", "n"],
+        ["rc", "Rebaja por carga (U.T.)", "n"],
+        ["tvi", "Tope intereses vivienda (U.T.)", "n"],
+        ["talq", "Tope alquiler vivienda (U.T.)", "n"]
+      ].map(([k, l, t]) => fld("p", k, l, t, p[k])).join("") +
+        slc("p", "base", "Base gravable", [["seniat", "Art. 31 LISLR: incluye utilidades y bono vacacional"], ["normal", "Criterio TSJ: solo salario normal"]], p.base) +
+        slc("p", "transp", "Bono de transporte", [[1, "Gravable"], [0, "Excluido (viático)"]], p.transp) +
+        slc("p", "red", "Porcentaje", [[1, "Redondeado a 2 decimales"], [0, "Sin redondear"]], p.red) +
+        slc("p", "cf", "Condición fiscal", [["ordinario", "Contribuyente ordinario"], ["spe", "Sujeto pasivo especial (SPE)"]], p.cf);
+      efm();
+    }
+
+    function efm() {
+      const e = S.e[sel];
+      if (!e) {
+        $("#ef").innerHTML = '<p class="nt">No hay trabajadores. Use Agregar.</p>';
+        $("#ls").innerHTML = "";
+        return;
+      }
+      $("#ef").innerHTML = [
+        ["nombre", "Nombre y apellido", "t"],
+        ["cedula", "Cédula / RIF", "t"],
+        ["sueldo", "Sueldo mensual (Bs.)", "n"],
+        ["bonos", "Comisiones y bonos regulares / mes (Bs.)", "n"],
+        ["transp", "Bono de transporte / mes (Bs.)", "n"],
+        ["cesta", "Cestaticket / mes (Bs. exento)", "n"],
+        ["util", "Utilidades (Bs./año)", "n"],
+        ["bvac", "Bono vacacional (Bs./año)", "n"],
+        ["edu", "Educación (Bs./año)", "n"],
+        ["hcm", "Primas HCM (Bs./año)", "n"],
+        ["med", "Servicios médicos (Bs./año)", "n"],
+        ["int", "Intereses vivienda (Bs./año)", "n"],
+        ["alq", "Alquiler vivienda (Bs./año)", "n"],
+        ["cargas", "Cargas familiares (n.º)", "int"],
+        ["exceso", "Retenido de más, ejercicio anterior (Bs.)", "n"]
+      ].map(([k, l, t]) => fld("e", k, l, t, e[k])).join("") +
+        slc("e", "tipo", "Desgravámenes", [["U", "Desgravamen único"], ["D", "Detallados"]], e.tipo);
+      $("#ls").innerHTML = S.e.map((x, i) => `<button data-i="${i}" aria-pressed="${i === sel}">${esc(x.nombre || "Sin nombre")}</button>`).join("");
+    }
+
+    function plan() {
+      const e = S.e[sel];
+      if (!e) {
+        $("#pl").innerHTML = '<p class="nt">Agregue un trabajador para generar la planilla AR-I.</p>';
+        return;
+      }
+      const c = calc(e), p = S.p, ut = UT();
+      const r = (a, b, bs, u, cl) => `<tr${cl ? ` class="${cl}"` : ""}><td>${a}</td><td>${b}</td><td>${bs === null ? "" : f2(bs)}</td><td>${u === null ? "" : f2(u)}</td></tr>`;
+      let w = "";
+      if (!(p.ut > 0)) w += `<div class="w e">El valor de la U.T. debe ser mayor que cero; se usa Bs. ${f2(ut)} mientras tanto.</div>`;
+      if (e.tipo === "D" && c.Cu < p.unico) w += `<div class="w">Sus desgravámenes detallados (${f2(c.Cu)} U.T.) son menores que el desgravamen único (${f2(p.unico, 0)} U.T.): el único le resulta más favorable.</div>`;
+      if (e.tipo === "U" && c.Cu > p.unico) w += `<div class="w">Sus desgravámenes detallados (${f2(c.Cu)} U.T.) superan el único: conviene la modalidad detallada, con comprobantes.</div>`;
+      if (pnum(e.int) > p.tvi * ut || pnum(e.alq) > p.talq * ut) w += `<div class="w">Se aplicó el tope legal a intereses y/o alquiler de vivienda.</div>`;
+      if (!c.obl) w += `<div class="w">Remuneración estimada ≤ ${f2(p.min, 0)} U.T.: no procede retención (0,00 %).</div>`;
+      $("#pl").innerHTML = `<h2>Planilla AR-I · ejercicio ${esc(p.ej)}</h2>
+        <p class="nt">${esc(p.emp)} (${esc(p.rif)}) · Trabajador: ${esc(e.nombre)} (${esc(e.cedula)}) · 1 U.T. = Bs. ${f2(ut)} · Base: ${p.base === "seniat" ? "Art. 31 LISLR (con utilidades y bono vacacional)" : "salario normal (criterio TSJ)"}</p>${w}
+        <div class="kp">
+          <div>Porcentaje de retención<b>${f2(c.J)} %</b></div>
+          <div>Retención sobre sueldo mensual<b>Bs. ${f2(c.rm)}</b></div>
+          <div>Sobre utilidades y bono vac.<b>Bs. ${f2(c.rx)}</b></div>
+          <div>Retención anual<b>Bs. ${f2(c.ra)}</b></div>
+        </div>
+        <div class="tw">
+          <table>
+            <tr><th>Casilla</th><th>Concepto</th><th>Bs.</th><th>U.T.</th></tr>
+            ${r("A", "Remuneración anual estimada", c.A, null)}
+            ${r("B", "Remuneración anual en U.T.", null, c.B, "k")}
+            ${r("C", "Desgravámenes detallados (con topes)", c.C, c.Cu)}
+            ${r("E", "Desgravamen único", p.unico * ut, p.unico)}
+            ${r("D/E", "Desgravamen aplicado (" + (e.tipo === "U" ? "único" : "detallado") + ")", c.E * ut, c.E)}
+            ${r("F", "Renta gravable (B − desgravamen)", c.F * ut, c.F, "k")}
+            ${r("G", "Impuesto según Tarifa N.° 1", c.G * ut, c.G)}
+            ${r("H.1", "Rebaja personal", c.H1 * ut, c.H1)}
+            ${r("H.2", "Rebaja por cargas (" + Math.floor(pnum(e.cargas)) + ")", c.H2 * ut, c.H2)}
+            ${r("H.3", "Impuesto retenido de más (ej. anterior)", pnum(e.exceso), c.H3)}
+            ${r("I", "Impuesto a retener (G − H)", c.I * ut, c.I, "k")}
+            <tr class="j"><td>J</td><td>Porcentaje de retención (I ÷ B × 100)</td><td colspan="2">${f2(c.J)} %</td></tr>
+          </table>
+        </div>
+        <p class="nt">Cestaticket (exento, informativo): Bs. ${f2(pnum(e.cesta) * 12)} al año. Firmas: trabajador ____________ · agente de retención ____________</p>`;
+    }
+
+    function bitR() {
+      $("#bt").innerHTML = "<tr><th>Fecha y hora</th><th>Acción</th><th>Detalle</th></tr>" +
+        (S.log.length ? S.log.map(x => `<tr><td class="l">${esc(new Date(x.t).toLocaleString("es-VE"))}</td><td class="l">${esc(x.a)}</td><td class="l">${esc(x.d)}</td></tr>`).join("") : '<tr><td colspan="3" class="l">Sin movimientos todavía.</td></tr>');
+    }
+
+    const MS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const M_IDX = { Marzo: 2, Junio: 5, Septiembre: 8, Diciembre: 11 };
+
+    function getEstMonth(e, m) {
+      const c = calc(e);
+      const vars = S.v
+        .filter(v => v.eid === e.id && (M_IDX[v.mes] ?? 0) <= m)
+        .sort((a, b) => (M_IDX[a.mes] ?? 0) - (M_IDX[b.mes] ?? 0));
+      const lv = vars[vars.length - 1];
+      const pct = lv ? kcalc(lv).K : c.J;
+      const baseMensual = lv ? (pnum(lv.A2) / 12) : c.mens;
+      const extraDic = m === 11 ? c.extra : 0;
+      const r = baseMensual + extraDic;
+      return { r, i: r * (pct / 100), pct };
+    }
+
+    const ad = e => {
+      const k = `${S.p.ej}_${e.id}`;
+      if (!Array.isArray(S.arc[k]) || S.arc[k].length !== 12) {
+        S.arc[k] = Array.from({ length: 12 }, () => ({ r: 0, i: 0 }));
+      }
+      return S.arc[k];
+    };
+
+    const ameta = e => {
+      const k = `${S.p.ej}_${e.id}`;
+      if (!S.arcMeta[k]) {
+        S.arcMeta[k] = { estado: "borrador", periodo: "Anual (Enero – Diciembre)", fecha: todayISO() };
+      }
+      return S.arcMeta[k];
+    };
+
+    const fmtDateISO = iso => {
+      if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return esc(iso || "");
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    };
+
+    function arcAuto(e) {
+      const a = ad(e);
+      for (let m = 0; m < 12; m++) {
+        const est = getEstMonth(e, m);
+        a[m] = { r: Math.round(est.r * 100) / 100, i: Math.round(est.i * 100) / 100 };
+      }
+      const meta = ameta(e);
+      meta.estado = "borrador";
+      save();
+    }
+
+    function arcHtml(e, editable = false) {
+      const a = ad(e), meta = ameta(e);
+      let totR = 0, totI = 0;
+      const rows = a.map((x, m) => {
+        const r = pnum(x.r), i = pnum(x.i);
+        totR += r; totI += i;
+        const pct = r > 0 ? f2((i / r) * 100) + " %" : "—";
+        if (editable) {
+          return `<tr>
+            <td class="l">${MS[m]}</td>
+            <td><input class="ve-num" data-ar="${m}" data-af="r" type="text" inputmode="decimal" value="${esc(f2(r))}"></td>
+            <td><input class="ve-num" data-ar="${m}" data-af="i" type="text" inputmode="decimal" value="${esc(f2(i))}"></td>
+            <td>${pct}</td>
+          </tr>`;
+        }
+        return `<tr><td class="l">${MS[m]}</td><td>${f2(r)}</td><td>${f2(i)}</td><td>${pct}</td></tr>`;
+      }).join("");
+      const totPct = totR > 0 ? f2((totI / totR) * 100) + " %" : "—";
+      const badge = meta.estado === "conciliado"
+        ? `<span class="badge badge-conciliado">Conciliado con nómina</span>`
+        : `<span class="badge badge-borrador">Borrador · Estimado</span>`;
+      return `<div class="arc-hdr">
+          <div>
+            <h2 style="margin:0">Comprobante de Retenciones de ISLR (ARC) · Ejercicio ${esc(S.p.ej)}</h2>
+            <span class="nt">Decreto N.° 1.808 · Reglamento Parcial de la Ley de Impuesto Sobre la Renta en Materia de Retenciones</span>
+          </div>
+          <div>${badge}</div>
+        </div>
+        <div class="arc-meta">
+          <div><b>Agente de retención:</b> ${esc(S.p.emp)}<br><b>RIF:</b> ${esc(S.p.rif)}</div>
+          <div><b>Beneficiario:</b> ${esc(e.nombre || "Sin nombre")}<br><b>Cédula / RIF:</b> ${esc(e.cedula || "—")}</div>
+          <div><b>Período / Corte:</b> ${esc(meta.periodo)}<br><b>Fecha de emisión:</b> ${fmtDateISO(meta.fecha)}</div>
+        </div>
+        <div class="tw">
+          <table>
+            <tr><th>Mes</th><th>Remuneración gravable pagada (Bs.)</th><th>Impuesto retenido (Bs.)</th><th>% efectivo</th></tr>
+            ${rows}
+            <tr class="k"><td class="l">Total ejercicio</td><td>${f2(totR)}</td><td>${f2(totI)}</td><td>${totPct}</td></tr>
+          </table>
+        </div>
+        <p class="nt" style="margin-top:12px">Se expide el presente comprobante a los fines de la declaración definitiva de rentas del beneficiario. Firma y sello del agente de retención: ________________________ · Recibido trabajador: ________________________</p>`;
+    }
+
+    function arcR() {
+      $("#ae").innerHTML = S.e.map((x, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${esc(x.nombre || "Sin nombre")}</option>`).join("");
+      const e = S.e[sel];
+      if (!e) {
+        $("#ar").innerHTML = '<p class="nt">Agregue un trabajador para emitir el comprobante ARC.</p>';
+        return;
+      }
+      const meta = ameta(e);
+      $("#ast").value = meta.estado;
+      $("#aper").value = meta.periodo;
+      $("#afec").value = meta.fecha;
+      $("#ar").innerHTML = arcHtml(e, true);
+    }
+
+    function pre(idx) {
+      if (typeof idx === "number") sel = idx;
+      const e = S.e[sel];
+      if (!e) {
+        $("#vf").innerHTML = `<label>Trabajador<select id="ve"></select></label>`;
+        $("#vr").innerHTML = '<p class="nt">No hay trabajadores registrados.</p>';
+        return;
+      }
+      if (VF.eid !== e.id) {
+        VF = {
+          eid: e.id,
+          mes: "Marzo",
+          A2: 0,
+          perc: 0,
+          ret: 0,
+          D2: e.tipo === "D" ? calc(e).Cu : pnum(S.p.unico),
+          c2: Math.floor(pnum(e.cargas)),
+          exc2: pnum(e.exceso)
+        };
+      }
+      const trabSelect = `<label>Trabajador<select id="ve">${S.e.map((x, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${esc(x.nombre || "Sin nombre")}</option>`).join("")}</select></label>`;
+      $("#vf").innerHTML =
+        trabSelect +
+        slc("v", "mes", "Mes de variación", [["Marzo", "Marzo"], ["Junio", "Junio"], ["Septiembre", "Septiembre"], ["Diciembre", "Diciembre"]], VF.mes) +
+        fld("v", "A2", "Nueva remuneración anual estimada (Bs.)", "n", VF.A2) +
+        fld("v", "perc", "Remuneración percibida a la fecha (Bs.)", "n", VF.perc) +
+        fld("v", "ret", "Impuesto retenido a la fecha (Bs.)", "n", VF.ret) +
+        fld("v", "D2", "Total desgravámenes (U.T.)", "n", VF.D2) +
+        fld("v", "c2", "Cargas familiares (n.º)", "int", VF.c2) +
+        fld("v", "exc2", "Retenido de más ejercicio anterior (Bs.)", "n", VF.exc2);
+      varR();
+    }
+
+    function varR() {
+      const e = S.e[sel];
+      if (!e) return;
+      const kc = kcalc(VF);
+      $("#vr").innerHTML = `<h2>Resultado de variación (${esc(VF.mes)}) · ${esc(e.nombre || "Sin nombre")}</h2>
+        <div class="kp">
+          <div>Nuevo porcentaje (Casilla K)<b>${f2(kc.K)} %</b></div>
+          <div>Remuneración anual en U.T.<b>${f2(kc.B)} U.T.</b></div>
+          <div>Impuesto anual estimado<b>${f2(kc.I)} U.T.</b></div>
+          <div>Remuneración por percibir<b>${f2(kc.rest)} U.T.</b></div>
+        </div>
+        <div class="row np">
+          <button class="b" id="sv">Guardar variación</button>
+        </div>`;
+      $("#sv").onclick = () => {
+        const rec = { ...VF, eid: e.id };
+        const ix = S.v.findIndex(x => x.eid === e.id && x.mes === rec.mes);
+        if (ix >= 0) S.v[ix] = rec; else S.v.push(rec);
+        lg("Variación AR-I guardada", `${e.nombre || "Sin nombre"} · ${rec.mes} → ${f2(kc.K)} %`);
+        save();
+        varT();
+        note(`Variación de ${rec.mes} guardada (${f2(kc.K)} %).`);
+      };
+      varT();
+    }
+
+    function varT() {
+      $("#vt").innerHTML = "<tr><th>Trabajador</th><th>Mes</th><th>Remun. anual (Bs.)</th><th>Percibido (Bs.)</th><th>Retenido (Bs.)</th><th>Porcentaje K</th><th class='np'>Acción</th></tr>" +
+        (S.v.length ? S.v.map((v, i) => {
+          const emp = S.e.find(x => x.id === v.eid);
+          const kc = kcalc(v);
+          return `<tr>
+            <td class="l">${esc(emp ? emp.nombre : "Eliminado")}</td>
+            <td>${esc(v.mes)}</td>
+            <td>${f2(v.A2)}</td>
+            <td>${f2(v.perc)}</td>
+            <td>${f2(v.ret)}</td>
+            <td><b>${f2(kc.K)} %</b></td>
+            <td class="np"><button class="s" data-dv="${i}">Eliminar</button></td>
+          </tr>`;
+        }).join("") : '<tr><td colspan="7" class="l">No hay variaciones registradas.</td></tr>');
+    }
+
+    function R() {
+      $("#tf").innerHTML = "<tr><th>Tramo (U.T.)</th><th>Alícuota</th><th>Sustraendo</th></tr>" +
+        TR.map(([l, r, s], i) => {
+          const prev = i === 0 ? 0 : TR[i - 1][0];
+          const lbl = l === Infinity ? `Más de ${f2(prev, 0)}` : (i === 0 ? `Hasta ${f2(l, 0)}` : `Más de ${f2(prev, 0)} hasta ${f2(l, 0)}`);
+          return `<tr><td>${lbl}</td><td>${f2(r * 100)} %</td><td>${f2(s, 0)}</td></tr>`;
+        }).join("");
+
+      $("#nt").innerHTML = `<tr><th class="np"><input type="checkbox" id="ca" aria-label="Seleccionar todos"></th><th>Trabajador</th><th>Cédula / RIF</th><th>Remun. anual (Bs.)</th><th>Remun. (U.T.)</th><th>Renta grav. (U.T.)</th><th>% Ret. (J)</th><th>Ret. mensual (Bs.)</th><th>Ret. util./vac. (Bs.)</th><th>Ret. anual (Bs.)</th><th class="np">Acciones</th></tr>` +
+        (S.e.length ? S.e.map((e, i) => {
+          const c = calc(e);
+          return `<tr>
+            <td class="np"><input type="checkbox" data-ck="${e.id}" aria-label="Seleccionar ${esc(e.nombre)}"></td>
+            <td class="l">${esc(e.nombre || "Sin nombre")}</td>
+            <td>${esc(e.cedula || "—")}</td>
+            <td>${f2(c.A)}</td>
+            <td>${f2(c.B)}</td>
+            <td>${f2(c.F)}</td>
+            <td><b>${f2(c.J)} %</b></td>
+            <td>${f2(c.rm)}</td>
+            <td>${f2(c.rx)}</td>
+            <td>${f2(c.ra)}</td>
+            <td class="np"><button class="s" data-ed="${i}">Editar</button> <button class="s" data-dw="${e.id}">Eliminar</button></td>
+          </tr>`;
+        }).join("") : '<tr><td colspan="11" class="l">No hay trabajadores registrados.</td></tr>');
+
+      plan();
+      if (tab === "var") pre(sel);
+      if (tab === "arc") arcR();
+      if (tab === "bit") bitR();
+      aud();
+    }
+
+    function note(msg) {
+      document.querySelectorAll(".ub").forEach(x => x.remove());
+      const d = document.createElement("div");
+      d.className = "ub np";
+      d.setAttribute("role", "status");
+      d.innerHTML = `<span>${esc(msg)}</span><button type="button">Cerrar</button>`;
+      d.querySelector("button").onclick = () => d.remove();
+      document.body.appendChild(d);
+      setTimeout(() => { if (d.parentNode) d.remove(); }, 4200);
+    }
+
+    function two(btn, fn) {
+      if (btn.dataset.cfm === "1") {
+        btn.dataset.cfm = "";
+        fn();
+        return;
+      }
+      const orig = btn.textContent;
+      btn.dataset.cfm = "1";
+      btn.textContent = "Confirmar";
+      setTimeout(() => {
+        if (btn.dataset.cfm === "1") {
+          btn.dataset.cfm = "";
+          btn.textContent = orig;
+        }
+      }, 2600);
+    }
+
+    let UD = null;
+    function askDel(ids) {
+      const set = new Set(ids);
+      const removed = S.e.filter(x => set.has(x.id));
+      if (!removed.length) return;
+      UD = { e: JSON.parse(JSON.stringify(S.e)), v: JSON.parse(JSON.stringify(S.v)) };
+      S.e = S.e.filter(x => !set.has(x.id));
+      S.v = S.v.filter(x => !set.has(x.eid));
+      if (sel >= S.e.length) sel = Math.max(0, S.e.length - 1);
+      lg("Trabajador(es) eliminado(s)", removed.map(x => x.nombre || "Sin nombre").join(", "));
+      save();
+      efm();
+      R();
+      document.querySelectorAll(".ub").forEach(x => x.remove());
+      const d = document.createElement("div");
+      d.className = "ub np";
+      d.innerHTML = `<span>Eliminado(s): ${removed.length}</span><button type="button" id="udb">Deshacer</button>`;
+      d.querySelector("#udb").onclick = () => {
+        if (!UD) return;
+        S.e = UD.e; S.v = UD.v; UD = null;
+        lg("Eliminación deshecha", "Trabajadores restaurados");
+        save(); efm(); R(); d.remove();
+      };
+      document.body.appendChild(d);
+      setTimeout(() => { if (d.parentNode) d.remove(); }, 5500);
+    }
+
+    function coSel() { $("#co").innerHTML = DB.cos.map((c, i) => `<option value="${i}"${i === DB.cur ? " selected" : ""}>${esc(c.p.emp || "Sin nombre")}</option>`).join(""); }
+    function setCo(i) {
+      DB.cur = i; S = DB.cos[i]; sel = 0; vIdx = 0; UD = null;
+      document.querySelectorAll(".ub").forEach(x => x.remove());
+      save(); coSel(); forms(); R(); go(tab);
+    }
+
+    function buildPrintableHtml(title, bodyHtml, autoPrint = true) {
+      return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>${esc(title)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font: 400 13px/1.45 "IBM Plex Sans", "Segoe UI", Arial, sans-serif; margin: 24px; color: #1b2420; background: #fff; }
+    h1, h2, h3 { font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif; font-weight: 700; letter-spacing: -0.01em; margin-top: 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 12.5px; margin: 10px 0; }
+    th, td { border: 1px solid #8fa198; padding: 6px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+    th { background: #e8f3ee; text-align: center; }
+    td:nth-child(2), td.l { text-align: left; }
+    .kp { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+    .kp div { flex: 1; min-width: 130px; border: 1px solid #8fa198; border-left: 4px solid #d4af37; border-radius: 0; padding: 8px; }
+    .kp b { display: block; font-size: 16px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .nt { font-size: 11px; color: #5d6b64; }
+    .w { border-left: 4px solid #8a5a00; background: #fff9e6; padding: 6px 10px; margin: 6px 0; font-size: 12px; }
+    .np, .dd-wrap, input, select, button { display: none !important; }
+    .bar-act { position: sticky; top: 0; background: #0d5233; color: #fff; padding: 8px 14px; margin: -24px -24px 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .bar-act button { display: inline-block !important; background: #d4af37; color: #0b2418; border: 0; border-radius: 0; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+    @media print { .bar-act { display: none !important; } body { margin: 12px; } }
+  </style>
+</head>
+<body>
+  <div class="bar-act">
+    <span>${esc(title)}</span>
+    <button type="button" onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  ${bodyHtml}
+  ${autoPrint ? `<script>window.addEventListener("load", function() { setTimeout(function() { try { window.print(); } catch (e) {} }, 250); });<\/script>` : ""}
+</body>
+</html>`;
+    }
+
+    function openPrintWindow(title, bodyHtml, isPdf = false) {
+      const html = buildPrintableHtml(title, bodyHtml, true);
+      let win = null;
+      try {
+        win = window.open("", "_blank", "width=960,height=720");
+      } catch (e) {
+        win = null;
+      }
+      if (win && !win.closed) {
+        try {
+          win.document.open();
+          win.document.write(html);
+          win.document.close();
+          win.focus();
+          note(isPdf
+            ? "Se abrió la vista para guardar como PDF. Elija «Guardar como PDF» en el destino de impresión."
+            : "Se abrió la vista de impresión.");
+          return true;
+        } catch (e) {}
+      }
+      let printTriggered = false;
+      const onBeforePrint = () => { printTriggered = true; };
+      window.addEventListener("beforeprint", onBeforePrint, { once: true });
+      try {
+        window.print();
+      } catch (e) {
+        printTriggered = false;
+      }
+      setTimeout(async () => {
+        window.removeEventListener("beforeprint", onBeforePrint);
+        if (!printTriggered) {
+          const safeName = title.replace(/[^\w\-]+/g, "_") + ".html";
+          await dlf(safeName, html, "text/html;charset=utf-8");
+          note(isPdf
+            ? "Vista emergente bloqueada: se descargó el documento listo para abrir y guardar como PDF."
+            : "Vista emergente bloqueada: se descargó el documento listo para imprimir.");
+        }
+      }, 450);
+      return false;
+    }
+
+    function getCurrentSectionPrintPayload(isPdf = false) {
+      const empName = S.p.emp || "Empresa";
+      if (tab === "arc" && S.e[sel]) {
+        const e = S.e[sel];
+        const m = ameta(e);
+        return {
+          title: `ARC_${m.estado.toUpperCase()}_${fnm(e)}_${S.p.ej}`,
+          html: arcHtml(e, false)
+        };
+      }
+      if (tab === "trab" && S.e[sel] && $("#pl") && $("#pl").innerHTML.trim()) {
+        const e = S.e[sel];
+        return {
+          title: `Planilla_AR-I_${fnm(e)}_${S.p.ej}`,
+          html: $("#pl").innerHTML
+        };
+      }
+      const activeSec = document.getElementById(tab);
+      const secTitle = (activeSec && activeSec.querySelector("h2") && activeSec.querySelector("h2").textContent) || "Reporte";
+      const secClone = activeSec ? activeSec.cloneNode(true) : null;
+      if (secClone) {
+        secClone.querySelectorAll(".np, button, input, select").forEach(el => {
+          if (el.tagName === "INPUT" && el.classList.contains("ve-num")) {
+            const span = document.createElement("span");
+            span.textContent = el.value;
+            el.replaceWith(span);
+          } else {
+            el.remove();
+          }
+        });
+      }
+      const bodyHtml = `<h1>${esc(empName)} · ${esc(secTitle)}</h1><p class="nt">Ejercicio fiscal ${esc(S.p.ej)} · RIF: ${esc(S.p.rif)}</p>` + (secClone ? secClone.innerHTML : "");
+      return {
+        title: `${isPdf ? "PDF" : "Impresion"}_${empName.replace(/[^\w\-]+/g, "_")}_${tab}_${S.p.ej}`,
+        html: bodyHtml
+      };
+    }
+
+    function prt(html, name) {
+      openPrintWindow(name || "Documento_ARI", html, false);
+    }
+    const fnm = e => String(e.cedula || e.nombre || e.id).replace(/[^\w\-]+/g, "_");
+    function prtPlan() { const e = S.e[sel]; if (!e) return; lg("Planilla AR-I impresa", e.nombre); openPrintWindow("Planilla_AR-I_" + fnm(e), $("#pl").innerHTML, false); }
+
+    const normRif10 = raw => {
+      const m = String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").match(/^([JGVEPC])0*(\d{1,8})(\d)$/);
+      if (!m) return { ok: false, val: String(raw || "").trim().toUpperCase().slice(0, 10) };
+      return { ok: true, val: m[1] + m[2].padStart(8, "0") + m[3] };
+    };
+
+    const xmlEscape = s => String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+
+    const fmtDateDDMMYYYY = iso => {
+      if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+        const d = new Date();
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+      }
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    };
+
+    const fmtXmlDec = (n, d = 2) => {
+      const v = Number(num(n)) || 0;
+      return v.toFixed(d);
+    };
+
+    function buildSeniatXml(opts = {}) {
+      const yr = Math.max(2000, Math.floor(pnum(S.p.ej)) || 2026);
+      const mNum = Math.max(1, Math.min(12, Math.floor(pnum(opts.mes)) || 1));
+      const periodo = `${yr}${String(mNum).padStart(2, "0")}`;
+      const agente = normRif10(S.p.rif);
+      const fechaOp = fmtDateDDMMYYYY(opts.fecha || `${yr}-${String(mNum).padStart(2, "0")}-15`);
+      const fuente = opts.fuente === "ari" ? "ari" : "arc";
+      const concepto = String(opts.concepto || "001").trim() || "001";
+      const soloRetenidos = Boolean(opts.soloRetenidos);
+
+      const detalles = [];
+      const warnings = [];
+
+      if (!agente.ok) {
+        warnings.push(`El RIF del agente (${S.p.rif || "vacío"}) no cumple el formato de 10 caracteres (ej. J123456789).`);
+      }
+
+      S.e.forEach(e => {
+        const empRif = normRif10(e.cedula);
+        if (!empRif.ok) {
+          warnings.push(`${e.nombre || "Sin nombre"}: cédula/RIF "${e.cedula || "vacío"}" fuera del formato de 10 caracteres.`);
+        }
+        let monto = 0;
+        let retenido = 0;
+        let pct = 0;
+
+        if (fuente === "arc") {
+          const rec = ad(e)[mNum - 1] || { r: 0, i: 0 };
+          monto = pnum(rec.r);
+          retenido = pnum(rec.i);
+          pct = monto > 0 ? (retenido / monto) * 100 : 0;
+        } else {
+          const est = getEstMonth(e, mNum - 1);
+          monto = pnum(est.r);
+          retenido = pnum(est.i);
+          pct = pnum(est.pct);
+        }
+
+        if (soloRetenidos && !(retenido > 0)) return;
+        if (!(monto > 0) && !(retenido > 0)) return;
+
+        detalles.push(
+          `    <DetalleRetencion>\n` +
+          `      <RifRetenido>${xmlEscape(empRif.val)}</RifRetenido>\n` +
+          `      <NumeroFactura>0</NumeroFactura>\n` +
+          `      <NumeroControl>NA</NumeroControl>\n` +
+          `      <FechaOperacion>${xmlEscape(fechaOp)}</FechaOperacion>\n` +
+          `      <CodigoConcepto>${xmlEscape(concepto)}</CodigoConcepto>\n` +
+          `      <MontoOperacion>${fmtXmlDec(monto, 2)}</MontoOperacion>\n` +
+          `      <PorcentajeRetencion>${fmtXmlDec(pct, 2)}</PorcentajeRetencion>\n` +
+          `    </DetalleRetencion>`
+        );
+      });
+
+      const xml =
+        `<?xml version="1.0" encoding="ISO-8859-1"?>\n` +
+        `<RelacionRetencionesISLR RifAgente="${xmlEscape(agente.val)}" Periodo="${xmlEscape(periodo)}">\n` +
+        (detalles.length ? detalles.join("\n") + "\n" : "") +
+        `</RelacionRetencionesISLR>\n`;
+
+      return { xml, periodo, rifAgente: agente.val, count: detalles.length, warnings };
+    }
+
+    function openSeniatXmlModal() {
+      const defMonth = String(Math.max(1, Math.min(12, new Date().getMonth() + 1))).padStart(2, "0");
+      const defYr = Math.max(2000, Math.floor(pnum(S.p.ej)) || 2026);
+      const defDate = `${defYr}-${defMonth}-15`;
+
+      const o = document.createElement("div");
+      o.className = "ov";
+      o.innerHTML = `<div class="cd" role="dialog" aria-modal="true" aria-label="Exportar XML de retenciones ISLR (SENIAT)">
+        <h2>Exportar XML de retenciones ISLR (SENIAT)</h2>
+        <div class="g" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:8px">
+          <label>Mes a declarar
+            <select id="xmes">
+              ${MS.map((m, idx) => `<option value="${idx + 1}"${String(idx + 1).padStart(2, "0") === defMonth ? " selected" : ""}>${String(idx + 1).padStart(2, "0")} · ${m}</option>`).join("")}
+            </select>
+          </label>
+          <label>Fecha de operación<input id="xfec" type="date" value="${esc(defDate)}"></label>
+          <label>Fuente de datos
+            <select id="xfue">
+              <option value="arc">ARC mensual (real / registrado)</option>
+              <option value="ari">Estimación AR-I (con variaciones)</option>
+            </select>
+          </label>
+          <label>Código de concepto<input id="xcod" type="text" maxlength="10" value="001"></label>
+        </div>
+        <label style="flex-direction:row;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer">
+          <input id="xsol" type="checkbox" style="width:auto">
+          <span>Incluir solo trabajadores con retención mayor a 0,00</span>
+        </label>
+        <div id="xstat" class="nt"></div>
+        <div id="xwar"></div>
+        <pre class="xml-box" id="xpre"></pre>
+        <div class="row">
+          <button class="s" id="xcan">Cerrar</button>
+          <button class="s" id="xcp">Copiar XML</button>
+          <button class="b" id="xdl">Descargar XML</button>
+        </div>
+      </div>`;
+      document.body.appendChild(o);
+
+      const kd = e => { if (e.key === "Escape") cl(); }, cl = () => { o.remove(); removeEventListener("keydown", kd); };
+      addEventListener("keydown", kd);
+      o.querySelector("#xcan").onclick = cl;
+      o.onclick = e => { if (e.target === o) cl(); };
+
+      let lastRes = null;
+      const refresh = () => {
+        lastRes = buildSeniatXml({
+          mes: o.querySelector("#xmes").value,
+          fecha: o.querySelector("#xfec").value,
+          fuente: o.querySelector("#xfue").value,
+          concepto: o.querySelector("#xcod").value,
+          soloRetenidos: o.querySelector("#xsol").checked
+        });
+        o.querySelector("#xstat").innerHTML = `<b>Período:</b> ${esc(lastRes.periodo)} · <b>RIF Agente:</b> ${esc(lastRes.rifAgente)} · <b>Registros incluidos:</b> ${lastRes.count}`;
+        o.querySelector("#xwar").innerHTML = lastRes.warnings.slice(0, 5).map(w => `<div class="w">${esc(w)}</div>`).join("");
+        o.querySelector("#xpre").textContent = lastRes.xml;
+      };
+
+      ["#xmes", "#xfec", "#xfue", "#xcod", "#xsol"].forEach(id => {
+        const el = o.querySelector(id);
+        el.onchange = refresh;
+        el.oninput = refresh;
+      });
+
+      o.querySelector("#xcp").onclick = () => {
+        if (!lastRes) return;
+        const ta = document.createElement("textarea");
+        ta.value = lastRes.xml;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        let copied = false;
+        try {
+          copied = document.execCommand("copy");
+        } catch (e) {
+          copied = false;
+        }
+        ta.remove();
+        note(copied ? "XML copiado al portapapeles." : "No se pudo copiar automáticamente.");
+      };
+
+      o.querySelector("#xdl").onclick = () => {
+        if (!lastRes) return;
+        const fname = `ISLR_${lastRes.rifAgente}_${lastRes.periodo}.xml`;
+        lg("XML SENIAT exportado", `${fname} (${lastRes.count} registro(s))`);
+        dlf(fname, lastRes.xml, "application/xml;charset=iso-8859-1");
+        cl();
+      };
+
+      refresh();
+    }
+
+    $("#xm").onclick = openSeniatXmlModal;
+
+    $("#pr").onclick = () => {
+      const payload = getCurrentSectionPrintPayload(false);
+      lg("Sección impresa", payload.title);
+      openPrintWindow(payload.title, payload.html, false);
+    };
+
+    $("#prTop").onclick = () => {
+      closeOptMenu();
+      const payload = getCurrentSectionPrintPayload(false);
+      lg("Imprimir ejecutado", payload.title);
+      openPrintWindow(payload.title, payload.html, false);
+    };
+    $("#pdfTop").onclick = () => {
+      closeOptMenu();
+      const payload = getCurrentSectionPrintPayload(true);
+      lg("Exportación PDF solicitada", payload.title);
+      openPrintWindow(payload.title, payload.html, true);
+    };
+
+    function copyTextFallback(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+
+    function getSheetDocument(sheetType = "ari") {
+      const e = S.e[sel] || D.e[0];
+      const emp = S.p.emp || "Empresa";
+      const rif = S.p.rif || "";
+      const ej = S.p.ej || 2026;
+      const safeEmp = fnm(e);
+
+      if (sheetType === "arc") {
+        const meta = ameta(e);
+        const title = `Planilla_ARC_${meta.estado.toUpperCase()}_${safeEmp}_${ej}`;
+        const bodyHtml = arcHtml(e, false);
+        const fullHtml = buildPrintableHtml(title, bodyHtml, false);
+        return {
+          sheetName: `Comprobante ARC (${meta.estado})`,
+          fileName: `${title}.html`,
+          html: fullHtml,
+          textSummary: `Planilla ARC (${meta.estado}) · ${emp} (${rif}) · Beneficiario: ${e.nombre || "Sin nombre"} (${e.cedula || "—"}) · Ejercicio ${ej}`
+        };
+      }
+
+      const title = `Planilla_AR-I_${safeEmp}_${ej}`;
+      const prevPl = $("#pl");
+      let sheetInner = prevPl ? prevPl.innerHTML : "";
+      if (!sheetInner.trim()) {
+        const temp = document.createElement("div");
+        const c = calc(e), p = S.p, ut = UT();
+        const r = (a, b, bs, u, cl) => `<tr${cl ? ` class="${cl}"` : ""}><td>${a}</td><td>${b}</td><td>${bs === null ? "" : f2(bs)}</td><td>${u === null ? "" : f2(u)}</td></tr>`;
+        temp.innerHTML = `<h2>Planilla AR-I · ejercicio ${esc(p.ej)}</h2>
+          <p class="nt">${esc(p.emp)} (${esc(p.rif)}) · Trabajador: ${esc(e.nombre)} (${esc(e.cedula)}) · 1 U.T. = Bs. ${f2(ut)}</p>
+          <div class="kp">
+            <div>Porcentaje de retención<b>${f2(c.J)} %</b></div>
+            <div>Retención sobre sueldo mensual<b>Bs. ${f2(c.rm)}</b></div>
+            <div>Sobre utilidades y bono vac.<b>Bs. ${f2(c.rx)}</b></div>
+            <div>Retención anual<b>Bs. ${f2(c.ra)}</b></div>
+          </div>
+          <div class="tw">
+            <table>
+              <tr><th>Casilla</th><th>Concepto</th><th>Bs.</th><th>U.T.</th></tr>
+              ${r("A", "Remuneración anual estimada", c.A, null)}
+              ${r("B", "Remuneración anual en U.T.", null, c.B, "k")}
+              ${r("C", "Desgravámenes detallados (con topes)", c.C, c.Cu)}
+              ${r("E", "Desgravamen único", p.unico * ut, p.unico)}
+              ${r("D/E", "Desgravamen aplicado (" + (e.tipo === "U" ? "único" : "detallado") + ")", c.E * ut, c.E)}
+              ${r("F", "Renta gravable (B − desgravamen)", c.F * ut, c.F, "k")}
+              ${r("G", "Impuesto según Tarifa N.° 1", c.G * ut, c.G)}
+              ${r("H.1", "Rebaja personal", c.H1 * ut, c.H1)}
+              ${r("H.2", "Rebaja por cargas (" + Math.floor(pnum(e.cargas)) + ")", c.H2 * ut, c.H2)}
+              ${r("H.3", "Impuesto retenido de más (ej. anterior)", pnum(e.exceso), c.H3)}
+              ${r("I", "Impuesto a retener (G − H)", c.I * ut, c.I, "k")}
+              <tr class="j"><td>J</td><td>Porcentaje de retención (I ÷ B × 100)</td><td colspan="2">${f2(c.J)} %</td></tr>
+            </table>
+          </div>
+          <p class="nt">Firmas: trabajador ____________ · agente de retención ____________</p>`;
+        sheetInner = temp.innerHTML;
+      }
+      const fullHtml = buildPrintableHtml(title, sheetInner, false);
+      return {
+        sheetName: "Planilla AR-I",
+        fileName: `${title}.html`,
+        html: fullHtml,
+        textSummary: `Planilla AR-I · ${emp} (${rif}) · Trabajador: ${e.nombre || "Sin nombre"} (${e.cedula || "—"}) · Ejercicio ${ej}`
+      };
+    }
+
+    function openShareSheetModal(channel) {
+      closeOptMenu();
+      const defType = tab === "arc" ? "arc" : "ari";
+      const o = document.createElement("div");
+      o.className = "ov";
+      o.innerHTML = `<div class="cd" role="dialog" aria-modal="true" aria-label="Compartir planilla por ${channel === "gmail" ? "Gmail" : "WhatsApp"}">
+        <h2>Compartir planilla por ${channel === "gmail" ? "Gmail" : "WhatsApp"}</h2>
+        <p class="nt">Se generará el documento de la planilla seleccionada para adjuntarlo o enviarlo directamente.</p>
+        <div class="g" style="grid-template-columns:1fr;margin-bottom:10px">
+          <label>Seleccione la planilla a compartir
+            <select id="shPlan">
+              <option value="ari"${defType === "ari" ? " selected" : ""}>Planilla AR-I (Estimación y casillas A–J)</option>
+              <option value="arc"${defType === "arc" ? " selected" : ""}>Planilla ARC (Comprobante mensual de retenciones)</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button class="s" id="shCancel">Cancelar</button>
+          <button class="b" id="shGo">Preparar y compartir</button>
+        </div>
+      </div>`;
+      document.body.appendChild(o);
+
+      const kd = e => { if (e.key === "Escape") cl(); }, cl = () => { o.remove(); removeEventListener("keydown", kd); };
+      addEventListener("keydown", kd);
+      o.querySelector("#shCancel").onclick = cl;
+      o.onclick = e => { if (e.target === o) cl(); };
+
+      o.querySelector("#shGo").onclick = async () => {
+        const planType = o.querySelector("#shPlan").value === "arc" ? "arc" : "ari";
+        const docInfo = getSheetDocument(planType);
+        await dlf(docInfo.fileName, docInfo.html, "text/html;charset=utf-8");
+        const subject = `${docInfo.fileName.replace(/\.html$/i, "")} - ${S.p.emp || "Empresa"}`;
+        const msg = `Se adjunta la planilla: ${docInfo.fileName}\n${docInfo.textSummary}`;
+        const url = channel === "gmail"
+          ? `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`
+          : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        lg(channel === "gmail" ? "Planilla compartida por Gmail" : "Planilla compartida por WhatsApp", docInfo.fileName);
+        cl();
+        let win = null;
+        try { win = window.open(url, "_blank", "noopener,noreferrer"); } catch (err) { win = null; }
+        if (!win) {
+          copyTextFallback(msg);
+          note(`Planilla descargada (${docInfo.fileName}). Ventana bloqueada: mensaje copiado para pegar en ${channel === "gmail" ? "Gmail" : "WhatsApp"}.`);
+        } else {
+          note(`Planilla descargada (${docInfo.fileName}) lista para adjuntar en ${channel === "gmail" ? "Gmail" : "WhatsApp"}.`);
+        }
+      };
+    }
+
+    $("#gmTop").onclick = () => openShareSheetModal("gmail");
+    $("#waTop").onclick = () => openShareSheetModal("whatsapp");
+
+    $("#co").onchange = ev => setCo(+ev.target.value);
+    $("#nc").onclick = () => {
+      const o = document.createElement("div");
+      o.className = "ov";
+      o.innerHTML = `<div class="cd" role="dialog" aria-modal="true" aria-label="Nueva empresa">
+        <h2>Nueva empresa</h2>
+        <div class="g" style="grid-template-columns:1fr">
+          <label>Nombre o razón social<input id="nn" type="text" maxlength="120" autocomplete="off"></label>
+          <label>RIF<input id="nr" type="text" maxlength="14" placeholder="J-12345678-9" autocomplete="off"></label>
+          <label>Condición fiscal<select id="ns"><option value="ordinario">Contribuyente ordinario</option><option value="spe">Sujeto pasivo especial (SPE)</option></select></label>
+        </div>
+        <p class="nt" id="ne" role="alert" style="color:var(--bad)"></p>
+        <div class="row"><button class="s" id="nx">Cancelar</button><button class="b" id="ny">Crear empresa</button></div>
+      </div>`;
+      document.body.appendChild(o);
+      const kd = e => { if (e.key === "Escape") cl(); if (e.key === "Enter" && e.target.tagName === "INPUT") ok(); }, cl = () => { o.remove(); removeEventListener("keydown", kd); };
+      addEventListener("keydown", kd);
+      const ok = () => {
+        const nm = o.querySelector("#nn").value.trim().replace(/\s+/g, " ");
+        const m = o.querySelector("#nr").value.trim().toUpperCase().match(/^([JGVEPC])-?(\d{8})-?(\d)$/);
+        const er = t => { o.querySelector("#ne").textContent = t; };
+        if (!nm) return er("Indique el nombre o razón social.");
+        if (!m) return er("RIF inválido. Formato: J-12345678-9.");
+        const rif = m[1] + "-" + m[2] + "-" + m[3];
+        if (DB.cos.some(c => c.p.rif === rif)) return er("Ya existe una empresa con ese RIF.");
+        const cf = o.querySelector("#ns").value === "spe" ? "spe" : "ordinario", n = clean(null);
+        n.p = { ...S.p, emp: nm, rif, cf };
+        n.e = [blankE(1)];
+        n.e[0].nombre = "Nuevo trabajador";
+        n.log = [];
+        cl(); DB.cos.push(n); setCo(DB.cos.length - 1);
+        lg("Empresa creada", nm + " · " + rif + " · " + (cf === "spe" ? "SPE" : "Ordinario"));
+      };
+      o.querySelector("#nx").onclick = cl;
+      o.querySelector("#ny").onclick = ok;
+      o.onclick = e => { if (e.target === o) cl(); };
+      o.querySelector("#nn").focus();
+    };
+
+    $("#dc").onclick = ev => {
+      const b = ev.target;
+      if (DB.cos.length < 2) {
+        b.textContent = "Debe quedar una empresa";
+        setTimeout(() => { b.textContent = "Eliminar empresa"; }, 2000);
+        return;
+      }
+      two(b, () => { DB.cos.splice(DB.cur, 1); setCo(Math.max(0, DB.cur - 1)); });
+    };
+
+    $("#ds").onclick = ev => {
+      const ids = [...document.querySelectorAll("[data-ck]:checked")].map(x => +x.dataset.ck);
+      if (!ids.length) {
+        const b = ev.target;
+        b.textContent = "Marque trabajadores en la tabla";
+        setTimeout(() => { b.textContent = "Eliminar seleccionados"; }, 2200);
+        return;
+      }
+      askDel(ids);
+    };
+
+    $("#ae").onchange = ev => { sel = +ev.target.value; efm(); arcR(); };
+    $("#ast").onchange = ev => { const e = S.e[sel]; if (!e) return; const m = ameta(e); m.estado = ev.target.value === "conciliado" ? "conciliado" : "borrador"; lg("Estado ARC actualizado", (e.nombre || "Sin nombre") + " → " + m.estado.toUpperCase()); save(); arcR(); };
+    $("#aper").onchange = ev => { const e = S.e[sel]; if (!e) return; const m = ameta(e); m.periodo = ev.target.value; lg("Período ARC actualizado", (e.nombre || "Sin nombre") + " → " + m.periodo); save(); arcR(); };
+    $("#afec").onchange = ev => { const e = S.e[sel]; if (!e) return; const m = ameta(e); m.fecha = ev.target.value || todayISO(); lg("Fecha ARC actualizada", (e.nombre || "Sin nombre") + " → " + m.fecha); save(); arcR(); };
+
+    $("#aa").onclick = () => { const e = S.e[sel]; if (e) { arcAuto(e); lg("ARC autocompletado (borrador)", e.nombre); arcR(); } };
+
+    $("#bx").onclick = () => {
+      const q = s => { s = String(s); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+      dlf("Bitacora_" + S.p.emp.replace(/\W+/g, "_") + ".csv", "\ufeff" + ["Fecha;Accion;Detalle"].concat(S.log.map(x => [q(x.t), q(x.a), q(x.d)].join(";"))).join("\r\n"), "text/csv;charset=utf-8");
+    };
+    $("#rs").onclick = ev => two(ev.target, () => {
+      const lo = S.log;
+      DB.cos[DB.cur] = S = clean(null);
+      S.log = lo; sel = 0; vIdx = 0;
+      lg("Datos restablecidos", "Valores de ejemplo");
+      coSel(); forms(); pre(); R();
     });
 
-    document.getElementById("boxDesgDetallado").classList.toggle("hidden", state.form.tipoDesg !== "detallado");
-
-    var r = computeAri();
-    document.getElementById("kpiRemBs").textContent = "Bs. " + fmt(r.remTotalBs);
-    document.getElementById("kpiRemUt").textContent = fmt(r.remTotalUt) + " U.T. (Mínimo legal: 1.000 U.T.)";
-    document.getElementById("kpiNetoUt").textContent = fmt(r.enriqNetoUt) + " U.T.";
-    document.getElementById("kpiDesgInfo").textContent = (state.form.tipoDesg === "unico" ? "Desgravamen Único: " : "Desgravamen Detallado: ") + fmt(r.desgUt) + " U.T.";
-    document.getElementById("kpiImpBs").textContent = "Bs. " + fmt(r.impRetenerBs);
-    document.getElementById("kpiImpUt").textContent = fmt(r.impRetenerUt) + " U.T. (Tramo " + r.t1.tramo + " · " + r.t1.pct + "%)";
-    document.getElementById("kpiPctAri").textContent = fmt(r.pctFinal) + " %";
-    document.getElementById("kpiRetMensual").textContent = "Retención mensual est.: Bs. " + fmt(r.retMensualEst);
-
-    var b = document.getElementById("badgeObligado");
-    if (r.obligado) {
-      b.className = "badge badge-ok";
-      b.textContent = "Obligado a presentar AR-I (> 1.000 U.T.)";
-    } else {
-      b.className = "badge badge-warn";
-      b.textContent = "No supera 1.000 U.T. anuales";
-    }
-
-    document.getElementById("tablaCasillasAri").innerHTML = [
-      ["A/B. Total Remuneraciones Estimadas", fmt(r.remTotalUt) + " U.T.", "Bs. " + fmt(r.remTotalBs)],
-      ["C/E. Desgravamen Aplicado", fmt(r.desgUt) + " U.T.", "Bs. " + fmt(r.desgBs)],
-      ["F. Enriquecimiento Neto Gravable (B - E)", fmt(r.enriqNetoUt) + " U.T.", "Bs. " + fmt(r.enriqNetoUt * r.ut)],
-      ["G. Impuesto según Tarifa N.° 1 (Tramo " + r.t1.tramo + " · " + r.t1.pct + "%)", fmt(r.t1.impUt) + " U.T.", "Bs. " + fmt(r.t1.impUt * r.ut)],
-      ["H. Total Rebajas (Personal 10 U.T. + Cargas)", fmt(r.totalRebajasUt) + " U.T.", "Bs. " + fmt(r.totalRebajasUt * r.ut)],
-      ["I. Impuesto Estimado a Retener en el Año (G - H)", fmt(r.impRetenerUt) + " U.T.", "Bs. " + fmt(r.impRetenerBs)],
-      ["J/K. Porcentaje de Retención AR-I Aplicable", fmt(r.pctFinal) + " %", "Bs. " + fmt(r.retMensualEst) + " / mes"]
-    ].map(function(row) {
-      return "<tr><td>" + row[0] + "</td><td class='num'>" + row[1] + "</td><td class='num'><strong>" + row[2] + "</strong></td></tr>";
-    }).join("");
-
-    renderNomina();
-    saveState();
-  }
-
-  function guardarTrabajador() {
-    var r = computeAri();
-    var item = {
-      id: Date.now(),
-      nombre: state.form.trabNombre || "Trabajador",
-      rif: state.form.trabRif || "V-00000000",
-      variacion: state.form.tipoVariacion,
-      remTotalBs: r.remTotalBs,
-      enriqNetoUt: r.enriqNetoUt,
-      cargas: state.form.cargasFam,
-      pct: r.pctFinal
+    const dlf = async (n, t, m) => {
+      try {
+        const d = window.claude && await window.claude.use("downloads");
+        if (d) { await d.save({ filename: n, data: t }); return; }
+      } catch (e) { if (e && e.code === "declined") return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([t], { type: m }));
+      a.download = n;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
     };
-    state.nomina.unshift(item);
-    renderNomina();
-    saveState();
-    switchTab("nomina");
-  }
 
-  function eliminarTrabajador(id) {
-    state.nomina = state.nomina.filter(function(x) { return x.id !== id; });
-    renderNomina();
-    saveState();
-  }
+    const doExportJson = () => {
+      lg("Respaldo exportado", "JSON de todas las empresas");
+      dlf("ARI_Respaldo_empresas.json", JSON.stringify(DB, null, 1), "application/json");
+    };
 
-  function renderNomina() {
-    document.getElementById("countNomina").textContent = state.nomina.length;
-    var sueldoSim = Number(document.getElementById("sueldoSimMensual").value) || 0;
-    var tb = document.getElementById("tbodyNomina");
-    if (!state.nomina.length) {
-      tb.innerHTML = "<tr><td colspan='9' style='text-align:center;color:var(--muted);padding:1.5rem;'>No hay trabajadores guardados en la nómina AR-I. Pulse «+ Guardar en Nómina» para registrar el cálculo actual.</td></tr>";
-      return;
+    const handleImportJson = ev => {
+      const f = ev.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const o = JSON.parse(r.result);
+          if (o && Array.isArray(o.cos) && o.cos.length) DB = { cur: 0, cos: o.cos.map(clean) };
+          else { DB.cos.push(clean(o)); DB.cur = DB.cos.length - 1; }
+          S = DB.cos[DB.cur]; sel = 0; vIdx = 0;
+          lg("Respaldo importado", DB.cos.length + " empresa(s)");
+          coSel(); forms(); pre(); R();
+          note("Archivo importado correctamente.");
+        } catch (e) {
+          note("El archivo JSON no es válido.");
+        }
+      };
+      r.readAsText(f);
+      ev.target.value = "";
+    };
+
+    const closeOptMenu = () => {
+      const m = $("#optMenu"), b = $("#optBtn");
+      if (m && !m.hidden) {
+        m.hidden = true;
+        if (b) b.setAttribute("aria-expanded", "false");
+      }
+    };
+
+    $("#optBtn").onclick = ev => {
+      ev.stopPropagation();
+      const m = $("#optMenu");
+      const open = m.hidden;
+      m.hidden = !open;
+      $("#optBtn").setAttribute("aria-expanded", String(open));
+    };
+
+    document.addEventListener("click", ev => {
+      if (!ev.target.closest(".dd-wrap")) closeOptMenu();
+    });
+    document.addEventListener("keydown", ev => {
+      if (ev.key === "Escape") closeOptMenu();
+    });
+
+    $("#ej").onclick = doExportJson;
+    $("#ejTop").onclick = () => { closeOptMenu(); doExportJson(); };
+    $("#ij").onchange = handleImportJson;
+    $("#ijTop").onchange = ev => { closeOptMenu(); handleImportJson(ev); };
+
+    $("#cs").onclick = () => {
+      const q = s => { s = String(s); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; },
+        n = x => String(Math.round(x * 100) / 100).replace(".", ",");
+      const L = [["Cedula", "Nombre", "A_Remun_Bs", "B_UT", "Retiene", "F_UT", "I_UT", "J_Pct", "Ret_Mensual_Bs", "Ret_Utilid_Bono_Bs", "Ret_Anual_Bs"].join(";")];
+      S.e.forEach(e => {
+        const c = calc(e);
+        L.push([q(e.cedula), q(e.nombre), n(c.A), n(c.B), c.obl ? "SI" : "NO", n(c.F), n(c.I), n(c.J), n(c.rm), n(c.rx), n(c.ra)].join(";"));
+      });
+      lg("Nómina exportada", "CSV");
+      dlf(`Nomina_ARI_${S.p.ej}.csv`, "\ufeff" + L.join("\r\n"), "text/csv;charset=utf-8");
+    };
+
+    $("#th").onclick = () => {
+      closeOptMenu();
+      const r = document.documentElement,
+        d = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme:dark)").matches);
+      r.dataset.theme = d ? "light" : "dark";
+    };
+
+    const TABS = [
+      ["trab", "Trabajadores y planilla"],
+      ["nom", "Nómina"],
+      ["var", "Variación"],
+      ["arc", "ARC"],
+      ["par", "Parámetros"],
+      ["bit", "Bitácora"],
+      ["aud", "Auditoría"]
+    ];
+
+    function setupNav() {
+      $("#nv").innerHTML = TABS.map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${k === tab}">${l}</button>`).join("");
     }
-    tb.innerHTML = state.nomina.map(function(w) {
-      var baseMes = sueldoSim > 0 ? sueldoSim : (w.remTotalBs / 12);
-      var retMes = baseMes * (w.pct / 100);
-      return "<tr>" +
-        "<td><strong>" + w.nombre + "</strong></td>" +
-        "<td>" + w.rif + "</td>" +
-        "<td>" + w.variacion.toUpperCase() + "</td>" +
-        "<td class='num'>Bs. " + fmt(w.remTotalBs) + "</td>" +
-        "<td class='num'>" + fmt(w.enriqNetoUt) + " U.T.</td>" +
-        "<td class='num'>" + w.cargas + "</td>" +
-        "<td class='num'><span class='badge badge-ok'>" + fmt(w.pct) + " %</span></td>" +
-        "<td class='num'>Bs. " + fmt(retMes) + "</td>" +
-        "<td class='no-print'><button type='button' class='btn' onclick='eliminarTrabajador(" + w.id + ")'>Eliminar</button></td>" +
-      "</tr>";
-    }).join("");
-  }
 
-  function reportStatus() {
-    var r = computeAri();
-    var E = window.EMPRESA || {};
-    if (!E.id) return;
-    var est = (state.nomina.length > 0 || r.pctFinal > 0) ? "ok" : "proc";
-    var det = "AR-I: " + fmt(r.pctFinal) + "% (" + state.nomina.length + " trab.)";
-    try {
-      parent.postMessage({
-        type: "ux-status",
-        emp: E.id,
-        mod: "ari",
-        st: { e: est, d: det }
-      }, "*");
-    } catch (e) {}
-  }
+    document.addEventListener("input", ev => {
+      const t = ev.target;
+      if (t.dataset.s === "p") {
+        const k = t.dataset.k;
+        S.p[k] = t.dataset.nt ? pnum(t.value) : t.value;
+        save(); R();
+      } else if (t.dataset.s === "e" && S.e[sel]) {
+        const k = t.dataset.k;
+        S.e[sel][k] = t.dataset.nt === "int" ? Math.floor(pnum(t.value)) : (t.dataset.nt === "dec" ? pnum(t.value) : t.value);
+        if (k === "nombre") {
+          const btn = document.querySelector(`#ls button[data-i="${sel}"]`);
+          if (btn) btn.textContent = t.value || "Sin nombre";
+        }
+        save(); R();
+      } else if (t.dataset.s === "v") {
+        const k = t.dataset.k;
+        VF[k] = t.dataset.nt === "int" ? Math.floor(pnum(t.value)) : (t.dataset.nt === "dec" ? pnum(t.value) : t.value);
+        varR();
+      } else if (t.dataset.ar !== undefined && S.e[sel]) {
+        const m = +t.dataset.ar, f = t.dataset.af;
+        ad(S.e[sel])[m][f] = pnum(t.value);
+        save();
+      }
+    });
 
-  window.addEventListener("message", function(e) {
-    if (e.data && e.data.type === "ux-do-print") window.print();
-  });
+    document.addEventListener("change", ev => {
+      const t = ev.target;
+      if (t.classList.contains("ve-num")) {
+        const isInt = t.dataset.nt === "int";
+        const val = isInt ? Math.floor(pnum(t.value)) : pnum(t.value);
+        t.value = t.dataset.ar !== undefined ? f2(val) : (isInt ? String(val) : fmtInp(val));
+        if (t.dataset.ar !== undefined) arcR();
+      }
+      if (t.tagName === "SELECT" && t.dataset.s) {
+        const k = t.dataset.k;
+        if (t.dataset.s === "p") {
+          S.p[k] = (k === "transp" || k === "red") ? +t.value : t.value;
+          save(); R();
+        } else if (t.dataset.s === "e" && S.e[sel]) {
+          S.e[sel][k] = t.value;
+          save(); R();
+        } else if (t.dataset.s === "v") {
+          VF[k] = t.value;
+          varR();
+        }
+      }
+      if (t.id === "ve") {
+        pre(+t.value);
+      }
+    });
 
-  loadState();
-  recalc();
-</script>
-<script src="/static/js/tv_reportes.js?v=1.0"></script>
+    document.addEventListener("click", ev => {
+      const t = ev.target;
+      const navBtn = t.closest("#nv button[data-t]");
+      if (navBtn) { go(navBtn.dataset.t); return; }
+      const lsBtn = t.closest("#ls button[data-i]");
+      if (lsBtn) { sel = +lsBtn.dataset.i; efm(); plan(); return; }
+      if (t.id === "ad") {
+        const nid = S.e.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+        S.e.push(blankE(nid));
+        sel = S.e.length - 1;
+        lg("Trabajador agregado", "Nuevo registro #" + nid);
+        save(); efm(); R();
+      }
+      if (t.id === "dl" && S.e[sel]) {
+        askDel([S.e[sel].id]);
+      }
+      if (t.dataset.ed !== undefined) {
+        sel = +t.dataset.ed; efm(); go("trab");
+      }
+      if (t.dataset.dw !== undefined) {
+        askDel([+t.dataset.dw]);
+      }
+      if (t.dataset.dv !== undefined) {
+        const removed = S.v.splice(+t.dataset.dv, 1)[0];
+        if (removed) lg("Variación eliminada", removed.mes);
+        save(); varT();
+      }
+      if (t.dataset.pp) prtPlan();
+      if (t.id === "ca") {
+        document.querySelectorAll("[data-ck]").forEach(x => { x.checked = t.checked; });
+      }
+    });
+
+    function go(t) {
+      tab = t;
+      TABS.forEach(([k]) => { $("#" + k).hidden = k !== t; });
+      document.querySelectorAll("#nv button").forEach(btn => {
+        btn.setAttribute("aria-pressed", String(btn.dataset.t === t));
+      });
+      if (t === "var") pre(sel);
+      if (t === "arc") arcR();
+      if (t === "bit") bitR();
+    }
+
+    const AU = [
+      ["OK", "Exportación XML de retenciones (SENIAT)", "Generador integrado desde Nómina con esquema RelacionRetencionesISLR, validación de RIF/cédula, selección de período AAAAMM y fuente desde ARC o estimación AR-I."],
+      ["OK", "Cabecera y menú fijos (Sticky) + Degradado", "La cabecera verde bosque con degradado vertical y la barra de pestañas permanecen siempre ancladas en la parte superior."],
+      ["OK", "Nomenclatura numérica venezolana", "Toda la interfaz aplica punto (.) para separación de miles y coma (,) para decimales tanto en tablas como en campos de entrada."],
+      ["OK", "Emisión documental del ARC", "Control de estado (Borrador vs. Conciliado), período/corte, fecha de emisión, alineación centrada y doble firma."],
+      ["OK", "Tarifa N.° 1 y parámetros vigentes", "8 tramos continuos (Art. 50 LISLR), U.T. Bs. 43,00, desgravamen único 774 U.T., rebajas de 10 U.T. y umbral de 1.000 U.T."]
+    ];
+
+    function aud() {
+      const T = [
+        tar(1000) === 60,
+        Math.abs(tar(6000) - 1165) < 1e-9,
+        [1500, 2000, 2500, 3000, 4000].every(u => Math.abs(tar(u) - tar(u + 1e-9)) < 1e-6),
+        num("1.234.567,89") === 1234567.89 && f2(1234567.89) === "1.234.567,89"
+      ];
+      const sv = S;
+      S = clean(null);
+      S.p.base = "normal";
+      S.p.transp = 0;
+      const c = calc({ ...D.e[0], sueldo: 100000 / 12, bonos: 0, transp: 0, util: 0, bvac: 0, cargas: 0, exceso: 0 });
+      S = sv;
+      T.push(c.J === 4.35);
+      $("#at").innerHTML = `<div class="au"><b class="t-OK">Pruebas internas:</b> ${T.filter(Boolean).length}/${T.length} correctas (tarifa en límites, formato numérico VE 1.234.567,89 y caso de prueba 100.000,00 Bs. → 4,35 %).</div>` +
+        AU.map(([t, h, d]) => `<div class="au"><b class="t-${t}">${t === "OK" ? "Correcto" : t === "A" ? "Alto" : "Medio"}</b><b>${h}</b><br><span>${d}</span></div>`).join("") +
+        `<p class="nt">Herramienta de apoyo profesional: verifique criterio tributario, topes y U.T. vigente antes de emitir planillas, XML o comprobantes definitivos.</p>`;
+    }
+
+    setupNav();
+    coSel();
+    forms();
+    aud();
+    R();
+    go("trab");
+  </script>
 </body>
 </html>

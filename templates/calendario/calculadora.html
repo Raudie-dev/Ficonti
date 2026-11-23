@@ -1218,10 +1218,17 @@ header {
   color: #2D5128;
   margin: 8px 0 5px;
 }
+.cal-doc-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 10px;
+}
 .cal-doc-table {
   width: 100% !important;
   border-collapse: collapse !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 0 !important;
 }
 .cal-doc-table th {
   background: #2D5128 !important;
@@ -1299,6 +1306,50 @@ header {
   text-align: center;
   font-weight: 600;
   color: #111827;
+}
+
+@media screen and (max-width: 768px) {
+  .cal-doc {
+    padding: 12px 10px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .cal-doc-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .cal-doc-empbox {
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+  }
+  .cal-doc-upcoming {
+    grid-template-columns: 1fr;
+  }
+  .cal-doc-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .cal-doc-box {
+    min-width: 0;
+    padding: 8px;
+  }
+  .cal-doc-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .cal-doc-footer > div {
+    max-width: 100% !important;
+  }
+  .cal-doc-sigs {
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 6px;
+  }
+  .cal-doc-sig {
+    width: 100%;
+  }
 }
 
 @media print {
@@ -1534,12 +1585,28 @@ html.theme-dark .share-actions a.b.wa {
   background: var(--tv-surface, var(--card));
   border: 1px solid var(--bd);
   border-radius: 12px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  box-shadow: none;
   padding: 6px;
   z-index: 60;
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+@media screen and (max-width: 640px) {
+  .share-inputs {
+    flex: 1 1 100%;
+  }
+  .share-menu-wrap {
+    width: 100%;
+  }
+  .share-dropdown {
+    left: 0;
+    right: auto;
+    top: calc(100% + 6px);
+    bottom: auto;
+    width: 100%;
+    min-width: 0;
+  }
 }
 .share-dropdown.hid {
   display: none !important;
@@ -1569,7 +1636,7 @@ html.theme-dark .share-dropdown-item.gm { color: #fca5a5; }
 [data-theme="dark"] .share-dropdown-item.wa,
 html.theme-dark .share-dropdown-item.wa { color: #6ee7b7; }
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head><body>
 <div id="cal-print-sheet"></div>
@@ -1723,6 +1790,7 @@ function buildCalDocHTML(x){
   <div class="cal-doc-upcoming">${upCards}</div>
 
   <div class="cal-doc-section-title">1. Calendario Consolidado de Obligaciones Mensuales y Quincenales (Ejercicio ${Y})</div>
+  <div class="cal-doc-scroll">
   <table class="cal-doc-table">
     <thead>
       <tr>
@@ -1736,12 +1804,14 @@ function buildCalDocHTML(x){
     </thead>
     <tbody>${rowsMes}</tbody>
   </table>
+  </div>
 
   <div class="cal-doc-section-title">2. Obligaciones Anuales y Especiales del Ejercicio</div>
   <div class="cal-doc-bottom-grid">
     <div class="cal-doc-box">
       <h4>Autoliquidación Anual de ISLR (Ejercicio Fiscal 2025)</h4>
-      <table class="cal-doc-table" style="margin:0 !important">
+      <div class="cal-doc-scroll" style="margin-bottom:0">
+      <table class="cal-doc-table">
         <thead><tr><th>Concepto</th><th>Terminal RIF</th><th>Fecha Tope Oficial</th></tr></thead>
         <tbody>
           <tr>
@@ -1751,16 +1821,19 @@ function buildCalDocHTML(x){
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <div class="cal-doc-box">
       <h4>Impuesto a los Grandes Patrimonios (IGP ${Y})</h4>
-      <table class="cal-doc-table" style="margin:0 !important">
+      <div class="cal-doc-scroll" style="margin-bottom:0">
+      <table class="cal-doc-table">
         <thead><tr><th>Período / Porción</th><th>Terminal RIF</th><th>Fecha Tope Oficial</th></tr></thead>
         <tbody>
           ${c.gp.map(g=>`<tr><td>${cap(g.l)} ${Y}</td><td>Dígito ${r.dig}</td><td class="${clsCell(g)}"><strong>${fmtCell(g)}</strong></td></tr>`).join("")}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 

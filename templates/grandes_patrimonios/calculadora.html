@@ -536,10 +536,10 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
-  justify-content: space-between !important;
-  gap: 1rem !important;
-  margin: 1.75rem 0 1.15rem !important;
-  padding: 0 0.25rem !important;
+  justify-content: flex-start !important;
+  gap: 0.65rem !important;
+  margin: 0.75rem 0 0.85rem !important;
+  padding: 0 !important;
 }
 .bar .count {
   font-size: 1.05rem !important;
@@ -811,11 +811,92 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 }
 
 /* Números y Cifras Grandes */
+.kcards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 0.85rem !important;
+  margin: 1rem 0 1.15rem !important;
+}
+.k {
+  background: var(--tv-surface-subtle, var(--gl)) !important;
+  border: 1px solid var(--bd) !important;
+  border-top: 1px solid var(--bd) !important;
+  box-shadow: inset 0 3px 0 0 var(--g) !important;
+  border-radius: 12px !important;
+  padding: 1rem 1.1rem !important;
+  min-height: 92px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 0.45rem !important;
+}
+.k span {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: var(--mut) !important;
+  text-transform: uppercase !important;
+  line-height: 1.3 !important;
+}
 .k b, .big {
   font-family: 'Inter', system-ui, sans-serif !important;
-  font-size: 1.85rem !important;
+  font-size: clamp(1.2rem, 1rem + 0.65vw, 1.55rem) !important;
   font-weight: 800 !important;
   color: var(--tv-lime) !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.k b.ok, .k b.no {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  padding: 0.4rem 0.75rem !important;
+  border-radius: 8px !important;
+  align-self: flex-start !important;
+  letter-spacing: 0.02em !important;
+}
+.k b.no {
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: var(--bad) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+.k.d {
+  background: var(--g) !important;
+  border-color: var(--g) !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+.k.d span {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+.k.d b {
+  color: #ffffff !important;
+}
+.concl {
+  background: var(--tv-surface-subtle, var(--gl)) !important;
+  border: 1px solid var(--bd) !important;
+  border-left: 4px solid var(--g) !important;
+  border-radius: 10px !important;
+  padding: 0.9rem 1.1rem !important;
+  font-size: 0.9rem !important;
+  line-height: 1.55 !important;
+}
+.r {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem 0.75rem !important;
+  padding: 0.6rem 0.75rem !important;
+  border-radius: 6px;
+}
+.r span:last-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin-left: auto;
+  text-align: right;
 }
 
 /* ==========================================================================
@@ -884,11 +965,40 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
     gap: 0.85rem !important;
   }
+  .kcards {
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
   .k {
-    min-height: 80px !important;
+    min-height: 76px !important;
+    padding: 0.85rem 0.95rem !important;
   }
   .k b {
-    font-size: 1.45rem !important;
+    font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.35rem) !important;
+  }
+  .k b.ok, .k b.no {
+    font-size: 0.78rem !important;
+    padding: 0.35rem 0.65rem !important;
+  }
+  .ch {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .dn {
+    justify-content: flex-start !important;
+    gap: 0.85rem !important;
+  }
+  .r {
+    padding: 0.55rem 0.6rem !important;
+    font-size: 0.86rem !important;
+  }
+  .r.s {
+    padding-left: 1rem !important;
+  }
+  .tot {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    font-size: 0.92rem !important;
   }
   .hero {
     grid-template-columns: 1fr !important;
@@ -918,8 +1028,12 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 }
 
 @media screen and (max-width: 480px) {
-  .grid {
+  .grid, .kcards {
     grid-template-columns: 1fr !important;
+  }
+  .dn {
+    flex-direction: column !important;
+    align-items: flex-start !important;
   }
   .bar {
     flex-direction: column !important;
@@ -929,6 +1043,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   .bar .btn {
     width: 100% !important;
     justify-content: center !important;
+    text-align: center !important;
   }
   #q, .search input#q, .search-box input {
     font-size: 0.92rem !important;
@@ -1000,6 +1115,24 @@ header .kp b {
   padding: 0.75rem 1rem !important;
   font-size: 13px !important;
 }
+.bnx.ok2 {
+  background: rgba(26, 107, 74, 0.1) !important;
+  color: var(--tv-lime, #1A6B4A) !important;
+  border: 1px solid rgba(26, 107, 74, 0.35) !important;
+}
+.bnx.bad2 {
+  background: rgba(185, 28, 28, 0.08) !important;
+  color: var(--bad, #b91c1c) !important;
+  border: 1px solid rgba(185, 28, 28, 0.3) !important;
+}
+.btn.w {
+  background: #1c9a50 !important;
+  color: #ffffff !important;
+}
+.btn.m {
+  background: #c5392f !important;
+  color: #ffffff !important;
+}
 section.panel {
   background: transparent !important;
   border: 0 !important;
@@ -1056,7 +1189,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
@@ -1085,7 +1218,14 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 <button class="btn" id="ap">+ Agregar pasivo</button>
 </section>
 <section class="panel" id="p-res" hidden>
-<div class="bar"><button class="btn" id="pdf">Exportar a PDF</button><a class="btn m" id="gm" target="_blank" rel="noopener">Enviar por Gmail</a><a class="btn w" id="wa" target="_blank" rel="noopener">Enviar por WhatsApp</a></div>
+<div class="tv-dots-wrap noprint" id="gp-dots-wrap">
+  <button type="button" class="tv-dots-btn" id="gp-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para exportar o enviar" title="Más opciones" onclick="var m=document.getElementById('gp-dots-menu');var h=m.hidden;m.hidden=!h;this.setAttribute('aria-expanded',h?'true':'false')">...</button>
+  <div class="tv-dots-menu" id="gp-dots-menu" role="menu" hidden>
+    <button type="button" class="tv-dots-item" id="pdf" role="menuitem">Exportar a PDF</button>
+    <a class="tv-dots-item gm" id="gm" role="menuitem" target="_blank" rel="noopener">Enviar por Gmail</a>
+    <a class="tv-dots-item wa" id="wa" role="menuitem" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+  </div>
+</div>
 <p class="note noprint">PDF: se abre el diálogo de impresión; elija “Guardar como PDF”. Gmail y WhatsApp abren el mensaje con el resumen; adjunte el PDF antes de enviar.</p>
 <div class="card" id="rep"></div>
 </section>
@@ -1173,8 +1313,12 @@ function concl(){var d=S.d,r=R;if(!r.spe)return d.nombre+": con la calificación
 if(r.suj)return d.nombre+" resulta SUJETO al IGP: patrimonio neto al "+fd(d.fecha)+" de VES "+f2(r.pn)+", que alcanza el umbral de VES "+f2(r.um)+". Impuesto determinado: VES "+f2(r.imp)+" (alícuota "+f2(num(d.al))+"%).";
 return d.nombre+" NO alcanza el umbral: patrimonio neto al "+fd(d.fecha)+" de VES "+f2(r.pn)+", equivalente al "+f2(r.cob*100)+"% del umbral (VES "+f2(r.um)+"). No genera obligación de pago del IGP.";}
 function rep(){var d=S.d,r=R,tp=r.ta||1,row=function(c,l,v,p){return'<div class="r '+c+'"><span>'+l+"</span><span>"+v+(p!=null?" · "+f2(p)+"%":"")+"</span></div>"};
+var meta=["RIF "+esc(d.rif),"Calificación: "+esc(d.calif),"Fecha de corte: "+fd(d.fecha)];
+if(d.dir)meta.push("Dirigido a: "+esc(d.dir));
+if(d.prep||d.cpc)meta.push("Preparado por: "+esc((d.prep||"")+(d.cpc?" "+d.cpc:"")).trim());
+meta.push("Emisión: "+fd(d.emi));
 var h='<div class="rep-h"><b>INFORME EJECUTIVO · IMPUESTO A LOS GRANDES PATRIMONIOS</b></div>'+
-'<h2>'+esc(d.nombre||"Contribuyente")+'</h2><p class="note">RIF '+esc(d.rif)+" · Calificación: "+esc(d.calif)+" · Fecha de corte: "+fd(d.fecha)+" · Dirigido a: "+esc(d.dir)+" · Preparado por: "+esc(d.prep)+" "+esc(d.cpc)+" · Emisión: "+fd(d.emi)+"</p>"+
+'<h2>'+esc(d.nombre||"Contribuyente")+'</h2><p class="note">'+meta.join(" · ")+"</p>"+
 '<div class="kcards"><div class="k"><span>PATRIMONIO NETO (VES)</span><b>'+f2(r.pn)+'</b></div><div class="k"><span>UMBRAL (VES)</span><b>'+f2(r.um)+'</b></div><div class="k"><span>DICTAMEN</span><b class="'+(r.suj?"no":"ok")+'">'+r.est+'</b></div><div class="k d"><span>IMPUESTO IGP (VES)</span><b>'+f2(r.imp)+"</b></div></div>"+
 '<div class="concl">'+esc(concl())+"</div>"+charts()+
 row("h","ACTIVOS TOTALES",f2(r.ta),100)+CA.map(function(c,i){return row("s",esc(c)+" ("+r.na[i]+")",f2(r.ca[i]),r.ca[i]/tp*100)}).join("")+

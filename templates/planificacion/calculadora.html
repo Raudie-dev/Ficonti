@@ -552,10 +552,13 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   -webkit-overflow-scrolling: touch !important;
   background: var(--tv-surface) !important;
   border: 1px solid var(--bd) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
   padding: 0 !important;
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+.c .sc, .card .sc {
+  margin-bottom: 0.25rem !important;
 }
 table {
   width: 100% !important;
@@ -646,37 +649,133 @@ td.past {
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
-  min-height: 95px !important;
+  gap: 0.55rem !important;
+  min-height: 88px !important;
+  padding: 0.9rem 1rem !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--bd) !important;
+  box-shadow: none !important;
+}
+.k-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.k-viz {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.k-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.k-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bd);
+  display: block;
+}
+.k-dots i.on {
+  background: #d97706;
 }
 .k b {
   font-family: 'Inter', system-ui, sans-serif !important;
-  font-size: 1.85rem !important;
+  font-size: clamp(1.18rem, 1rem + 0.6vw, 1.5rem) !important;
   font-weight: 800 !important;
-  color: var(--tv-lime) !important;
-  line-height: 1.2 !important;
-  margin-bottom: 0.45rem !important;
+  color: var(--tv-text) !important;
+  line-height: 1.15 !important;
+  margin: 0 !important;
   letter-spacing: -0.02em !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 .k span {
-  font-size: 0.82rem !important;
-  font-weight: 500 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
   color: var(--mut) !important;
-  line-height: 1.4 !important;
+  line-height: 1.3 !important;
+}
+.k.tone-ok b {
+  color: var(--tv-lime) !important;
+}
+.k.tone-wa b {
+  color: #c27803 !important;
+}
+.k.tone-bad b {
+  color: #b43c2e !important;
+}
+[data-theme="dark"] .k.tone-bad b,
+html.theme-dark .k.tone-bad b {
+  color: #f87171 !important;
+}
+.k.k-wide.tone-bad {
+  background: rgba(180, 60, 46, 0.04) !important;
+  border-color: rgba(180, 60, 46, 0.35) !important;
+}
+.k.k-wide.tone-wa {
+  background: rgba(217, 119, 6, 0.05) !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+}
+.k.k-wide.tone-ok {
+  background: rgba(26, 107, 74, 0.04) !important;
+  border-color: rgba(26, 107, 74, 0.3) !important;
+}
+.k-exp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 74px;
+  padding: 0.25rem 0.45rem;
+  border-radius: 8px;
+  background: rgba(180, 60, 46, 0.12);
+  border: 1px solid rgba(180, 60, 46, 0.3);
+  color: #b43c2e;
+}
+.k.tone-wa .k-exp-pill {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #c27803;
+}
+.k.tone-ok .k-exp-pill {
+  background: rgba(26, 107, 74, 0.12);
+  border-color: rgba(26, 107, 74, 0.3);
+  color: var(--tv-lime);
+}
+nav button {
+  border-radius: 999px !important;
 }
 
 .f, .form {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-  gap: 1.25rem 1.75rem !important;
-  margin-bottom: 1.5rem !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 0.9rem 1.25rem !important;
+  margin-bottom: 0.75rem !important;
 }
 .f label, .form label {
-  font-size: 0.82rem !important;
+  font-size: 0.8rem !important;
   font-weight: 600 !important;
   color: var(--mut) !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.45rem !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 0.35rem !important;
+  border-bottom: 0 !important;
+  padding: 0 !important;
+}
+.f input, .f select, .form input, .form select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  text-align: left !important;
+}
+td input[type="number"] {
+  width: 105px !important;
+  text-align: right !important;
 }
 
 input, select, textarea, td input, td select {
@@ -816,7 +915,7 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
    ========================================================================== */
 @media screen and (max-width: 768px) {
   .wrap, .w, main, #v, #m {
-    padding: 0.25rem 0.25rem 2rem !important;
+    padding: 0.2rem 0.15rem 1.75rem !important;
   }
   header, .masthead {
     padding: 1.15rem 1.25rem !important;
@@ -856,9 +955,9 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     min-height: 40px !important;
   }
   .panel, .search, .c, .card, .hero, .share, .form, section.c, div.card, .table-scroll, .pn {
-    padding: 1.15rem 1.25rem !important;
-    border-radius: 14px !important;
-    margin-bottom: 1.15rem !important;
+    padding: 0.95rem 0.85rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 0.85rem !important;
   }
   nav {
     gap: 6px !important;
@@ -873,12 +972,16 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     padding: 0.45rem 0.85rem !important;
     font-size: 0.8rem !important;
   }
-  .grid, .two {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+  .two {
+    grid-template-columns: 1fr !important;
     gap: 0.85rem !important;
   }
   .k {
-    min-height: 80px !important;
+    min-height: 76px !important;
   }
   .k b {
     font-size: 1.45rem !important;
@@ -893,8 +996,13 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     font-size: 1.85rem !important;
   }
   .f, .form {
-    grid-template-columns: 1fr !important;
-    gap: 0.95rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.7rem 0.65rem !important;
+  }
+  .f label, .form label {
+    font-size: 0.74rem !important;
+    justify-content: space-between !important;
+    min-width: 0;
   }
   .table-scroll, .sc {
     border-radius: 14px !important;
@@ -912,7 +1020,21 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
 
 @media screen and (max-width: 480px) {
   .grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+  }
+  .grid > .k:last-child:nth-child(odd) {
+    grid-column: 1 / -1 !important;
+  }
+  .k {
+    min-height: 76px !important;
+    padding: 0.8rem 0.85rem !important;
+  }
+  .k b {
+    font-size: 1.2rem !important;
+  }
+  .k span {
+    font-size: 0.72rem !important;
   }
   .bar {
     flex-direction: column !important;
@@ -1058,7 +1180,7 @@ table.heat td:first-child {
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=1.0">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.4">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>
@@ -1088,7 +1210,7 @@ const H=(...a)=>`<tr>${a.map((x,i)=>`<th${i?' class="n"':""}>${x}</th>`).join(""
 const R=(...a)=>`<tr>${a.map((x,i)=>`<td${i?' class="n"':""}>${x}</td>`).join("")}</tr>`;
 const TB=(h,r)=>`<div class="sc"><table>${h}${r.join("")}</table></div>`;
 const C=(t,b,n)=>`<section class="c"><h2>${t}</h2>${n?`<p class="note">${n}</p>`:""}${b}</section>`;
-const K=(l,v)=>`<div class="c k"><b>${v}</b><span>${l}</span></div>`;
+const K=(l,v,t="",vz="",ex="")=>`<div class="c k${t?" tone-"+t:""}${ex?" "+ex:""}"><span>${l}</span><div class="k-row"><b>${v}</b>${vz?`<div class="k-viz">${vz}</div>`:""}</div></div>`;
 const P=(t,c)=>`<span class="pill ${c}">${t}</span>`;
 const I=(p,v,x,st)=>`<input type="number" step="${st||1}" data-p="${p}"${x?` data-x="${x}"`:""} value="${v==null?"":x?Math.round(v*x*1000)/1000:v}">`;
 const TX=(p,v)=>`<input data-p="${p}" value="${v??""}">`;
@@ -1117,9 +1239,9 @@ const ta=sm/12,ia=si/12,fi=c.li*ta/c.tasa+(1-c.li)*(1+c.pi*ia),fc=c.lc*ta/c.tasa
 const ut=b.i*fi-b.c*fc-S.gas*fg-(b.pen+b.inc+b.ss)*fg-b.mu*fi+dif;
 return{tp,tf:t,dev:t/c.tasa-1,inf:Math.pow(1+c.inf[s],12)-1,dif,ut,isl:Math.max(ut,0)*S.islr,dv:ut/b.ut-1}})}
 const al=i=>{const o=S.ob[i]||{};if(o.e=="Listo")return["Cumplida","ok"];if(!o.f)return["Sin fecha","gr"];const d=Math.ceil((new Date(o.f+"T00:00:00")-new Date(new Date().toDateString()))/864e5);return d<0?["Vencida","ba"]:d<=7?[`Vence en ${d} días`,"wa"]:["En plazo","ok"]};
-function bars(t,a,b){const mx=Math.max(1,...a,...b.map(v=>v||0));let o=`<svg viewBox="0 0 600 190" width="100%" role="img" aria-label="${t}">`;
+function bars(t,a,b){const mx=Math.max(1,...a,...b.map(v=>v||0));let o=`<svg viewBox="0 0 600 195" width="100%" role="img" aria-label="${t}">`;
 for(let i=0;i<12;i++){const x=10+i*49,h1=Math.max(0,a[i]/mx*150),h2=b[i]==null?0:Math.max(0,b[i]/mx*150);
-o+=`<rect x="${x}" y="${160-h1}" width="20" height="${h1}" fill="var(--l)"/>${b[i]==null?"":`<rect x="${x+21}" y="${160-h2}" width="20" height="${h2}" fill="var(--g)"/>`}<text x="${x+20}" y="178" font-size="10" text-anchor="middle" fill="var(--m)">${M[i]}</text>`}
+o+=`<rect x="${x}" y="${160-h1}" width="20" height="${h1}" fill="var(--l)"/>${b[i]==null?"":`<rect x="${x+21}" y="${160-h2}" width="20" height="${h2}" fill="var(--g)"/>`}<text x="${x+20}" y="180" font-size="11.5" text-anchor="middle" fill="var(--m)">${M[i]}</text>`}
 return o+"</svg>"}
 function heat(g){const N=["Ingresos","Costos","Gastos","Nómina","Resultado"];
 let h=`<div class="sc"><table class="heat" style="min-width:640px"><tr><td></td>${M.map(m=>`<td style="color:var(--m)">${m}</td>`).join("")}<td style="color:var(--m)">Año</td></tr>`;
@@ -1127,7 +1249,19 @@ N.forEach((n,k)=>{h+=`<tr><td>${n}</td>${g.rows.map(r=>`<td class="${cl(r.d[k])}
 return h+"</table></div>"}
 function dash(){const g=seg(),b=g.b,done=OB.filter((_,i)=>(S.ob[i]||{}).e=="Listo").length,ven=OB.filter((_,i)=>al(i)[0]=="Vencida").length,alto=S.ri.filter(r=>rs(r)>=6).length,hd=g.rows.filter(r=>r.st!="Sin datos").length,ra=g.rows.filter(r=>r.st=="Revisar").length;
 const bi=g.bud[0]/12,br=g.bm;
-return `<div class="grid">${K("Avance de obligaciones",pc(done/OB.length))}${K("Obligaciones vencidas",ven)}${K("Meses en alerta",`${ra} de ${hd}`)}${K("Desviación acumulada de ingresos",pc(acd(g,0),1))}${K("Desviación acumulada del resultado",pc(acd(g,4),1))}${K("ISLR proyectado del año",f(g.rp.isl))}${K("Desviación del ISLR contra presupuesto",pc(g.rp.isl/b.isl-1,1))}${K("Riesgos de nivel alto",alto)}${K("Exposición cambiaria",est())}</div>
+const pct=Math.round((done/OB.length)*100);
+const tD=v=>v==null?"":v<-S.tol?"bad":v<0?"wa":"ok";
+const ex=est(),tEx=ex.includes("Sobre")?"bad":ex.includes("Cerca")?"wa":"ok";
+const icChk=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#6b8e78"/><path d="M8.5 12.5l2.3 2.3 4.7-4.8" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const icRing=`<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--bd)" stroke-width="2.5"/><circle cx="12" cy="12" r="9" fill="none" stroke="#1A6B4A" stroke-width="2.5" stroke-dasharray="${(pct*0.565).toFixed(1)} 57" transform="rotate(-90 12 12)"/></svg><span style="width:26px;height:4px;border-radius:99px;background:var(--bd);display:inline-block;overflow:hidden"><span style="width:${pct}%;height:100%;background:#1A6B4A;display:block"></span></span>${icChk}`;
+const icBadge=ven>0?`<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#b43c2e"/><path d="M12 7v6m0 3.5v.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>`:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 2.1 3.1-.3.8 3 2.7 1.7-.8 3 .8 3-2.7 1.7-.8 3-3.1-.3L12 22l-2.4-2.1-3.1.3-.8-3-2.7-1.7.8-3-.8-3 2.7-1.7.8-3 3.1.3L12 2z" fill="#6b8e78"/><path d="M8.8 12.3l2.1 2.1 4.3-4.4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const dots=`<span class="k-dots">${Array.from({length:Math.max(hd,5)},(_,i)=>`<i class="${i<ra?"on":""}"></i>`).join("")}</span>`;
+const icDown=`<svg width="28" height="18" viewBox="0 0 28 18" fill="none"><path d="M2 4l8 6 5-3 10 8" stroke="#b43c2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15h4v-4" stroke="#b43c2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const icSpark=`<svg width="36" height="18" viewBox="0 0 36 18" fill="none"><path d="M1 4l11 2 11 4 12 6v2H1V4z" fill="rgba(180,60,46,.16)"/><path d="M1 4l11 2 11 4 12 6" stroke="#b43c2e" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const icBill=`<svg width="24" height="18" viewBox="0 0 24 18" fill="none"><rect x="1.5" y="2.5" width="21" height="13" rx="2.5" stroke="#6b8e78" stroke-width="1.6"/><circle cx="12" cy="9" r="3" stroke="#6b8e78" stroke-width="1.6"/><path d="M5 6h.01M19 12h.01" stroke="#6b8e78" stroke-width="2" stroke-linecap="round"/></svg>`;
+const icWarn=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#b43c2e"/><path d="M12 7v6m0 3.5v.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+const icExp=`<span class="k-exp-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 20h20L12 3zm0 5.5l5.5 9.5h-11L12 8.5zm-1 3.5v3.5h2V12h-2zm0 4.5v1.5h2v-1.5h-2z"/></svg></span>`;
+return `<div class="grid">${K("Avance de obligaciones",pc(done/OB.length),"",icRing)}${K("Obligaciones vencidas",ven,ven>0?"bad":"",icBadge)}${K("Meses en alerta",`${ra} de ${hd}`,ra>0?"wa":"ok",dots)}${K("Desviación acumulada de ingresos",pc(acd(g,0),1),tD(acd(g,0)),icDown+icSpark)}${K("Desviación acumulada del resultado",pc(acd(g,4),1),tD(acd(g,4)),icDown)}${K("ISLR proyectado del año",f(g.rp.isl),"",icBill)}${K("Desviación del ISLR contra presupuesto",pc(g.rp.isl/b.isl-1,1),tD(g.rp.isl/b.isl-1),icDown)}${K("Riesgos de nivel alto",alto,alto>0?"bad":"ok",alto>0?icWarn:icChk)}${K("Exposición cambiaria",ex,tEx,icExp,"k-wide")}</div>
 <div class="two">${C("Ingresos por mes","<p class='note'>Gris: presupuesto. Verde: real.</p>"+bars("Ingresos por mes",Array(12).fill(bi),S.real[0]))}${C("Resultado por mes","<p class='note'>Ingresos menos costos y gastos.</p>"+bars("Resultado por mes",Array(12).fill(br),g.rows.map(r=>r.res)))}</div>
 ${C("Desviación mes por mes contra el presupuesto",heat(g),`Verde: dentro de la tolerancia de ${pc(S.tol)}. Ámbar: la supera. Rojo: la duplica. Gris: sin datos.`)}
 ${C("Estado de cada mes",`<div class="sc"><table class="heat" style="min-width:640px"><tr>${g.rows.map((r,m)=>`<td class="${sp(r.st)}">${M[m]}<br>${r.st}</td>`).join("")}</tr></table></div>`)}`}
@@ -1165,7 +1299,7 @@ return C("Informe ejecutivo",`<p><b>${S.emp}</b> | RIF ${S.rif} | Escenario ${S.
 C("Desviaciones del ejercicio, mes por mes",heat(g),`Tolerancia ${pc(S.tol)}. ISLR proyectado del año: ${f(g.rp.isl)} contra ${f(b.isl)} presupuestado (${pc(g.rp.isl/b.isl-1,1)}).`)+
 C("Riesgo cambiario e inflación",TB(H("Concepto","Moderada","Acelerada","Abrupta"),[R("Devaluación del año",...cs.map(x=>pc(x.dev))),R("Utilidad antes de ISLR",...cs.map(x=>f(x.ut))),R("Desviación contra presupuesto",...cs.map(x=>pc(x.dv,1)))]),`Posición neta en divisas: ${f(net())} USD (${est()}).`)+
 C("Principales riesgos",TB(H("Riesgo","Acción"),top.map(a=>`<tr><td><b>${a[0][0]}</b></td><td>${a[0][1]}</td></tr>`)))+
-`<section class="c np"><h2>Compartir</h2><div class="f"><label>Correo del destinatario ${TX("mail",S.mail)}</label><label>WhatsApp con código de país ${TX("wa",S.wa)}</label></div><p><a class="btn p" target="_blank" rel="noopener" href="${gm}">Enviar por Gmail</a> <a class="btn p" target="_blank" rel="noopener" href="${wa}">Enviar por WhatsApp</a> <button class="btn" onclick="window.print()">Guardar en PDF o imprimir</button></p><p class="note">Gmail y WhatsApp envían un resumen. Para el PDF completo, elige Guardar como PDF en la ventana de impresión y adjúntalo a mano.</p></section>`}
+`<section class="c np"><h2>Compartir</h2><div class="f"><label>Correo del destinatario ${TX("mail",S.mail)}</label><label>WhatsApp con código de país ${TX("wa",S.wa)}</label></div><div class="tv-dots-wrap"><button type="button" class="tv-dots-btn" aria-haspopup="true" aria-expanded="false" aria-label="Opciones para compartir o imprimir" title="Más opciones" onclick="var m=this.nextElementSibling;var h=m.hidden;m.hidden=!h;this.setAttribute('aria-expanded',h?'true':'false')">...</button><div class="tv-dots-menu" role="menu" hidden><a class="tv-dots-item gm" role="menuitem" target="_blank" rel="noopener" href="${gm}">Enviar por Gmail</a><a class="tv-dots-item wa" role="menuitem" target="_blank" rel="noopener" href="${wa}">Enviar por WhatsApp</a><button type="button" class="tv-dots-item" role="menuitem" onclick="window.print()">Guardar en PDF o imprimir</button></div></div><p class="note">Gmail y WhatsApp envían un resumen. Para el PDF completo, elige Guardar como PDF en la ventana de impresión y adjúntalo a mano.</p></section>`}
 function render(){const V={dash,sup,pro,seg:segv,obl,rie,cam:camv,inf};
 $("m").innerHTML=V[tab]();$("nav").innerHTML=T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]==tab}">${t[1]}</button>`).join("");
 $("sub").textContent=`${S.emp} | RIF ${S.rif} | Escenario ${S.esc}`}
