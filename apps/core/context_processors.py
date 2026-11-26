@@ -9,7 +9,7 @@ def sistema(request):
     cfg = getattr(settings, 'TRIBUTOVE', {})
     match = getattr(request, 'resolver_match', None)
     return {
-        'SISTEMA_NOMBRE': cfg.get('NOMBRE', 'TributoVE'),
+        'SISTEMA_NOMBRE': cfg.get('NOMBRE', 'FICONTI'),
         'SISTEMA_LEMA': cfg.get('LEMA', ''),
         'MENU_MODULOS': menu_agrupado(),
         'MODULOS': MODULOS,

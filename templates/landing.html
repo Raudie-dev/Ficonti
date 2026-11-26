@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}TributoVE · Plataforma Inteligente de Gestión Fiscal y Tributaria para Venezuela{% endblock %}
+{% block title %}FICONTI · Plataforma Inteligente de Gestión Fiscal y Tributaria para Venezuela{% endblock %}
 
 {% block layout_content %}
-<!-- Contenedor Principal de la Landing Page con Estilo Fintech Oscuro -->
+<!-- Contenedor Principal de la Landing Page con Fondo Claro, Bordes Azules y Múltiples Tonos -->
 <div class="landing-wrapper">
 
   <!-- ========================================================================
@@ -13,15 +13,12 @@
   <header class="landing-header">
     <div class="container d-flex align-items-center justify-content-between py-3">
       <!-- Logo de la marca -->
-      <a href="{% url 'core:landing' %}" class="d-flex align-items-center gap-2 text-decoration-none">
-        <div class="brand-logo-icon">
-          <i class="bi bi-shield-lock-fill"></i>
-        </div>
-        <span class="landing-brand-name">TRIBUTOVE<span class="text-lime">.</span></span>
+      <a href="{% url 'core:landing' %}" class="d-flex align-items-center text-decoration-none">
+        <span class="landing-brand-name">FICONTI<span class="text-accent-cyan">.</span></span>
       </a>
 
       <!-- Menú Central -->
-      <nav class="d-none d-lg-flex align-items-center gap-4 landing-nav-links">
+      <nav class="d-none d-lg-flex align-items-center gap-4 landing-nav-links" aria-label="Navegación principal">
         <a href="#hero" class="landing-nav-link active">Inicio</a>
         <a href="#solucion" class="landing-nav-link">Servicios</a>
         <a href="#modulos" class="landing-nav-link">Módulos Fiscales</a>
@@ -30,7 +27,7 @@
       </nav>
 
       <!-- Botones de Acción -->
-      <div class="d-flex align-items-center gap-2.5">
+      <div class="d-flex align-items-center gap-2">
         {% if user.is_authenticated %}
           <a href="{% url 'empresas:resumen' %}" class="btn btn-landing-explore">
             <i class="bi bi-speedometer2 me-1"></i>
@@ -54,7 +51,7 @@
   </header>
 
   <!-- ========================================================================
-       SECCIÓN 1: HERO PRINCIPAL (ESTILO EXACTO A LA IMAGEN)
+       SECCIÓN 1: HERO PRINCIPAL
        ======================================================================== -->
   <section class="landing-hero-section" id="hero">
     <div class="container position-relative">
@@ -68,134 +65,145 @@
             <span>CONTROL FISCAL Y CONTABLE 2026/27 ⚡</span>
           </div>
 
-          <!-- Título Principal Exacto al Estilo de la Referencia -->
+          <!-- Título Principal -->
           <h1 class="hero-heading mb-4">
-            La plataforma fiscal <span class="text-lime">definitiva</span> para tu futuro contable.
+            La plataforma fiscal <span class="text-gradient-blue">definitiva</span> para tu futuro contable.
           </h1>
 
-          <!-- Social Proof: Avatares Superpuestos y Usuarios en Vivo -->
-          <div class="d-flex align-items-center gap-3 mb-4 pb-2">
-            <div class="avatar-group">
-              <span class="avatar-circle av-1">JP</span>
-              <span class="avatar-circle av-2">MR</span>
-              <span class="avatar-circle av-3">CR</span>
-              <span class="avatar-circle av-4">LG</span>
-              <span class="avatar-circle av-5"><i class="bi bi-check-lg"></i></span>
-            </div>
-            <div>
-              <div class="fw-bold text-white fs-5 lh-1">168K+</div>
-              <small class="text-dim" style="font-size: 0.76rem;">Operaciones Conciliadas en Venezuela</small>
-            </div>
-          </div>
-
-          <!-- CTA Inferior con Botón Circular de Flecha Diagonal (Exacto a la Imagen) -->
+          <!-- CTA Inferior con Botón de Flecha Diagonal -->
           <div class="d-flex align-items-center gap-3 mt-4 pt-2">
-            <a href="#planes" class="hero-arrow-btn" title="Explorar Planes y Módulos">
+            <a href="#planes" class="hero-arrow-btn" title="Explorar Planes y Módulos" aria-label="Explorar Planes y Módulos">
               <i class="bi bi-arrow-up-right"></i>
             </a>
             <p class="hero-subtext mb-0">
-              TributoVE unifica retenciones ISLR por Decreto 1.808, retenciones IVA, Sujetos Pasivos Especiales, Ajuste por Inflación y Conciliación Bancaria bajo la normativa del SENIAT.
+              FICONTI unifica retenciones ISLR por Decreto 1.808, retenciones IVA, Sujetos Pasivos Especiales, Ajuste por Inflación y Conciliación Bancaria bajo la normativa del SENIAT.
             </p>
           </div>
 
           <div class="d-flex flex-wrap gap-3 mt-4 pt-1">
             {% if user.is_authenticated %}
-              <a href="{% url 'empresas:resumen' %}" class="btn btn-landing-explore px-4 py-2.5">
+              <a href="{% url 'empresas:resumen' %}" class="btn btn-landing-explore px-4 py-2">
                 <span>Ir al Panel de Trabajo</span>
                 <i class="bi bi-chevron-right ms-1"></i>
               </a>
             {% elif superadmin_actual %}
-              <a href="{% url 'superadmin:panel' %}" class="btn btn-landing-explore px-4 py-2.5">
+              <a href="{% url 'superadmin:panel' %}" class="btn btn-landing-explore px-4 py-2">
                 <span>Ir al Panel SuperAdmin</span>
                 <i class="bi bi-chevron-right ms-1"></i>
               </a>
             {% else %}
-              <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2.5">
+              <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2">
                 <span>Comenzar Ahora</span>
                 <i class="bi bi-chevron-right ms-1"></i>
               </a>
             {% endif %}
-            <a href="#modulos" class="btn btn-outline-custom px-4 py-2.5" style="border-radius: 999px;">
+            <a href="#modulos" class="btn btn-landing-outline px-4 py-2">
               <span>Ver 9 Módulos Fiscales</span>
             </a>
           </div>
         </div>
 
-        <!-- Columna Derecha: Mockup Visual con Gráficos Neón y Tarjetas Flotantes -->
-        <div class="col-lg-6 position-relative text-center">
+        <!-- Columna Derecha: Showcase Vectorial Nítido del Sistema FICONTI -->
+        <div class="col-lg-6 position-relative">
           <div class="hero-visual-container mx-auto">
-
-            <!-- Fondo de Líneas de Grilla Ambientales -->
             <div class="hero-ambient-glow"></div>
 
-            <!-- Teléfono / Tarjeta Flotante 1: Balance y Gráfico de Línea Neón -->
-            <div class="fintech-phone-card card-phone-main">
-              <div class="phone-notch"></div>
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge" style="background: rgba(26, 107, 74, 0.15); color: var(--tv-primary); font-size: 0.7rem; font-weight: 700;">
-                  SENIAT · SPE 2026/27
-                </span>
-                <span class="text-dim small font-monospace"><i class="bi bi-shield-check text-success me-1"></i>Al Día</span>
-              </div>
-
-              <div class="text-start mb-3">
-                <span class="text-dim small text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">Base Imponible Conciliada</span>
-                <div class="fw-bolder text-white mt-1" style="font-size: 1.85rem; letter-spacing: -0.02em;">
-                  Bs. 1.845.200,00
+            <!-- Tarjeta Principal: Planificación Fiscal (HTML/SVG Nítido) -->
+            <div class="hero-ui-window">
+              <div class="hero-ui-topbar">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="hero-ui-dot bg-primary"></span>
+                  <span class="fw-bold landing-ink" style="font-size: 0.82rem;">Planificación fiscal</span>
                 </div>
+                <span class="badge-emerald-soft"><i class="bi bi-shield-check me-1"></i>SENIAT Al Día</span>
               </div>
 
-              <!-- Gráfico de Línea Verde Neón SVG -->
-              <div class="svg-chart-wrapper mb-3">
-                <svg viewBox="0 0 300 90" class="neon-line-chart">
-                  <defs>
-                    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="rgba(26, 107, 74, 0.45)" />
-                      <stop offset="100%" stop-color="rgba(26, 107, 74, 0.0)" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10 L 300,90 L 0,90 Z" fill="url(#chartGrad)"></path>
-                  <path d="M 0,75 Q 40,65 80,45 T 160,55 T 220,20 T 300,10" fill="none" stroke="#1A6B4A" stroke-width="3" stroke-linecap="round"></path>
-                  <!-- Nodos brillantes -->
-                  <circle cx="80" cy="45" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
-                  <circle cx="160" cy="55" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
-                  <circle cx="220" cy="20" r="4.5" fill="#1A6B4A" class="chart-node"></circle>
-                  <circle cx="300" cy="10" r="5" fill="#1A6B4A" class="chart-node"></circle>
-                </svg>
-              </div>
+              <div class="p-3 p-sm-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <div>
+                    <div class="landing-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Empresa Activa · SPE</div>
+                    <div class="fw-bold landing-ink" style="font-size: 0.92rem;">Servicios y Suministros Caracas, C.A.</div>
+                  </div>
+                  <span class="badge-blue-soft">Terminal RIF: 9</span>
+                </div>
 
-              <!-- Píldoras de Estatus Rápido -->
-              <div class="row g-2 text-start">
-                <div class="col-6">
-                  <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
-                    <div class="text-dim" style="font-size: 0.68rem;">Retenciones ISLR</div>
-                    <strong class="text-white small">100% Declarado</strong>
+                <!-- Mini KPIs reales del sistema -->
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <div class="hero-mini-kpi">
+                      <span class="landing-muted" style="font-size: 0.68rem;">Avance obligaciones</span>
+                      <div class="d-flex align-items-center justify-content-between mt-1">
+                        <strong class="landing-ink" style="font-size: 1.05rem; font-variant-numeric: tabular-nums;">92%</strong>
+                        <i class="bi bi-check-circle-fill text-emerald-accent"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="hero-mini-kpi kpi-tone-sky">
+                      <span class="landing-muted" style="font-size: 0.68rem;">ISLR proyectado</span>
+                      <div class="d-flex align-items-center justify-content-between mt-1">
+                        <strong class="landing-ink" style="font-size: 1.05rem; font-variant-numeric: tabular-nums;">Bs. 710.445</strong>
+                        <i class="bi bi-graph-up-arrow text-accent-cyan"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="hero-mini-kpi kpi-tone-emerald">
+                      <span class="landing-muted" style="font-size: 0.68rem;">Retenciones IVA</span>
+                      <div class="d-flex align-items-center justify-content-between mt-1">
+                        <strong class="landing-ink" style="font-size: 0.92rem;">100% Declarado</strong>
+                        <i class="bi bi-receipt text-emerald-accent"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="hero-mini-kpi kpi-tone-amber">
+                      <span class="landing-muted" style="font-size: 0.68rem;">Tasa Oficial BCV</span>
+                      <div class="d-flex align-items-center justify-content-between mt-1">
+                        <strong class="landing-ink" style="font-size: 0.92rem; font-variant-numeric: tabular-nums;">Bs. 919,82</strong>
+                        <i class="bi bi-bank2 text-amber-accent"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="col-6">
-                  <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
-                    <div class="text-dim" style="font-size: 0.68rem;">Retenciones IVA</div>
-                    <strong class="text-white small">Sin Contingencias</strong>
+
+                <!-- Gráfica SVG Vectorial Nítida -->
+                <div class="hero-mini-chart-box">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="landing-muted fw-semibold" style="font-size: 0.68rem;">Flujo Tributario Mensual</span>
+                    <span class="fw-bold text-emerald-accent" style="font-size: 0.7rem;">+18.4% eficiencia</span>
                   </div>
+                  <svg viewBox="0 0 320 76" class="w-100" style="height: 76px; display: block;" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="heroAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="rgba(37, 99, 235, 0.22)" />
+                        <stop offset="100%" stop-color="rgba(16, 185, 129, 0.0)" />
+                      </linearGradient>
+                      <linearGradient id="heroLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#0D1188" />
+                        <stop offset="55%" stop-color="#2563EB" />
+                        <stop offset="100%" stop-color="#10B981" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M 0,62 Q 45,54 85,38 T 170,44 T 245,18 T 320,10 L 320,76 L 0,76 Z" fill="url(#heroAreaGrad)"></path>
+                    <path d="M 0,62 Q 45,54 85,38 T 170,44 T 245,18 T 320,10" fill="none" stroke="url(#heroLineGrad)" stroke-width="3" stroke-linecap="round"></path>
+                    <circle cx="85" cy="38" r="4.5" fill="#0D1188" stroke="#FFFFFF" stroke-width="2"></circle>
+                    <circle cx="170" cy="44" r="4.5" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"></circle>
+                    <circle cx="245" cy="18" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"></circle>
+                    <circle cx="316" cy="11" r="5" fill="#10B981" stroke="#FFFFFF" stroke-width="2"></circle>
+                  </svg>
                 </div>
               </div>
             </div>
 
-            <!-- Teléfono / Tarjeta Flotante 2 (Superpuesta en perspectiva como en la imagen) -->
-            <div class="fintech-phone-card card-phone-secondary">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-dark"
-                     style="width: 26px; height: 26px; background: var(--tv-primary); font-size: 0.8rem; font-weight: bold;">
-                  <i class="bi bi-lightning-charge-fill"></i>
-                </div>
-                <span class="text-white fw-bold small">Únete al Futuro Fiscal</span>
+            <!-- Tarjeta Flotante: Calendario Fiscal SENIAT -->
+            <div class="hero-ui-float-card">
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                <span class="badge-blue-soft"><i class="bi bi-calendar-event me-1"></i>Calendario Fiscal</span>
+                <span class="fw-bold text-amber-accent" style="font-size: 0.72rem;">En 4 días</span>
               </div>
-              <p class="text-dim small mb-3 text-start" style="font-size: 0.74rem;">
-                Administra múltiples empresas de forma simultánea con auditoría continua y PWA móvil.
-              </p>
-              <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore w-100 py-1.5" style="font-size: 0.78rem;">
-                Explorar Ahora
-              </a>
+              <div class="fw-bold landing-ink" style="font-size: 0.88rem;">Lun 30 de noviembre</div>
+              <div class="landing-muted" style="font-size: 0.7rem;">IVA · Anticipos ISLR · IGTF · 1.ª quincena</div>
             </div>
 
           </div>
@@ -206,32 +214,36 @@
   </section>
 
   <!-- ========================================================================
-       SECCIÓN 2: PROPUESTA DE VALOR & 3 TARJETAS (EXACTA A LA IMAGEN)
+       SECCIÓN 2: PROPUESTA DE VALOR & 3 TARJETAS
        ======================================================================== -->
-  <section class="py-5 my-3 position-relative" id="solucion">
-    <div class="container">
+  <section class="landing-section-white py-5 position-relative" id="solucion">
+    <div class="container py-3">
 
       <!-- Título de la sección en 2 columnas -->
       <div class="row align-items-end g-4 mb-5">
         <div class="col-lg-7">
+          <span class="section-pill pill-sky mb-3">SOLUCIÓN INTEGRAL</span>
           <h2 class="section-title mb-0">
-            Tu aliado de confianza en <span class="text-lime">gestión tributaria y fiscal</span>.
+            Tu aliado de confianza en <span class="text-gradient-blue">gestión tributaria y fiscal</span>.
           </h2>
         </div>
         <div class="col-lg-5">
           <p class="section-desc mb-0">
-            TributoVE centraliza la normativa venezolana, automatiza cálculos complejos de retención y asegura cumplimiento sin estrés frente al SENIAT y entes recaudadores.
+            FICONTI centraliza la normativa venezolana, automatiza cálculos complejos de retención y asegura cumplimiento sin estrés frente al SENIAT y entes recaudadores.
           </p>
         </div>
       </div>
 
-      <!-- Fila de 3 Tarjetas: La del medio es VERDE LIMA brillante como en la referencia -->
+      <!-- Fila de 3 Tarjetas con Bordes Azules y Tonos Distintivos -->
       <div class="row g-4 align-items-stretch">
 
-        <!-- Tarjeta 01: Oscura -->
+        <!-- Tarjeta 01: Tono Azul Cielo -->
         <div class="col-md-4">
-          <div class="feature-card-dark h-100">
-            <span class="card-step-num">01.</span>
+          <div class="feature-card-light feature-tone-sky h-100">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <span class="card-step-num mb-0">01.</span>
+              <span class="step-icon-badge tone-sky"><i class="bi bi-building-check"></i></span>
+            </div>
             <h4 class="card-step-title">Servicio para cualquier nivel de empresa.</h4>
             <p class="card-step-text">
               Desde personas naturales residentes y firmas contables independientes, hasta corporaciones catalogadas como Sujetos Pasivos Especiales.
@@ -239,16 +251,21 @@
           </div>
         </div>
 
-        <!-- Tarjeta 02: VERDE LIMA DESTACADA (Exacta al centro de la imagen) -->
+        <!-- Tarjeta 02: Destacada Tono Cobalto/Índigo -->
         <div class="col-md-4">
-          <div class="feature-card-lime h-100">
-            <span class="card-step-num-dark">02.</span>
-            <h4 class="card-step-title-dark">Mejores prácticas de la industria.</h4>
-            <p class="card-step-text-dark">
-              Algoritmos actualizados con la Gaceta Oficial N.° 43.140, factores del Decreto 1.808, Unidad Tributaria oficial y cronograma fiscal 2026/27.
-            </p>
+          <div class="feature-card-highlight h-100 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                <span class="card-step-num-highlight mb-0">02.</span>
+                <span class="step-icon-badge tone-cobalt"><i class="bi bi-award-fill"></i></span>
+              </div>
+              <h4 class="card-step-title">Mejores prácticas de la industria.</h4>
+              <p class="card-step-text">
+                Algoritmos actualizados con la Gaceta Oficial N.° 43.140, factores del Decreto 1.808, Unidad Tributaria oficial y cronograma fiscal 2026/27.
+              </p>
+            </div>
             <div class="mt-4 pt-2">
-              <a href="#modulos" class="lime-card-link">
+              <a href="#modulos" class="highlight-card-link">
                 <span>Ver Módulos</span>
                 <i class="bi bi-arrow-right"></i>
               </a>
@@ -256,10 +273,13 @@
           </div>
         </div>
 
-        <!-- Tarjeta 03: Oscura -->
+        <!-- Tarjeta 03: Tono Esmeralda / Teal -->
         <div class="col-md-4">
-          <div class="feature-card-dark h-100">
-            <span class="card-step-num">03.</span>
+          <div class="feature-card-light feature-tone-emerald h-100">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <span class="card-step-num text-emerald-accent mb-0">03.</span>
+              <span class="step-icon-badge tone-emerald"><i class="bi bi-shield-fill-check"></i></span>
+            </div>
             <h4 class="card-step-title">Protección y blindaje fiscal.</h4>
             <p class="card-step-text">
               Validación y conciliación de extractos bancarios contra libros tributarios para generar cédulas de trabajo transparentes y 100% auditables.
@@ -272,89 +292,73 @@
   </section>
 
   <!-- ========================================================================
-       SECCIÓN 3: SHOWCASE CON GRÁFICA NEÓN & "TRUSTED PLATFORM" (EXACTA A LA IMAGEN)
+       SECCIÓN 3: SHOWCASE CON GRÁFICA & "PLATAFORMA CONFIABLE"
        ======================================================================== -->
-  <section class="py-5 my-4 position-relative" id="garantia">
-    <div class="container">
+  <section class="landing-section-ice py-5 position-relative" id="garantia">
+    <div class="container py-3">
       <div class="row align-items-center g-5">
 
-        <!-- Columna Izquierda: Gráfico de Ondas con Nodos L, B, P y Tarjetas Flotantes -->
+        <!-- Columna Izquierda: Mockups Reales en Laptop del Sistema FICONTI -->
         <div class="col-lg-6">
-          <div class="interactive-chart-box p-4 p-md-5">
-
-            <!-- Badge Superior -->
-            <div class="d-inline-flex flex-column mb-4 p-2.5 rounded-3" style="background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--tv-primary);">
-              <span class="text-white fw-bold" style="font-size: 0.95rem;">Bs. 45.200,00</span>
-              <small class="text-dim" style="font-size: 0.72rem;">Retenciones ISLR declaradas al día</small>
-            </div>
-
-            <!-- Gráfico con Nodos Circulares -->
-            <div class="chart-wave-container position-relative my-4">
-              <svg viewBox="0 0 400 120" class="w-100" style="overflow: visible;">
-                <!-- Línea de Onda Verde Neón -->
-                <path d="M 0,90 Q 60,110 120,70 T 240,40 T 360,85 T 400,20" fill="none" stroke="#1A6B4A" stroke-width="3" stroke-linecap="round"></path>
-              </svg>
-
-              <!-- Nodos Flotantes con Letras como en la Imagen -->
-              <div class="chart-float-node node-1" title="Retenciones ISLR">
-                <span>B</span>
-              </div>
-              <div class="chart-float-node node-2" title="Retenciones IVA">
-                <span>L</span>
-              </div>
-              <div class="chart-float-node node-3" title="Planificación Fiscal">
-                <span>P</span>
+          <div class="device-showcase-stage">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+              <span class="badge-blue-soft"><i class="bi bi-laptop me-1"></i>Vista del Sistema</span>
+              <div class="d-inline-flex flex-wrap gap-1" role="group" aria-label="Vistas del sistema">
+                <button type="button" class="stage-phone-tab active"
+                        data-laptop-src="{% static 'img/mockups/resumen-laptop.png' %}"
+                        data-laptop-alt="Vista en computadora del Resumen de Empresas en FICONTI">Resumen</button>
+                <button type="button" class="stage-phone-tab"
+                        data-laptop-src="{% static 'img/mockups/retenciones-islr-laptop.png' %}"
+                        data-laptop-alt="Vista en computadora de Retenciones ISLR en FICONTI">Retenciones ISLR</button>
+                <button type="button" class="stage-phone-tab"
+                        data-laptop-src="{% static 'img/mockups/calendario-laptop.png' %}"
+                        data-laptop-alt="Vista en computadora del Calendario Fiscal SENIAT en FICONTI">Calendario</button>
               </div>
             </div>
 
-            <!-- Badges Inferiores -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 pt-2">
-              <div class="p-2.5 rounded-3" style="background: rgba(0, 0, 0, 0.4); border-left: 3px solid var(--tv-primary);">
-                <span class="text-white fw-bold d-block" style="font-size: 0.95rem;">100% Cuadrado</span>
-                <small class="text-dim" style="font-size: 0.72rem;">Conciliación bancaria contra extractos</small>
-              </div>
-
-              <div class="p-2.5 rounded-3 d-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);">
-                <div>
-                  <span class="text-dim d-block" style="font-size: 0.68rem;">Eficiencia Fiscal</span>
-                  <strong class="text-white small">+45.66%</strong>
-                </div>
-                <span class="badge" style="background: rgba(26, 107, 74, 0.2); color: var(--tv-primary); font-size: 0.65rem;">SENIAT OK</span>
+            <div class="device-stage-canvas">
+              <div class="stage-laptop-wrap">
+                <img
+                  id="stageLaptopImg"
+                  src="{% static 'img/mockups/resumen-laptop.png' %}"
+                  alt="Vista en computadora del Resumen de Empresas en FICONTI"
+                  class="img-fluid stage-laptop-img"
+                  decoding="async"
+                >
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- Columna Derecha: Copy "Trusted platform anytime & anywhere." -->
+        <!-- Columna Derecha: Copy -->
         <div class="col-lg-6 ps-lg-5">
           <div class="rating-stars mb-2">
-            <i class="bi bi-star-fill text-lime"></i>
-            <i class="bi bi-star-fill text-lime"></i>
-            <i class="bi bi-star-fill text-lime"></i>
-            <i class="bi bi-star-fill text-lime"></i>
-            <i class="bi bi-star-fill text-lime"></i>
-            <span class="text-dim small ms-2">Precisión de cálculo 100%</span>
+            <i class="bi bi-star-fill text-warning"></i>
+            <i class="bi bi-star-fill text-warning"></i>
+            <i class="bi bi-star-fill text-warning"></i>
+            <i class="bi bi-star-fill text-warning"></i>
+            <i class="bi bi-star-fill text-warning"></i>
+            <span class="landing-muted small ms-2 fw-medium">Precisión de cálculo 100%</span>
           </div>
 
           <h2 class="section-title mb-4">
-            Plataforma confiable <span class="text-lime">en cualquier momento</span> y lugar.
+            Plataforma confiable <span class="text-gradient-blue">en cualquier momento</span> y lugar.
           </h2>
 
           <p class="section-desc mb-4">
-            TributoVE fue diseñado desde cero para la realidad venezolana. Funciona en la nube y como aplicación web progresiva (PWA) instalable en tu teléfono, tablet o computadora, permitiéndote consultar retenciones y plazos incluso sin internet.
+            FICONTI fue diseñado desde cero para la realidad venezolana. Funciona desde tu computadora, tablet o teléfono sin instalar programas complejos, permitiéndote consultar retenciones y plazos en segundos.
           </p>
 
-          <p class="text-dim small mb-4">
+          <p class="landing-muted small mb-4">
             Gestiona carteras completas de clientes, exporta cédulas de auditoría y comparte comprobantes por WhatsApp o correo en un par de clics.
           </p>
 
           <div class="d-flex flex-wrap align-items-center gap-3 pt-2">
-            <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2.5">
+            <a href="{% url 'usuarios:login' %}" class="btn btn-landing-explore px-4 py-2">
               <span>Comenzar Ahora</span>
               <i class="bi bi-arrow-right-short fs-5"></i>
             </a>
-            <a href="https://wa.me/{{ config_pago.contacto|default:'' }}" target="_blank" class="landing-text-link">
+            <a href="https://wa.me/{{ config_pago.contacto|default:'' }}" target="_blank" rel="noopener noreferrer" class="landing-text-link">
               <span>¿Tienes preguntas? WhatsApp</span>
               <i class="bi bi-question-circle ms-1"></i>
             </a>
@@ -366,97 +370,97 @@
   </section>
 
   <!-- ========================================================================
-       SECCIÓN 4: LOS 9 MÓDULOS FISCALES DEL PROYECTO TRIBUTOVE
+       SECCIÓN 4: LOS 9 MÓDULOS FISCALES DEL PROYECTO FICONTI
        ======================================================================== -->
-  <section class="py-5 my-4" id="modulos">
-    <div class="container">
+  <section class="landing-section-white py-5" id="modulos">
+    <div class="container py-3">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(26, 107, 74, 0.12); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.25); border-radius: 999px;">
+        <span class="section-pill pill-indigo mb-3">
           SUITE CONTABLE INTEGRAL
         </span>
-        <h2 class="section-title text-white">9 Módulos diseñados para la normativa venezolana</h2>
-        <p class="text-dim">Todo lo que tu despacho necesita para blindar la contabilidad de tus empresas cliente.</p>
+        <h2 class="section-title mb-3">9 Módulos diseñados para la normativa venezolana</h2>
+        <p class="section-desc mb-0">Todo lo que tu despacho necesita para blindar la contabilidad de tus empresas cliente.</p>
       </div>
 
       <div class="row g-4">
         <!-- 1. Planificación Fiscal SPE -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-graph-up-arrow"></i></div>
-            <h5 class="text-white fw-bold mb-2">Planificación Fiscal SPE</h5>
-            <p class="text-dim small mb-0">Anticipa compromisos fiscales para Contribuyentes Especiales con simulación en tiempo real.</p>
+          <div class="module-feature-card tone-card-cobalt h-100">
+            <div class="module-icon-box tone-cobalt"><i class="bi bi-graph-up-arrow"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Planificación Fiscal SPE</h5>
+            <p class="landing-muted small mb-0">Anticipa compromisos fiscales para Contribuyentes Especiales con simulación en tiempo real.</p>
           </div>
         </div>
 
         <!-- 2. Retenciones ISLR -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-percent"></i></div>
-            <h5 class="text-white fw-bold mb-2">Retenciones ISLR</h5>
-            <p class="text-dim small mb-0">Consultor completo de tarifas y sustraendos conforme al Decreto 1.808 para personas y empresas.</p>
+          <div class="module-feature-card tone-card-sky h-100">
+            <div class="module-icon-box tone-sky"><i class="bi bi-percent"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Retenciones ISLR</h5>
+            <p class="landing-muted small mb-0">Consultor completo de tarifas y sustraendos conforme al Decreto 1.808 para personas y empresas.</p>
           </div>
         </div>
 
         <!-- 3. Retenciones IVA -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-receipt"></i></div>
-            <h5 class="text-white fw-bold mb-2">Retenciones IVA</h5>
-            <p class="text-dim small mb-0">Cálculo de alícuotas del 75% o 100% para compras, servicios y emisión de comprobantes digitales.</p>
+          <div class="module-feature-card tone-card-emerald h-100">
+            <div class="module-icon-box tone-emerald"><i class="bi bi-receipt"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Retenciones IVA</h5>
+            <p class="landing-muted small mb-0">Cálculo de alícuotas del 75% o 100% para compras, servicios y emisión de comprobantes digitales.</p>
           </div>
         </div>
 
         <!-- 4. Calendario Fiscal -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-calendar-check"></i></div>
-            <h5 class="text-white fw-bold mb-2">Calendario Fiscal SENIAT</h5>
-            <p class="text-dim small mb-0">Cronograma oficial por terminal de RIF para quincenas de IVA, anticipos e impuestos municipales.</p>
+          <div class="module-feature-card tone-card-amber h-100">
+            <div class="module-icon-box tone-amber"><i class="bi bi-calendar-check"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Calendario Fiscal SENIAT</h5>
+            <p class="landing-muted small mb-0">Cronograma oficial por terminal de RIF para quincenas de IVA, anticipos e impuestos municipales.</p>
           </div>
         </div>
 
         <!-- 5. Impuesto Diferido -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-hourglass-split"></i></div>
-            <h5 class="text-white fw-bold mb-2">Impuesto Diferido (NIC 12)</h5>
-            <p class="text-dim small mb-0">Conciliación de diferencias temporales entre normas financieras VEN-NIF y leyes fiscales.</p>
+          <div class="module-feature-card tone-card-violet h-100">
+            <div class="module-icon-box tone-violet"><i class="bi bi-hourglass-split"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Impuesto Diferido (NIC 12)</h5>
+            <p class="landing-muted small mb-0">Conciliación de diferencias temporales entre normas financieras VEN-NIF y leyes fiscales.</p>
           </div>
         </div>
 
         <!-- 6. Grandes Patrimonios -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-bank2"></i></div>
-            <h5 class="text-white fw-bold mb-2">Grandes Patrimonios (INP)</h5>
-            <p class="text-dim small mb-0">Determinación de base gravable y alícuota sobre activos netos de contribuyentes calificados.</p>
+          <div class="module-feature-card tone-card-teal h-100">
+            <div class="module-icon-box tone-teal"><i class="bi bi-bank2"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Grandes Patrimonios (INP)</h5>
+            <p class="landing-muted small mb-0">Determinación de base gravable y alícuota sobre activos netos de contribuyentes calificados.</p>
           </div>
         </div>
 
         <!-- 7. Conciliación Bancaria -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-arrow-left-right"></i></div>
-            <h5 class="text-white fw-bold mb-2">Conciliación Bancaria</h5>
-            <p class="text-dim small mb-0">Cruce inteligente de movimientos de banco contra libros contables en Bs y divisas.</p>
+          <div class="module-feature-card tone-card-sky h-100">
+            <div class="module-icon-box tone-sky"><i class="bi bi-arrow-left-right"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Conciliación Bancaria</h5>
+            <p class="landing-muted small mb-0">Cruce inteligente de movimientos de banco contra libros contables en Bs y divisas.</p>
           </div>
         </div>
 
         <!-- 8. Ajuste Inicial Fiscal -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-calculator"></i></div>
-            <h5 class="text-white fw-bold mb-2">Ajuste Inicial por Inflación</h5>
-            <p class="text-dim small mb-0">Actualización del costo de activos fijos según índices INPC del BCV y registro tributario 3%.</p>
+          <div class="module-feature-card tone-card-emerald h-100">
+            <div class="module-icon-box tone-emerald"><i class="bi bi-calculator"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Ajuste Inicial por Inflación</h5>
+            <p class="landing-muted small mb-0">Actualización del costo de activos fijos según índices INPC del BCV y registro tributario 3%.</p>
           </div>
         </div>
 
         <!-- 9. Cédula Fiscal ISLR -->
         <div class="col-md-6 col-lg-4">
-          <div class="module-feature-card h-100">
-            <div class="module-icon-box"><i class="bi bi-file-earmark-spreadsheet"></i></div>
-            <h5 class="text-white fw-bold mb-2">Cédula Fiscal ISLR</h5>
-            <p class="text-dim small mb-0">Papel de trabajo definitivo con conciliación de renta neta y rebajas de ley para la declaración final.</p>
+          <div class="module-feature-card tone-card-cobalt h-100">
+            <div class="module-icon-box tone-cobalt"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+            <h5 class="landing-ink fw-bold mb-2">Cédula Fiscal ISLR</h5>
+            <p class="landing-muted small mb-0">Papel de trabajo definitivo con conciliación de renta neta y rebajas de ley para la declaración final.</p>
           </div>
         </div>
       </div>
@@ -466,65 +470,64 @@
   <!-- ========================================================================
        SECCIÓN 5: PLANES DE SUSCRIPCIÓN SAAS (DINÁMICOS DE LA BASE DE DATOS)
        ======================================================================== -->
-  <section class="py-5 my-4" id="planes">
-    <div class="container">
+  <section class="landing-section-plans py-5" id="planes">
+    <div class="container py-3">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge mb-2 px-3 py-1.5" style="background: rgba(26, 107, 74, 0.12); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.25); border-radius: 999px;">
+        <span class="section-pill pill-emerald mb-3">
           PRECIOS TRANSPARENTES
         </span>
-        <h2 class="section-title text-white">Elige el plan ideal para tu cartera contable</h2>
-        <p class="text-dim">Actualizaciones automáticas ante cambios de ley del SENIAT incluidas en todas las suscripciones.</p>
+        <h2 class="section-title mb-3">Elige el plan ideal para tu cartera contable</h2>
+        <p class="section-desc mb-0">Actualizaciones automáticas ante cambios de ley del SENIAT incluidas en todas las suscripciones.</p>
       </div>
 
-      <div class="row g-4 justify-content-center">
+      <div class="row g-4 justify-content-center align-items-stretch">
         {% for plan in planes %}
         <div class="col-md-6 col-lg-4">
-          <div class="landing-pricing-card h-100 d-flex flex-column justify-content-between p-4"
-               style="{% if plan.codigo == 'PRO' %}border-color: rgba(26, 107, 74, 0.4) !important; box-shadow: 0 10px 30px -5px rgba(26, 107, 74, 0.15);{% endif %}">
+          <div class="landing-pricing-card {% if plan.codigo == 'PRO' %}pricing-card-featured{% endif %} h-100 d-flex flex-column justify-content-between p-4">
             <div>
               <!-- Badge de categoría -->
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge fw-bold px-2.5 py-1"
-                      style="font-size: 0.72rem; border-radius: 8px;
-                             {% if plan.etiqueta_badge == 'STARTER' %}background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);
-                             {% elif plan.etiqueta_badge == 'PRO' %}background: rgba(26, 107, 74, 0.15); color: var(--tv-primary); border: 1px solid rgba(26, 107, 74, 0.3);
-                             {% else %}background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);{% endif %}">
+                <span class="badge fw-bold px-2 py-1"
+                      style="font-size: 0.72rem; border-radius: 6px;
+                             {% if plan.etiqueta_badge == 'STARTER' %}background: #FEF2F2; color: #B91C1C; border: 1px solid #FCA5A5;
+                             {% elif plan.etiqueta_badge == 'PRO' %}background: #DBEAFE; color: #0D1188; border: 1px solid #3B82F6;
+                             {% else %}background: #F3E8FF; color: #6D28D9; border: 1px solid #C4B5FD;{% endif %}">
                   {{ plan.etiqueta_badge }}
                 </span>
                 {% if plan.codigo == 'PRO' %}
-                  <span class="badge" style="background: var(--tv-primary); color: #000; font-size: 0.68rem; font-weight: 800;">MÁS POPULAR</span>
+                  <span class="badge" style="background: linear-gradient(135deg, #0D1188, #2563EB); color: #FFFFFF; font-size: 0.68rem; font-weight: 800; border-radius: 6px; padding: 0.35rem 0.65rem;">MÁS POPULAR</span>
                 {% endif %}
               </div>
 
               <!-- Nombre del plan -->
-              <h4 class="fw-bold text-white mb-3">{{ plan.nombre }}</h4>
+              <h4 class="fw-bold landing-ink mb-3">{{ plan.nombre }}</h4>
 
               <!-- Precios -->
-              <div class="mb-4">
-                <span class="fw-bolder" style="font-size: 2.2rem; color: #FFFFFF; letter-spacing: -0.03em;">
+              <div class="mb-4 pb-3 pricing-price-divider">
+                <span class="fw-bolder landing-ink" style="font-size: 2.25rem; letter-spacing: -0.03em; font-variant-numeric: tabular-nums;">
                   ${{ plan.precio_mensual|floatformat:2 }}
                 </span>
-                <span class="text-dim small ms-1">{{ plan.moneda }} / mes</span>
-                <div class="text-dim small mt-1">O ${{ plan.precio_anual|floatformat:2 }} facturado anualmente</div>
+                <span class="landing-muted small ms-1">{{ plan.moneda }} / mes</span>
+                <div class="landing-muted small mt-1">O ${{ plan.precio_anual|floatformat:2 }} facturado anualmente</div>
               </div>
 
               <!-- Características y Límites -->
-              <ul class="list-unstyled d-flex flex-column gap-2.5 small mb-4">
-                <li class="d-flex align-items-center gap-2 text-white">
-                  <i class="bi bi-check2-circle text-lime"></i>
+              <ul class="list-unstyled d-flex flex-column gap-2 small mb-4">
+                <li class="d-flex align-items-center gap-2 landing-ink">
+                  <i class="bi bi-check2-circle text-emerald-accent fs-6"></i>
                   <span>{% if plan.limite_usuarios == 0 %}Usuarios Ilimitados{% else %}{{ plan.limite_usuarios }} Usuario(s) con acceso{% endif %}</span>
                 </li>
-                <li class="d-flex align-items-center gap-2 text-white">
-                  <i class="bi bi-check2-circle text-lime"></i>
+                <li class="d-flex align-items-center gap-2 landing-ink">
+                  <i class="bi bi-check2-circle text-emerald-accent fs-6"></i>
                   <span>{% if plan.limite_empresas == 0 %}Empresas Ilimitadas en cartera{% else %}{{ plan.limite_empresas }} Empresa(s) simultáneas{% endif %}</span>
                 </li>
-                <li class="d-flex align-items-center gap-2 text-white">
-                  <i class="bi bi-check2-circle text-lime"></i>
+                <li class="d-flex align-items-center gap-2 landing-ink">
+                  <i class="bi bi-check2-circle text-accent-cyan fs-6"></i>
                   <span>Acceso a <strong>{{ plan.total_modulos }}</strong> módulos tributarios</span>
                 </li>
                 {% if plan.incluye_ia %}
-                <li class="d-flex align-items-center gap-2 text-white">
-                  <i class="bi bi-stars text-lime"></i>
+                <li class="d-flex align-items-center gap-2 landing-ink">
+                  <i class="bi bi-stars text-amber-accent fs-6"></i>
                   <span>Motor inteligente y soporte prioritario</span>
                 </li>
                 {% endif %}
@@ -532,10 +535,10 @@
 
               <!-- Módulos Incluidos Chips -->
               <div class="mb-4">
-                <span class="text-dim fw-bold text-uppercase d-block mb-2" style="font-size: 0.68rem;">Módulos incluidos:</span>
+                <span class="landing-muted fw-bold text-uppercase d-block mb-2" style="font-size: 0.68rem; letter-spacing: 0.04em;">Módulos incluidos:</span>
                 <div class="d-flex flex-wrap gap-1">
                   {% for mod in plan.modulos_nombres %}
-                    <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: #d1d5db; font-size: 0.65rem; border-radius: 6px; padding: 3px 6px;">
+                    <span class="pricing-module-chip">
                       {{ mod }}
                     </span>
                   {% endfor %}
@@ -544,7 +547,7 @@
             </div>
 
             <!-- Botón de Suscripción -->
-            <a href="{% url 'usuarios:login' %}" class="btn {% if plan.codigo == 'PRO' %}btn-landing-explore{% else %}btn-outline-custom{% endif %} w-100 py-2.5 fw-bold" style="border-radius: 12px;">
+            <a href="{% url 'usuarios:login' %}" class="btn {% if plan.codigo == 'PRO' %}btn-landing-explore{% else %}btn-landing-outline{% endif %} w-100 py-2 fw-bold mt-auto">
               <span>Comenzar con {{ plan.nombre }}</span>
             </a>
           </div>
@@ -557,36 +560,33 @@
   <!-- ========================================================================
        FOOTER INFERIOR
        ======================================================================== -->
-  <footer class="landing-footer py-5 mt-5">
+  <footer class="landing-footer py-5">
     <div class="container">
-      <div class="row g-4 align-items-center justify-content-between mb-4 pb-4 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+      <div class="row g-4 align-items-center justify-content-between mb-4 pb-4 landing-footer-divider">
         <div class="col-md-6">
-          <a href="{% url 'core:landing' %}" class="d-inline-flex align-items-center gap-2 text-decoration-none mb-2">
-            <div class="brand-logo-icon">
-              <i class="bi bi-shield-lock-fill"></i>
-            </div>
-            <span class="landing-brand-name">TRIBUTOVE<span class="text-lime">.</span></span>
+          <a href="{% url 'core:landing' %}" class="d-inline-flex align-items-center text-decoration-none mb-2">
+            <span class="landing-brand-name">FICONTI<span class="text-accent-cyan">.</span></span>
           </a>
-          <p class="text-dim small mb-0" style="max-width: 420px;">
+          <p class="landing-muted small mb-0" style="max-width: 420px;">
             Plataforma integral de control tributario, retenciones ISLR/IVA y contabilidad fiscal para profesionales y empresas en Venezuela.
           </p>
         </div>
 
         <div class="col-md-6 text-md-end">
           <div class="d-flex flex-wrap justify-content-md-end gap-3 small">
-            <a href="{% url 'usuarios:login' %}" class="text-dim text-decoration-none hover-lime">Portal Contadores</a>
-            <a href="{% url 'superadmin:login' %}" class="text-dim text-decoration-none hover-lime">Panel SuperAdmin</a>
-            <a href="#modulos" class="text-dim text-decoration-none hover-lime">Módulos</a>
-            <a href="#planes" class="text-dim text-decoration-none hover-lime">Precios</a>
+            <a href="{% url 'usuarios:login' %}" class="landing-footer-link">Portal Contadores</a>
+            <a href="{% url 'superadmin:login' %}" class="landing-footer-link">Panel SuperAdmin</a>
+            <a href="#modulos" class="landing-footer-link">Módulos</a>
+            <a href="#planes" class="landing-footer-link">Precios</a>
           </div>
         </div>
       </div>
 
-      <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 text-dim small">
-        <div>© 2026/27 TributoVE. Todos los derechos reservados.</div>
+      <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 landing-muted small">
+        <div>© 2026/27 FICONTI. Todos los derechos reservados.</div>
         <div class="d-flex align-items-center gap-2">
           <span>Actualizado con la normativa SENIAT 2026</span>
-          <span style="color: var(--tv-primary);">●</span>
+          <span class="text-emerald-accent">●</span>
           <span>Venezuela</span>
         </div>
       </div>
@@ -596,30 +596,54 @@
 </div>
 
 <!-- ========================================================================
-     ESTILOS ESPECÍFICOS DE LA LANDING FINTECH OSCURA
+     ESTILOS DE LA LANDING PAGE (FONDO CLARO, BORDES AZULES & MÚLTIPLES TONOS)
      ======================================================================== -->
 <style>
   :root {
-    --tv-landing-bg: #070A08;
-    --tv-landing-surface: #101512;
-    --tv-landing-lime: #1A6B4A;
+    --fc-bg-hero: #F5F8FF;
+    --fc-bg-ice: #F0F5FF;
+    --fc-bg-plans: #EEF4FF;
+    --fc-surface: #FFFFFF;
+    --fc-blue: #0D1188;
+    --fc-blue-royal: #2563EB;
+    --fc-sky: #0284C7;
+    --fc-emerald: #059669;
+    --fc-violet: #5B21B6;
+    --fc-amber: #D97706;
+    --fc-teal: #0D9488;
+    --fc-border-blue: #3B82F6;
+    --fc-border-soft: #93C5FD;
+    --fc-border-subtle: #DBEAFE;
+    --fc-ink: #0C0B4E;
+    --fc-muted: #475569;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--tv-landing-bg) !important;
-    color: #FFFFFF !important;
-    overflow-x: hidden;
+    background-color: var(--fc-bg-hero) !important;
+    color: var(--fc-ink) !important;
+    overflow-x: clip;
   }
 
   .landing-wrapper {
-    background-color: var(--tv-landing-bg);
-    background-image: 
-      radial-gradient(circle at 85% 15%, rgba(26, 107, 74, 0.12) 0%, transparent 45%),
-      radial-gradient(circle at 15% 55%, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
-      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
-    min-height: 100vh;
+    background-color: var(--fc-bg-hero);
+    min-height: 100dvh;
+  }
+
+  .landing-ink { color: var(--fc-ink) !important; }
+  .landing-muted { color: var(--fc-muted) !important; }
+  .text-accent-cyan { color: var(--fc-sky) !important; }
+  .text-emerald-accent { color: var(--fc-emerald) !important; }
+  .text-amber-accent { color: var(--fc-amber) !important; }
+
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #0D1188 0%, #2563EB 55%, #0284C7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   /* Header */
@@ -627,385 +651,616 @@
     position: sticky;
     top: 0;
     z-index: 1020;
-    background: rgba(7, 10, 8, 0.85);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-  .brand-logo-icon {
-    width: 38px;
-    height: 38px;
-    background: rgba(26, 107, 74, 0.15);
-    border: 1px solid rgba(26, 107, 74, 0.3);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--tv-landing-lime);
-    font-size: 1.15rem;
+    border-bottom: 2px solid var(--fc-border-blue);
+    box-shadow: 0 4px 20px -10px rgba(37, 99, 235, 0.18);
   }
   .landing-brand-name {
-    font-size: 1.25rem;
+    font-size: 1.28rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #FFFFFF;
-  }
-  .text-lime {
-    color: var(--tv-landing-lime) !important;
+    color: var(--fc-ink);
   }
 
   .landing-nav-links .landing-nav-link {
-    color: #94a3b8;
+    color: var(--fc-muted);
     text-decoration: none;
-    font-size: 0.86rem;
-    font-weight: 500;
-    transition: color 0.15s ease;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.3rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
   .landing-nav-links .landing-nav-link:hover,
   .landing-nav-links .landing-nav-link.active {
-    color: #FFFFFF;
+    color: var(--fc-blue-royal);
+    border-bottom-color: var(--fc-blue-royal);
   }
 
-  /* Botón Explore Now (Estilo Exacto al botón superior de la imagen) */
-  .btn-landing-explore {
-    background: var(--tv-landing-lime) !important;
-    color: #050706 !important;
+  /* Botones de acción (superando regla global de tributove.css) */
+  html:root:root body .landing-wrapper .btn-landing-explore {
+    background: linear-gradient(135deg, #0D1188 0%, #2563EB 100%) !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
-    font-size: 0.86rem !important;
+    font-size: 0.88rem !important;
     border-radius: 999px !important;
-    padding: 0.55rem 1.35rem !important;
+    padding: 0.65rem 1.45rem !important;
     display: inline-flex !important;
     align-items: center !important;
+    justify-content: center !important;
     gap: 0.35rem !important;
     text-decoration: none !important;
-    border: none !important;
-    box-shadow: 0 4px 18px rgba(26, 107, 74, 0.35) !important;
-    transition: all 0.2s ease !important;
+    border: 1.5px solid #1E40AF !important;
+    box-shadow: 0 6px 16px -4px rgba(37, 99, 235, 0.35) !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
   }
-  .btn-landing-explore:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(26, 107, 74, 0.5) !important;
-    color: #000000 !important;
+  html:root:root body .landing-wrapper .btn-landing-explore:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 10px 22px -4px rgba(37, 99, 235, 0.45) !important;
+    transform: translateY(-1px);
+  }
+
+  html:root:root body .landing-wrapper .btn-landing-outline {
+    background: var(--fc-surface) !important;
+    color: var(--fc-blue-royal) !important;
+    font-weight: 700 !important;
+    font-size: 0.88rem !important;
+    border-radius: 999px !important;
+    padding: 0.65rem 1.45rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    text-decoration: none !important;
+    border: 1.5px solid var(--fc-border-blue) !important;
+    transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease !important;
+  }
+  html:root:root body .landing-wrapper .btn-landing-outline:hover {
+    background: #EFF6FF !important;
+    box-shadow: 0 6px 14px -6px rgba(37, 99, 235, 0.28) !important;
+    transform: translateY(-1px);
+  }
+  html:root:root body .landing-wrapper .hero-arrow-btn {
+    border-radius: 50% !important;
+    box-shadow: 0 6px 14px -6px rgba(37, 99, 235, 0.25) !important;
+  }
+  html:root:root body .landing-wrapper .hero-tag-pill,
+  html:root:root body .landing-wrapper .section-pill {
+    border-radius: 999px !important;
+    box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.15) !important;
+  }
+  html:root:root body .landing-wrapper .step-icon-badge,
+  html:root:root body .landing-wrapper .module-icon-box,
+  html:root:root body .landing-wrapper .badge-icon-blue {
+    border-radius: 12px !important;
+  }
+  html:root:root body .landing-wrapper .feature-card-light,
+  html:root:root body .landing-wrapper .feature-card-highlight,
+  html:root:root body .landing-wrapper .module-feature-card,
+  html:root:root body .landing-wrapper .landing-pricing-card,
+  html:root:root body .landing-wrapper .interactive-chart-box,
+  html:root:root body .landing-wrapper .mockup-floating-badge {
+    border-radius: 16px !important;
+    box-shadow: 0 12px 28px -12px rgba(37, 99, 235, 0.16) !important;
+  }
+  html:root:root body .landing-wrapper .pricing-module-chip,
+  html:root:root body .landing-wrapper .chart-stat-badge,
+  html:root:root body .landing-wrapper .mock-subcard {
+    border-radius: 8px !important;
   }
 
   /* Hero Section */
   .landing-hero-section {
-    padding-top: 3.5rem;
-    padding-bottom: 4rem;
+    padding-top: 3.2rem;
+    padding-bottom: 4.5rem;
+    background-color: var(--fc-bg-hero);
+    background-image:
+      radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.16) 0%, transparent 42%),
+      radial-gradient(circle at 18% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+      radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
+      linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+    border-bottom: 1.5px solid var(--fc-border-soft);
   }
-  .hero-tag-pill {
+
+  /* Bandas de Secciones Alternadas */
+  .landing-section-white {
+    background-color: #FFFFFF;
+    border-bottom: 1.5px solid var(--fc-border-subtle);
+  }
+  .landing-section-ice {
+    background: linear-gradient(180deg, #EFF6FF 0%, #F8FAFC 100%);
+    border-bottom: 1.5px solid var(--fc-border-soft);
+  }
+  .landing-section-plans {
+    background: linear-gradient(180deg, #EEF4FF 0%, #F8FAFF 100%);
+    border-bottom: 1.5px solid var(--fc-border-soft);
+  }
+
+  /* Píldoras con tonos */
+  .hero-tag-pill,
+  .section-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 0.35rem 0.85rem;
+    background: #FFFFFF;
+    border: 1.5px solid var(--fc-border-blue);
+    padding: 0.38rem 0.95rem;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    color: #e2e8f0;
+    color: var(--fc-blue-royal);
+    box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.15);
   }
+  .pill-sky { background: #F0F9FF; color: #0369A1; border-color: #38BDF8; }
+  .pill-indigo { background: #EEF2FF; color: #3730A3; border-color: #6366F1; }
+  .pill-emerald { background: #ECFDF5; color: #047857; border-color: #34D399; }
+
   .pulse-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--tv-landing-lime);
+    width: 8px;
+    height: 8px;
+    background: #10B981;
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--tv-landing-lime);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
   }
   .hero-heading {
-    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-size: clamp(2.1rem, 4.2vw, 3.6rem);
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    color: #FFFFFF;
+    color: var(--fc-ink);
+    text-wrap: balance;
   }
-
-  /* Social proof avatars */
-  .avatar-group {
-    display: flex;
-    align-items: center;
-  }
-  .avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: bold;
-    color: #fff;
-    margin-right: -10px;
-    border: 2px solid var(--tv-landing-bg);
-  }
-  .av-1 { background: #3b82f6; }
-  .av-2 { background: #ec4899; }
-  .av-3 { background: #10b981; }
-  .av-4 { background: #f59e0b; }
-  .av-5 { background: var(--tv-landing-lime); color: #000; font-size: 0.85rem; }
 
   /* Botón flecha diagonal */
   .hero-arrow-btn {
     width: 52px;
     height: 52px;
-    border-radius: 50%;
-    background: var(--tv-landing-lime);
-    color: #000 !important;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: var(--fc-blue-royal) !important;
+    border: 1.5px solid var(--fc-border-blue);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1.35rem;
     text-decoration: none;
     flex-shrink: 0;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 0 20px rgba(26, 107, 74, 0.4);
+    box-shadow: 0 6px 14px -6px rgba(37, 99, 235, 0.25);
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   }
   .hero-arrow-btn:hover {
-    transform: scale(1.1) rotate(45deg);
+    background: var(--fc-blue-royal);
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
   }
   .hero-subtext {
-    color: #94a3b8;
-    font-size: 0.82rem;
-    line-height: 1.5;
+    color: var(--fc-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    max-width: 58ch;
   }
 
-  /* Mockups Visuales Hero */
+  /* Showcase Vectorial Nítido del Hero */
   .hero-visual-container {
     position: relative;
-    max-width: 480px;
-    height: 480px;
+    max-width: 500px;
+    padding-bottom: 2.75rem;
   }
   .hero-ambient-glow {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(26, 107, 74, 0.18) 0%, transparent 70%);
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(16, 185, 129, 0.08) 55%, transparent 75%);
     border-radius: 50%;
     filter: blur(40px);
     pointer-events: none;
   }
-  .fintech-phone-card {
-    background: rgba(16, 21, 18, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 28px;
-    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(16px);
-    position: absolute;
-    transition: transform 0.3s ease;
-  }
-  .card-phone-main {
-    width: 310px;
-    padding: 1.75rem 1.5rem;
-    top: 20px;
-    left: 20px;
+  html:root:root body .landing-wrapper .hero-ui-window {
+    position: relative;
     z-index: 2;
-    transform: rotate(-3deg);
+    background: #FFFFFF;
+    border: 2px solid var(--fc-border-blue);
+    border-top: 5px solid var(--fc-blue);
+    border-radius: 18px !important;
+    box-shadow: 0 24px 48px -14px rgba(13, 17, 136, 0.2) !important;
+    overflow: hidden;
   }
-  .card-phone-main:hover {
-    transform: rotate(0deg) scale(1.02);
+  .hero-ui-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.15rem;
+    background: #F8FAFF;
+    border-bottom: 1px solid var(--fc-border-subtle);
   }
-  .card-phone-secondary {
-    width: 250px;
-    padding: 1.25rem;
-    bottom: 20px;
-    right: 10px;
+  html:root:root body .landing-wrapper .hero-ui-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50% !important;
+    display: inline-block;
+  }
+  html:root:root body .landing-wrapper .hero-mini-kpi {
+    background: #F8FAFF;
+    border: 1px solid var(--fc-border-subtle);
+    border-left: 3px solid var(--fc-blue-royal);
+    border-radius: 10px !important;
+    padding: 0.6rem 0.75rem;
+  }
+  html:root:root body .landing-wrapper .hero-mini-kpi.kpi-tone-sky {
+    background: #F0F9FF;
+    border-color: #BAE6FD;
+    border-left-color: #0284C7;
+  }
+  html:root:root body .landing-wrapper .hero-mini-kpi.kpi-tone-emerald {
+    background: #F0FDF4;
+    border-color: #BBF7D0;
+    border-left-color: #059669;
+  }
+  html:root:root body .landing-wrapper .hero-mini-kpi.kpi-tone-amber {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+    border-left-color: #D97706;
+  }
+  html:root:root body .landing-wrapper .hero-mini-chart-box {
+    background: #F8FAFF;
+    border: 1px solid var(--fc-border-subtle);
+    border-radius: 12px !important;
+    padding: 0.65rem 0.85rem 0.35rem;
+  }
+  html:root:root body .landing-wrapper .hero-ui-float-card {
+    position: absolute;
+    right: -8px;
+    bottom: 0;
     z-index: 3;
-    transform: rotate(5deg);
-    border-color: rgba(26, 107, 74, 0.3);
+    width: 265px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border: 2px solid #0284C7;
+    border-top: 4px solid #0284C7;
+    border-radius: 14px !important;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 18px 36px -10px rgba(2, 132, 199, 0.25) !important;
   }
-  .card-phone-secondary:hover {
-    transform: rotate(0deg) scale(1.04);
+  .badge-blue-soft {
+    display: inline-block;
+    background: #EFF6FF;
+    color: var(--fc-blue);
+    border: 1px solid var(--fc-border-soft);
+    border-radius: 6px;
+    padding: 0.22rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
   }
-  .phone-notch {
-    width: 60px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 999px;
-    margin: 0 auto 1.25rem;
+  .badge-emerald-soft {
+    display: inline-block;
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #6EE7B7;
+    border-radius: 6px;
+    padding: 0.22rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
   }
-  .neon-line-chart {
-    width: 100%;
-    height: 90px;
-    filter: drop-shadow(0 0 6px rgba(26, 107, 74, 0.6));
+  .mock-subcard {
+    background: #F8FAFC;
+    border: 1px solid var(--fc-border-subtle);
+    border-radius: 10px;
+  }
+  .mock-subcard-emerald {
+    background: #F0FDF4;
+    border-color: #BBF7D0;
+  }
+  .mock-subcard-sky {
+    background: #F0F9FF;
+    border-color: #BAE6FD;
   }
 
-  /* Sección 2: 3 Tarjetas (Exacta a la imagen) */
+  /* Títulos de Sección */
   .section-title {
-    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-size: clamp(1.65rem, 3vw, 2.5rem);
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1.2;
-    color: #FFFFFF;
+    color: var(--fc-ink);
+    text-wrap: balance;
   }
   .section-desc {
-    color: #94a3b8;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    color: var(--fc-muted);
+    font-size: 0.96rem;
+    line-height: 1.65;
   }
-  .feature-card-dark {
-    background: #111613;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    padding: 2.25rem 2rem;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+
+  /* Sección 2: 3 Tarjetas */
+  .feature-card-light {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFF 100%);
+    border: 1.5px solid var(--fc-border-soft);
+    border-top: 4px solid var(--fc-blue-royal);
+    border-radius: 16px;
+    padding: 2rem 1.85rem;
+    box-shadow: 0 10px 26px -12px rgba(37, 99, 235, 0.12);
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
   }
-  .feature-card-dark:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+  .feature-tone-sky {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F0F9FF 100%);
+    border-top-color: #0284C7;
+  }
+  .feature-tone-emerald {
+    background: linear-gradient(180deg, #FFFFFF 0%, #ECFDF5 100%);
+    border-top-color: #059669;
+  }
+  .feature-card-light:hover {
+    border-color: var(--fc-border-blue);
+    box-shadow: 0 18px 34px -12px rgba(37, 99, 235, 0.2);
     transform: translateY(-4px);
   }
-  .card-step-num {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #e2e8f0;
-    display: block;
-    margin-bottom: 1.5rem;
+  .feature-card-highlight {
+    background: linear-gradient(160deg, #EEF2FF 0%, #E0E7FF 100%);
+    border: 2px solid var(--fc-blue);
+    border-top: 5px solid var(--fc-blue);
+    border-radius: 16px;
+    padding: 2rem 1.85rem;
+    box-shadow: 0 18px 38px -12px rgba(13, 17, 136, 0.22);
+    transform: translateY(-6px);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
   }
-  .card-step-title {
+  .feature-card-highlight:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 24px 44px -12px rgba(13, 17, 136, 0.28);
+  }
+
+  .step-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border: 1.5px solid;
+  }
+  .tone-sky { background: #E0F2FE; color: #0284C7; border-color: #7DD3FC; }
+  .tone-cobalt { background: #DBEAFE; color: #0D1188; border-color: #60A5FA; }
+  .tone-emerald { background: #D1FAE5; color: #059669; border-color: #6EE7B7; }
+  .tone-amber { background: #FEF3C7; color: #D97706; border-color: #FCD34D; }
+  .tone-violet { background: #EDE9FE; color: #6D28D9; border-color: #C4B5FD; }
+  .tone-teal { background: #CCFBF1; color: #0D9488; border-color: #5EEAD4; }
+
+  .card-step-num,
+  .card-step-num-highlight {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #FFFFFF;
-    margin-bottom: 0.85rem;
+    color: var(--fc-blue-royal);
+    display: block;
+  }
+  .card-step-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--fc-ink);
+    margin-bottom: 0.8rem;
     line-height: 1.3;
   }
   .card-step-text {
-    color: #94a3b8;
-    font-size: 0.86rem;
+    color: var(--fc-muted);
+    font-size: 0.92rem;
     line-height: 1.6;
     margin-bottom: 0;
   }
-
-  /* Tarjeta Centro LIMA (Exacta al centro de la imagen) */
-  .feature-card-lime {
-    background: var(--tv-landing-lime);
-    border: none;
-    border-radius: 24px;
-    padding: 2.25rem 2rem;
-    box-shadow: 0 15px 40px -10px rgba(26, 107, 74, 0.4);
-    transform: translateY(-8px);
-    transition: transform 0.2s ease;
-  }
-  .feature-card-lime:hover {
-    transform: translateY(-12px);
-  }
-  .card-step-num-dark {
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: #050706;
-    display: block;
-    margin-bottom: 1.5rem;
-  }
-  .card-step-title-dark {
-    font-size: 1.25rem;
-    font-weight: 900;
-    color: #050706;
-    margin-bottom: 0.85rem;
-    line-height: 1.3;
-  }
-  .card-step-text-dark {
-    color: #1a241c;
-    font-size: 0.88rem;
-    line-height: 1.6;
-    margin-bottom: 0;
-    font-weight: 500;
-  }
-  .lime-card-link {
+  .highlight-card-link {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: #050706 !important;
+    color: var(--fc-blue) !important;
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     text-decoration: none;
     transition: gap 0.15s ease;
   }
-  .lime-card-link:hover {
+  .highlight-card-link:hover {
     gap: 0.7rem;
   }
 
-  /* Sección 3: Gráfica interactiva */
-  .interactive-chart-box {
-    background: rgba(16, 21, 18, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 28px;
-    backdrop-filter: blur(12px);
+  /* Sección 3: Escenario Laptop + Móvil */
+  html:root:root body .landing-wrapper .device-showcase-stage {
+    background: linear-gradient(155deg, #EFF6FF 0%, #DBEAFE 100%);
+    border: 2px solid var(--fc-border-soft);
+    border-radius: 20px !important;
+    padding: 1.25rem 1.25rem 1.75rem;
+    box-shadow: 0 20px 44px -16px rgba(13, 17, 136, 0.18) !important;
   }
-  .chart-float-node {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    background: var(--tv-landing-lime);
-    color: #000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 0.8rem;
-    box-shadow: 0 0 15px rgba(26, 107, 74, 0.6);
+  html:root:root body .landing-wrapper .stage-phone-tab {
+    background: #FFFFFF;
+    color: var(--fc-muted);
+    border: 1px solid var(--fc-border-soft);
+    border-radius: 999px !important;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.22rem 0.65rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  .node-1 { top: 55%; left: 28%; }
-  .node-2 { top: 30%; left: 55%; }
-  .node-3 { top: 15%; left: 88%; }
+  html:root:root body .landing-wrapper .stage-phone-tab.active {
+    background: var(--fc-blue);
+    color: #FFFFFF;
+    border-color: var(--fc-blue);
+  }
+  .device-stage-canvas {
+    display: block;
+  }
+
+  .stage-laptop-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+  .stage-laptop-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 20px 32px rgba(13, 17, 136, 0.2));
+  }
 
   .landing-text-link {
-    color: #94a3b8;
+    color: var(--fc-blue-royal);
     text-decoration: none;
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
     transition: color 0.15s ease;
   }
   .landing-text-link:hover {
-    color: var(--tv-landing-lime);
+    color: var(--fc-blue);
+    text-decoration: underline;
   }
 
   /* Módulos Cards */
   .module-feature-card {
-    background: #111613;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 20px;
+    background: var(--fc-surface);
+    border: 1.5px solid var(--fc-border-soft);
+    border-radius: 14px;
     padding: 1.75rem 1.5rem;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 8px 22px -12px rgba(37, 99, 235, 0.1);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .module-feature-card:hover {
-    border-color: rgba(26, 107, 74, 0.35);
+    border-color: var(--fc-border-blue);
+    box-shadow: 0 16px 32px -12px rgba(37, 99, 235, 0.22);
     transform: translateY(-4px);
   }
+  .tone-card-cobalt { border-top: 3.5px solid #0D1188; }
+  .tone-card-sky { border-top: 3.5px solid #0284C7; }
+  .tone-card-emerald { border-top: 3.5px solid #059669; }
+  .tone-card-amber { border-top: 3.5px solid #D97706; }
+  .tone-card-violet { border-top: 3.5px solid #6D28D9; }
+  .tone-card-teal { border-top: 3.5px solid #0D9488; }
+
   .module-icon-box {
-    width: 44px;
-    height: 44px;
-    background: rgba(26, 107, 74, 0.12);
-    border: 1px solid rgba(26, 107, 74, 0.25);
+    width: 48px;
+    height: 48px;
+    border: 1.5px solid;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--tv-landing-lime);
     font-size: 1.25rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.2rem;
+    transition: transform 0.2s ease;
+  }
+  .module-feature-card:hover .module-icon-box {
+    transform: scale(1.06);
   }
 
   /* Pricing Cards */
   .landing-pricing-card {
-    background: #111613;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    transition: transform 0.2s ease;
+    background: var(--fc-surface);
+    border: 1.5px solid var(--fc-border-soft);
+    border-radius: 16px;
+    box-shadow: 0 10px 26px -12px rgba(37, 99, 235, 0.12);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .landing-pricing-card:hover {
-    transform: translateY(-6px);
+    border-color: var(--fc-border-blue);
+    transform: translateY(-5px);
+    box-shadow: 0 18px 34px -12px rgba(37, 99, 235, 0.22);
+  }
+  .pricing-card-featured {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FF 100%);
+    border: 2.5px solid var(--fc-blue-royal) !important;
+    border-top: 6px solid var(--fc-blue) !important;
+    box-shadow: 0 20px 42px -12px rgba(13, 17, 136, 0.22) !important;
+  }
+  .pricing-price-divider {
+    border-bottom: 1px solid var(--fc-border-subtle);
+  }
+  .pricing-module-chip {
+    background: #EFF6FF;
+    color: var(--fc-ink);
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 8px;
+  }
+
+  /* Footer */
+  .landing-footer {
+    background: var(--fc-surface);
+    border-top: 3px solid var(--fc-border-blue);
+  }
+  .landing-footer-divider {
+    border-bottom: 1px solid var(--fc-border-subtle);
+  }
+  .landing-footer-link {
+    color: var(--fc-muted);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s ease;
+  }
+  .landing-footer-link:hover {
+    color: var(--fc-blue-royal);
   }
 
   /* Helpers */
-  .hover-lime:hover {
-    color: var(--tv-landing-lime) !important;
-  }
   .max-w-700 {
     max-width: 700px;
   }
+
+  @media (max-width: 991.98px) {
+    .feature-card-highlight {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .hero-visual-container {
+      padding-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    html:root:root body .landing-wrapper .hero-ui-float-card {
+      position: static;
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    .btn-landing-explore,
+    .btn-landing-outline,
+    .hero-arrow-btn,
+    .real-mockup-frame,
+    .feature-card-light,
+    .feature-card-highlight,
+    .module-feature-card,
+    .landing-pricing-card {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var tabs = document.querySelectorAll('.stage-phone-tab');
+    var laptopImg = document.getElementById('stageLaptopImg');
+    if (!tabs.length || !laptopImg) return;
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        laptopImg.src = tab.getAttribute('data-laptop-src');
+        laptopImg.alt = tab.getAttribute('data-laptop-alt');
+      });
+    });
+  });
+</script>
 {% endblock %}

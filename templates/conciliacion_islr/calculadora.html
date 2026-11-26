@@ -75,7 +75,7 @@
   T.getItem=function(k){return g.call(this,P+k)};T.setItem=function(k,v){return s.call(this,P+k,v)};T.removeItem=function(k){return r.call(this,P+k)};
   window.EMP_ES=E.condicion==="Sujeto pasivo especial";window.EMP_DIG=+(String(E.rif).slice(-1));
   })();</script>
-  <title>Sistema Integral de Conciliación Fiscal ISLR — TributoVE</title>
+  <title>Sistema Integral de Conciliación Fiscal ISLR — FICONTI</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -113,7 +113,7 @@
               600: '#2D5128',
             },
             gold: {
-              400: '#1A6B4A',
+              400: '#0D1188',
               500: '#c4ec4d',
               600: '#9ab939',
             },
@@ -159,7 +159,7 @@
       transition: all 0.22s ease;
     }
     .luxury-card-hover:hover {
-      border-color: rgba(26, 107, 74, 0.35);
+      border-color: rgba(13, 17, 136, 0.35);
     }
 
     .cell-input {
@@ -172,8 +172,8 @@
     }
     .cell-input:focus {
       outline: none;
-      border-color: #1A6B4A;
-      box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2);
+      border-color: #0D1188;
+      box-shadow: 0 0 0 2px rgba(13, 17, 136, 0.2);
       background: #222a24;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -301,7 +301,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   }
   #ux-pt {
     display: block !important;
-    border-bottom: 2px solid #1A6B4A !important;
+    border-bottom: 2px solid #0D1188 !important;
     padding-bottom: 6px !important;
     margin-bottom: 12px !important;
     color: #111827 !important;
@@ -321,7 +321,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=4.1">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body class="min-h-screen flex flex-col selection:bg-gold-500/30 selection:text-gold-400">
@@ -340,19 +340,50 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       <div id="modal-footer" class="mt-6 flex justify-end gap-3"></div>
     </div>
   </div>
+<!-- NAVEGACIÓN POR PESTAÑAS CON ALERTAS EN TIEMPO REAL -->
+  <nav class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-3 no-print" role="tablist">
+    <div class="flex items-center justify-between gap-2 w-full">
+    <div class="flex-1 min-w-0 flex overflow-x-auto gap-2 pb-1 no-scrollbar" id="main-tabs">
+      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard Ejecutivo</span>
+      </button>
 
-  <!-- BARRA SUPERIOR CORPORATIVA -->
-  <header class="bg-[#141815] border-b border-white/10 z-30">
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-        
-        <div class="flex items-center justify-between">
-          <h1 class="text-base sm:text-xl font-extrabold text-white tracking-tight">
-            Sistema Integral de Conciliación Fiscal ISLR
-          </h1>
-        </div>
+      <button onclick="switchTab('balance')" data-tab="balance" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="scale" class="w-4 h-4"></i>
+        <span>1. Balance de Comprobación</span>
+        <span id="badge-tab-balance" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
 
-        <div class="relative flex items-center gap-2 no-print" id="header-actions-wrapper">
+      <button onclick="switchTab('conciliacion')" data-tab="conciliacion" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>2. Conciliación Fiscal y Cierre</span>
+        <span id="badge-tab-conciliacion" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('api')" data-tab="api" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="trending-up" class="w-4 h-4"></i>
+        <span>3. Ajuste por Inflación (API)</span>
+        <span id="badge-tab-api" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('retenciones')" data-tab="retenciones" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="shield-check" class="w-4 h-4"></i>
+        <span>4. Retenciones Decreto 1.808</span>
+        <span id="badge-tab-retenciones" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
+      </button>
+
+      <button onclick="switchTab('dictamen')" data-tab="dictamen" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        <span>Informe y Dictamen Fiscal</span>
+      </button>
+
+      <button onclick="switchTab('baselegal')" data-tab="baselegal" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
+        <i data-lucide="book-open-check" class="w-4 h-4"></i>
+        <span>5. Base Legal LISLR (25 Reglas)</span>
+      </button>
+    </div>
+    <div class="relative flex items-center gap-2 shrink-0 no-print" id="header-actions-wrapper">
           <select id="profile-selector" onchange="switchProfile(this.value)" class="hidden"></select>
           <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)" />
 
@@ -381,10 +412,9 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
             </button>
           </div>
         </div>
-
-      </div>
     </div>
-  </header>
+  </nav>
+
 
   <!-- PANEL DE IDENTIFICACIÓN DEL CONTRIBUYENTE Y PARÁMETROS FISCALES -->
   <section class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-3">
@@ -444,50 +474,6 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       </div>
     </div>
   </section>
-
-  <!-- NAVEGACIÓN POR PESTAÑAS CON ALERTAS EN TIEMPO REAL -->
-  <nav class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 pt-3 no-print" role="tablist">
-    <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar" id="main-tabs">
-      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-        <span>Dashboard Ejecutivo</span>
-      </button>
-
-      <button onclick="switchTab('balance')" data-tab="balance" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="scale" class="w-4 h-4"></i>
-        <span>1. Balance de Comprobación</span>
-        <span id="badge-tab-balance" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
-      </button>
-
-      <button onclick="switchTab('conciliacion')" data-tab="conciliacion" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="calculator" class="w-4 h-4"></i>
-        <span>2. Conciliación Fiscal y Cierre</span>
-        <span id="badge-tab-conciliacion" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
-      </button>
-
-      <button onclick="switchTab('api')" data-tab="api" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="trending-up" class="w-4 h-4"></i>
-        <span>3. Ajuste por Inflación (API)</span>
-        <span id="badge-tab-api" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
-      </button>
-
-      <button onclick="switchTab('retenciones')" data-tab="retenciones" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="shield-check" class="w-4 h-4"></i>
-        <span>4. Retenciones Decreto 1.808</span>
-        <span id="badge-tab-retenciones" class="px-2 py-0.5 text-[10px] rounded-full font-bold"></span>
-      </button>
-
-      <button onclick="switchTab('dictamen')" data-tab="dictamen" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="file-text" class="w-4 h-4"></i>
-        <span>Informe y Dictamen Fiscal</span>
-      </button>
-
-      <button onclick="switchTab('baselegal')" data-tab="baselegal" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition border">
-        <i data-lucide="book-open-check" class="w-4 h-4"></i>
-        <span>5. Base Legal LISLR (25 Reglas)</span>
-      </button>
-    </div>
-  </nav>
 
   <!-- CONTENIDO PRINCIPAL DE LOS MÓDULOS -->
   <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-4 flex-1">
@@ -907,10 +893,16 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
               </h3>
               <p class="text-[11px] text-slate-400">Actualización inicial al cierre del primer ejercicio gravable o reestructuración (Art. 173 LISLR).</p>
             </div>
+<div class="flex flex-wrap items-center gap-2">
+              <button onclick="syncApiFromBalance(true, false)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Sincronizar desde Balance</span>
+              </button>
             <button onclick="addApiInitialRow()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
               <span>Agregar Partida Inicial</span>
             </button>
+            </div>
           </div>
 
           <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
@@ -960,10 +952,16 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
               </h3>
               <p class="text-[11px] text-slate-400">Actualización anual de activos y pasivos no monetarios y patrimonio neto inicial del ejercicio.</p>
             </div>
+<div class="flex flex-wrap items-center gap-2">
+              <button onclick="syncApiFromBalance(true, false)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Sincronizar desde Balance</span>
+              </button>
             <button onclick="addApiRegularRow()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gold-400 hover:bg-gold-500 text-midnight-950 font-bold text-xs">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
               <span>Agregar Partida Reajuste</span>
             </button>
+            </div>
           </div>
 
           <div class="luxury-card rounded-xl overflow-hidden border border-slate-800">
@@ -2044,7 +2042,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       const borderColor = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.15)';
       const bridgeColors = isDark
         ? ['#22c55e', '#fbbf24', '#38bdf8', '#818cf8', '#fb7185', '#f43f5e', '#34d399']
-        : ['#16a34a', '#d97706', '#0284c7', '#4f46e5', '#e11d48', '#be123c', '#1A6B4A'];
+        : ['#16a34a', '#d97706', '#0284c7', '#4f46e5', '#e11d48', '#be123c', '#0D1188'];
       const expColors = isDark
         ? ['#22c55e', '#fbbf24', '#38bdf8']
         : ['#16a34a', '#d97706', '#0284c7'];
@@ -2213,8 +2211,8 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
                 m.journal.gastoNetoImpuestos
               ],
               backgroundColor: isDark
-                ? ['#34d399', '#1A6B4A', '#22c55e', '#38bdf8', '#4ade80']
-                : ['#2D5128', '#1A6B4A', '#16a34a', '#0284c7', '#15803d'],
+                ? ['#34d399', '#0D1188', '#22c55e', '#38bdf8', '#4ade80']
+                : ['#2D5128', '#0D1188', '#16a34a', '#0284c7', '#15803d'],
               borderRadius: 6,
               maxBarThickness: 28,
               barPercentage: 0.45,
@@ -2832,6 +2830,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 
       if (tabKey === 'dashboard' && currentModel) renderCharts(currentModel);
       if (tabKey === 'dictamen' && currentModel) renderDictamenSection(currentModel);
+      if (tabKey === 'api' && (state.balance || []).length > 0 && (state.api?.initialRows?.length || 0) === 0 && (state.api?.regularRows?.length || 0) === 0) { syncApiFromBalance(false, false); }
     }
 
     function updateConciliationRow(id, field, value) {
@@ -2921,6 +2920,104 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
       if (extra) Object.assign(row, extra);
       saveStore();
       recalculateAndRenderAll();
+    }
+
+    function syncApiFromBalance(showNotify = true, pruneStale = false) {
+      const bal = state.balance || [];
+      if (bal.length === 0) {
+        if (showNotify) showToast('Primero cargue cuentas en 1. Balance de Comprobación.', 'warning');
+        return 0;
+      }
+      state.api = state.api || { inpcInicio: 100, inpcCierre: 120, initialRows: [], regularRows: [] };
+      state.api.initialRows = state.api.initialRows || [];
+      state.api.regularRows = state.api.regularRows || [];
+
+      const inpcIni = Number(state.api.inpcInicio) || 100;
+      const inpcCie = Number(state.api.inpcCierre) || inpcIni;
+      const balCodes = new Set(bal.map(b => String(b.code || '').trim()).filter(Boolean));
+
+      if (pruneStale) {
+        state.api.initialRows = state.api.initialRows.filter(r => !r.linkBalance || balCodes.has(String(r.code || '').trim()));
+        state.api.regularRows = state.api.regularRows.filter(r => r.sourceType !== 'BALANCE' || balCodes.has(String(r.code || '').trim()));
+      }
+
+      const initCodes = new Set(state.api.initialRows.map(r => String(r.code || '').trim()));
+      const regCodes = new Set(state.api.regularRows.map(r => String(r.code || '').trim()));
+
+      const reMon = /\b(caja|banco|efectivo|disponib|cobrar|cxc|cliente|anticipo|iva|islr|cr[eé]dito fiscal|retenci[oó]n|prepagad|impuesto|deudor)\b/i;
+      const reNoMon = /(inventar|mercanc|propiedad|planta|equipo|maquinaria|veh[ií]c|mobiliario|inmueble|terreno|edificio|construc|activo fijo|intangible|marca|patente|software|inversi[oó]n|diferid|obra|mejora)/i;
+      const rePasNoMon = /(diferid|anticip|cobrad.*adelant|no monetari)/i;
+      const reResEj = /(resultado del ejercicio|utilidad del ejercicio|p[eé]rdida del ejercicio)/i;
+
+      let added = 0;
+      bal.forEach((b, idx) => {
+        const code = String(b.code || '').trim();
+        const name = String(b.name || '').trim();
+        if (!code || !name) return;
+        const netVal = round2(Math.abs((Number(b.debit) || 0) - (Number(b.credit) || 0)));
+        if (netVal === 0) return;
+
+        let partType = null;
+        if (b.type === 'Activo') {
+          if (reNoMon.test(name) || (!reMon.test(name) && /^1\.[2-9]/.test(code))) {
+            partType = 'Activo No Monetario';
+          }
+        } else if (b.type === 'Pasivo') {
+          if (rePasNoMon.test(name)) {
+            partType = 'Pasivo No Monetario';
+          }
+        } else if (b.type === 'Patrimonio') {
+          if (!reResEj.test(name)) {
+            partType = 'Patrimonio Neto Inicial';
+          }
+        }
+
+        if (!partType) return;
+
+        if ((partType === 'Activo No Monetario' || partType === 'Pasivo No Monetario') && !initCodes.has(code)) {
+          state.api.initialRows.push({
+            id: 'ai_bal_' + Date.now() + '_' + idx,
+            code,
+            name,
+            partType,
+            acqDate: '2026-01-01',
+            linkBalance: true,
+            manualCost: netVal,
+            inpcOrigin: inpcIni,
+            inpcCierre: inpcIni
+          });
+          initCodes.add(code);
+          added++;
+        }
+
+        if (!regCodes.has(code)) {
+          state.api.regularRows.push({
+            id: 'ar_bal_' + Date.now() + '_' + idx,
+            code,
+            name,
+            natureApi: partType,
+            refDate: '2026-01-01',
+            sourceType: 'BALANCE',
+            manualBase: netVal,
+            useInpcInicio: true,
+            inpcOrigin: inpcIni,
+            inpcCierre: inpcCie
+          });
+          regCodes.add(code);
+          added++;
+        }
+      });
+
+      saveStore();
+      recalculateAndRenderAll();
+      if (showNotify) {
+        if (added > 0) {
+          showToast(`Se sincronizaron ${added} partida(s) desde el Balance de Comprobación.`, 'success');
+        } else {
+          showToast('Las partidas no monetarias y de patrimonio del Balance ya están sincronizadas.', 'info');
+        }
+      }
+      return added;
     }
 
     function addApiInitialRow() {
@@ -3098,6 +3195,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 
           if (importedBalance.length > 0) {
             state.balance = importedBalance;
+            syncApiFromBalance(false, true);
             saveStore();
             recalculateAndRenderAll();
             switchTab('balance');

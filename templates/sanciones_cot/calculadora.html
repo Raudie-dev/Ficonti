@@ -80,38 +80,38 @@ if(window.MON){t+=" · Cifras en "+MON.lab+" ("+MON.nom+")"+(MON.esBs?"":(E.mone
 <meta name="theme-color" content="#0b0e0c">
 <title>Consultor de sanciones SENIAT (COT 2020)</title>
 <style>
-:root, [data-theme="dark"], html.theme-dark{--ink:#ffffff;--bg:#0b0e0c;--card:#141815;--sub:#1a201c;--ln:rgba(255,255,255,0.08);--mu:#8b958e;--red:#f87171;--amb:#fbbf24;--blu:#38bdf8;--grn:#22c55e;--lime:#1A6B4A;color-scheme:dark}
-[data-theme="light"], html.theme-light{--ink:#0b0e0c;--bg:#f2f5f1;--card:#ffffff;--sub:#f7faf5;--ln:rgba(0,0,0,0.08);--mu:#5f6861;--red:#dc2626;--amb:#b45309;--blu:#0284c7;--grn:#16a34a;--lime:#2D5128;color-scheme:light}
+:root, [data-theme="dark"], html.theme-dark{--ink:#F4F5F8;--bg:#080924;--card:#0E1036;--sub:#15184A;--ln:#25286B;--mu:#D0D2EB;--red:#FCA5A5;--amb:#FCD34D;--blu:#93C5FD;--grn:#86EFAC;--lime:#373990;color-scheme:dark}
+[data-theme="light"], html.theme-light{--ink:#0C0B4E;--bg:#F4F5F8;--card:#FFFFFF;--sub:#F0F2F8;--ln:#D4D7E8;--mu:#4A4D6D;--red:#B91C1C;--amb:#9A4D16;--blu:#0D1188;--grn:#2E7D1B;--lime:#0D1188;color-scheme:light}
 *{box-sizing:border-box}[hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 12px 40px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 12px 40px}
 h1,h2,.big{font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.02em}
-h1{font-size:20px;font-weight:800;margin:0}h2{font-size:16px;font-weight:700;margin:0 0 12px}
-.top{background:var(--card);border:1px solid var(--ln);border-radius:16px;color:var(--ink);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-.top small{display:block;color:var(--mu);font-size:13px;margin-top:2px}.mini{font-weight:800;font-variant-numeric:tabular-nums;font-size:17px;text-align:right;color:var(--lime)}
+h1{font-size:21px;font-weight:800;margin:0}h2{font-size:1.2rem;font-weight:700;margin:0 0 14px}
+.top{background:var(--card);border:1px solid var(--ln);color:var(--ink);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.top small{display:block;color:var(--mu);font-size:13.5px;margin-top:2px}.mini{font-weight:800;font-variant-numeric:tabular-nums;font-size:18px;text-align:right;color:var(--lime)}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
-.tabs button{border:1px solid var(--ln);background:var(--card);border-radius:12px;padding:10px 16px;font:600 13.5px 'Inter',system-ui,sans-serif;color:var(--mu);cursor:pointer;white-space:nowrap;transition:all .15s}
-.tabs button[aria-selected=true]{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A;font-weight:700;box-shadow:0 2px 10px rgba(26, 107, 74,0.25)}
+.tabs button{border:1px solid var(--ln);background:var(--card);padding:10px 16px;font:600 14px 'Inter',system-ui,sans-serif;color:var(--mu);cursor:pointer;white-space:nowrap;transition:all .15s}
+.tabs button[aria-selected=true]{background:#0D1188;color:#ffffff;border-color:#0D1188;font-weight:700}
 .wrap{max-width:100%;margin:0 auto}
 .g{display:grid;gap:16px}
-.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:18px}
-label{display:block;font-weight:600;font-size:13px;color:var(--mu);margin:12px 0 4px}label:first-child{margin-top:0}
-input,select{width:100%;min-height:42px;font:inherit;padding:8px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--sub);color:var(--ink)}
-input[type=checkbox],input[type=radio]{width:18px;min-height:18px;height:18px;flex:none;accent-color:#1A6B4A}
-:focus-visible{outline:2px solid #1A6B4A;outline-offset:2px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.opt{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:0;font-weight:500;cursor:pointer;min-height:44px;background:var(--sub);color:var(--ink)}
-.opt small{display:block;color:var(--mu);font-weight:400;font-size:12.5px}
-.hint{color:var(--mu);font-size:12.5px;margin:4px 0 0}
+.card{background:var(--card);border:1px solid var(--ln);padding:20px}
+label{display:block;font-weight:600;font-size:0.92rem;color:var(--mu);margin:14px 0 6px}label:first-child{margin-top:0}
+input,select{width:100%;min-height:42px;font:inherit;padding:8px 12px;border:1px solid var(--ln);background:var(--sub);color:var(--ink)}
+input[type=checkbox],input[type=radio]{width:18px;min-height:18px;height:18px;flex:none;accent-color:#0D1188}
+:focus-visible{outline:2px solid #0D1188;outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--ln);padding:12px 14px;margin:0;font-weight:600;font-size:0.96rem;cursor:pointer;min-height:46px;background:var(--sub);color:var(--ink)}
+.opt small{display:block;color:var(--mu);font-weight:400;font-size:0.86rem;margin-top:2px}
+.hint{color:var(--mu);font-size:0.88rem;line-height:1.5;margin:6px 0 4px}
 a{color:var(--blu)}
-.btn{min-height:40px;border-radius:10px;border:1px solid var(--ln);background:var(--sub);color:var(--ink);font:700 13.5px 'Inter',system-ui,sans-serif;padding:8px 14px;cursor:pointer}
-.btn.p{background: #1A6B4A ; color: #ffffff ;border-color:#1A6B4A}.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.total{background:linear-gradient(145deg,#18281d,#0f1c13);border:1px solid rgba(26, 107, 74,0.25);color:#fff;border-radius:16px;padding:20px}
-.total .big{font-size:clamp(26px,6vw,36px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;word-break:break-word;color:#1A6B4A;margin:4px 0}
-.total small{color:#b8c3d3}
-.pill{display:inline-block;border-radius:99px;padding:3px 12px;font-size:12.5px;font-weight:700;background:rgba(239,68,68,0.18);color:#f87171}.pill.ok{background:rgba(34,197,94,0.18);color:#4ade80}
-.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--ln)}
-.row small{display:block;color:var(--mu);font-size:12.5px}.row b{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
-.row.t{border:0;font-size:16px;padding-bottom:0;color:var(--lime)}
+.btn{min-height:40px;border:1px solid var(--ln);background:var(--sub);color:var(--ink);font:700 14px 'Inter',system-ui,sans-serif;padding:8px 14px;cursor:pointer}
+.btn.p{background:#0D1188;color:#ffffff;border-color:#0D1188}.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.total{background:var(--card);border:1px solid var(--ln);color:var(--ink);padding:22px}
+.total .big{font-size:clamp(1.85rem,3.4vw,2.35rem);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;word-break:break-word;color:var(--lime);margin:6px 0}
+.total small{color:var(--mu);font-size:0.9rem}
+.pill{display:inline-block;padding:4px 10px;font-size:0.86rem;font-weight:700;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}.pill.ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
+.row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--ln);font-size:1rem}
+.row small{display:block;color:var(--mu);font-size:0.88rem;margin-top:3px}.row b{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right;font-size:1.08rem}
+.row.t{border:0;font-size:1.12rem;padding-bottom:0;color:var(--lime)}
 .cf{color:var(--red)}.cm{color:var(--amb)}.ci{color:var(--blu)}.cg{color:var(--grn)}
 .note{border-left:4px solid var(--lime);background:var(--sub);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0;font-size:13.5px}
 .note.w{border-color:var(--amb);background:rgba(245,158,11,0.1)}.note.r{border-color:var(--red);background:rgba(239,68,68,0.1)}
@@ -156,7 +156,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   }
   #ux-pt {
     display: block !important;
-    border-bottom: 2px solid #1A6B4A !important;
+    border-bottom: 2px solid #0D1188 !important;
     padding-bottom: 6px !important;
     margin-bottom: 12px !important;
     color: #111827 !important;
@@ -176,7 +176,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 }
 
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=4.1">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head>
 <body>

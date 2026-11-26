@@ -1,5 +1,5 @@
 """
-Configuración de Django para el proyecto TributoVE.
+Configuración de Django para el proyecto FICONTI.
 
 Sistema de control tributario para contadores en Venezuela.
 Cada módulo del sistema es una aplicación independiente dentro de ``apps/``.
@@ -9,6 +9,12 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
 
 
 def env_bool(nombre, defecto=False):
@@ -111,6 +117,7 @@ INSTALLED_APPS = DJANGO_APPS + SISTEMA_APPS + MODULOS_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -146,12 +153,19 @@ WSGI_APPLICATION = 'tributove.wsgi.application'
 # ---------------------------------------------------------------------------
 # Base de datos
 # ---------------------------------------------------------------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+_database_url = os.environ.get('DATABASE_URL', '').strip()
+if _database_url:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(_database_url, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -215,7 +229,7 @@ MESSAGE_TAGS = {
 
 # Datos del sistema
 TRIBUTOVE = {
-    'NOMBRE': 'TributoVE',
+    'NOMBRE': 'FICONTI',
     'LEMA': 'Gestión fiscal · Venezuela',
     'MAX_EMPRESAS': 200,
     'DIAS_POR_PAGO': 30,

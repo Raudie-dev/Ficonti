@@ -1,6 +1,6 @@
 {% extends 'layouts/app.html' %}
 
-{% block title %}Panel de Control · TributoVE{% endblock %}
+{% block title %}Panel de Control · FICONTI{% endblock %}
 
 {% block content %}
 <div class="container-fluid p-0">
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div class="col-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
       <div class="card-kpi">
         <div class="kpi-label">Cumplimiento Global</div>
         <div class="kpi-value">{{ totales.pct }}%</div>
@@ -99,20 +99,21 @@
       </div>
     </div>
 
-    <div class="col-6 col-lg-3">
+    <div class="col-12 col-sm-6 col-lg-3">
       <div class="card-kpi">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center gap-2">
           <div class="kpi-label mb-0">Tasa Oficial BCV</div>
-          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.72rem; color: var(--tv-primary);" onclick="window.actualizarTasaBcv(true)" title="Actualizar desde BCV">
-            <i class="bi bi-arrow-clockwise"></i> Actualizar
+          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-nowrap flex-shrink-0 d-inline-flex align-items-center gap-1" style="font-size: 0.74rem; color: var(--tv-primary);" onclick="window.actualizarTasaBcv(true)" title="Actualizar desde BCV">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>Actualizar</span>
           </button>
         </div>
         <div class="kpi-value" style="color: var(--tv-primary); font-size: 1.45rem;">
           Bs. <span data-bcv-usd>{{ tasa_bcv.usd|floatformat:2 }}</span>
         </div>
-        <div class="kpi-trend">
-          <span>EUR: Bs. <strong data-bcv-eur>{{ tasa_bcv.eur|floatformat:2 }}</strong></span>
-          <span class="ms-auto badge-dash-dim" data-bcv-fecha style="font-size: 0.65rem;">{{ tasa_bcv.fecha }}</span>
+        <div class="kpi-trend d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span class="text-nowrap">EUR: Bs. <strong data-bcv-eur>{{ tasa_bcv.eur|floatformat:2 }}</strong></span>
+          <span class="badge-dash-dim text-nowrap flex-shrink-0" data-bcv-fecha style="font-size: 0.68rem;">{{ tasa_bcv.fecha }}</span>
         </div>
       </div>
     </div>
@@ -120,7 +121,7 @@
 
   <!-- 3. BARRA DE MODO DE VISTA Y BUSCADOR RÁPIDO -->
   <div class="card-dashboard mb-3 py-2 px-3">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-stretch align-items-lg-center gap-2">
       <!-- Conmutador de Vista Principal -->
       <div class="d-flex flex-wrap align-items-center gap-2" role="tablist" aria-label="Modo de visualización del panel">
         <button type="button" class="filter-pill-btn active" role="tab" aria-selected="true" data-panel-view="modulos">
@@ -135,7 +136,7 @@
       </div>
 
       <!-- Filtro de Categoría y Buscador -->
-      <div class="d-flex flex-wrap align-items-center gap-2" id="controlesFiltroModulos">
+      <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2" id="controlesFiltroModulos">
         <select id="filtroMenuSelect" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;" aria-label="Filtrar por menú">
           <option value="todos">Todos los menús ({{ modulos_activa|length }})</option>
           <option value="Planificación">1. Planificación (1)</option>
@@ -144,9 +145,9 @@
           <option value="pendientes">Solo pendientes / en curso</option>
         </select>
 
-        <div class="position-relative" style="min-width: 230px;">
-          <input type="search" id="buscarModuloDash" class="form-control form-control-sm ps-4" placeholder="Buscar módulo (ej. ARI, ISLR)..." aria-label="Buscar módulo fiscal" style="font-size: 0.82rem;">
-          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.78rem;"></i>
+        <div class="position-relative flex-grow-1" style="min-width: 220px;">
+          <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 0.75rem; font-size: 0.8rem; pointer-events: none;"></i>
+          <input type="search" id="buscarModuloDash" class="form-control form-control-sm w-100" placeholder="Buscar módulo (ej. ARI, ISLR)..." aria-label="Buscar módulo fiscal" style="padding-left: 2.2rem !important; font-size: 0.82rem;">
         </div>
       </div>
     </div>

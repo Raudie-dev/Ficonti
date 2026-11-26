@@ -126,30 +126,34 @@ nav {
   margin-bottom: 0.65rem !important;
 }
 
+.pn table { width: 100%; }
+@media (min-width: 760px) {
+  .pn:has(th:nth-child(5)) { grid-column: 1 / -1; }
+}
 </style>
 
 <style id="tv-modern-ui">
 /* ==========================================================================
-   TributoVE - Sistema Visual Verde Fintech Moderno
+   FICONTI - Sistema Visual Verde Fintech Moderno
    Espaciado amplio, responsive y PWA Ready
    Paleta: #0B0E0C (Fondo) | #141815 (Tarjetas) | #1A201C (Superficie)
-           #2D5128 (Verde Base) | #2D5128 (Lima Acento) | #8B958E (Muted)
+           #0D1188 (Verde Base) | #0D1188 (Lima Acento) | #8B958E (Muted)
    ========================================================================== */
 
 :root, [data-theme="dark"], html.theme-dark, :root:not([data-theme="light"]) {
   /* Calendario / Azul */
   --navy: #141815 !important;
-  --blue: #2D5128 !important;
+  --blue: #0D1188 !important;
   --card: #141815 !important;
   --bd: rgba(255, 255, 255, 0.08) !important;
   --tx: #ffffff !important;
   --mut: #8b958e !important;
   --lt: #1a201c !important;
   --zb: #171c18 !important;
-  --ok: #2D5128 !important;
-  --okt: #2D5128 !important;
-  --wn: #2D5128 !important;
-  --wnt: #2D5128 !important;
+  --ok: #0D1188 !important;
+  --okt: #0D1188 !important;
+  --wn: #0D1188 !important;
+  --wnt: #0D1188 !important;
   --rd: #3a1c1a !important;
   --rdt: #f87171 !important;
   --past: #525a54 !important;
@@ -160,15 +164,15 @@ nav {
   --ink: #ffffff !important;
   --muted: #8b958e !important;
   --rule: rgba(255, 255, 255, 0.08) !important;
-  --rule-strong: rgba(26, 107, 74, 0.3) !important;
-  --royal: #2D5128 !important;
+  --rule-strong: rgba(13, 17, 136, 0.3) !important;
+  --royal: #0D1188 !important;
   --royal-deep: #141815 !important;
   --on-royal: #ffffff !important;
-  --focus: #2D5128 !important;
+  --focus: #0D1188 !important;
   --pnr-bg: rgba(34, 197, 94, 0.15) !important;
   --pnr-ink: #22c55e !important;
-  --pnnr-bg: rgba(26, 107, 74, 0.15) !important;
-  --pnnr-ink: #2D5128 !important;
+  --pnnr-bg: rgba(13, 17, 136, 0.15) !important;
+  --pnnr-ink: #0D1188 !important;
   --pjd-bg: rgba(45, 81, 40, 0.3) !important;
   --pjd-ink: #a7f3d0 !important;
   --pjnd-bg: rgba(141, 167, 80, 0.2) !important;
@@ -177,7 +181,7 @@ nav {
 
   /* Globales */
   --bg: transparent !important;
-  --g: #2D5128 !important;
+  --g: #0D1188 !important;
   --g2: #1a201c !important;
   --gl: #141815 !important;
   --gt: #ffffff !important;
@@ -186,7 +190,7 @@ nav {
   --m: #8b958e !important;
   --l: rgba(255, 255, 255, 0.08) !important;
   --b: rgba(255, 255, 255, 0.08) !important;
-  --a: #2D5128 !important;
+  --a: #0D1188 !important;
   --tv-bg: #0b0e0c !important;
   --bg: #0b0e0c !important;
   --tv-bg-gradient: none;
@@ -194,13 +198,13 @@ nav {
   --tv-surface-subtle: #1a201c;
   --tv-surface-hover: #222a24;
   --tv-border: rgba(255, 255, 255, 0.08);
-  --tv-lime: #2D5128;
+  --tv-lime: #0D1188;
   --tv-text: #ffffff;
 }
 
 [data-theme="light"], html.theme-light {
   --navy: #ffffff !important;
-  --blue: #2D5128 !important;
+  --blue: #0D1188 !important;
   --card: #ffffff !important;
   --bd: rgba(0, 0, 0, 0.08) !important;
   --tx: #0b0e0c !important;
@@ -220,12 +224,12 @@ nav {
   --muted: #5f6861 !important;
   --rule: rgba(0, 0, 0, 0.08) !important;
   --rule-strong: rgba(45, 81, 40, 0.3) !important;
-  --royal: #2D5128 !important;
+  --royal: #0D1188 !important;
   --royal-deep: #ffffff !important;
   --on-royal: #ffffff !important;
-  --focus: #2D5128 !important;
+  --focus: #0D1188 !important;
   --bg: transparent !important;
-  --g: #2D5128 !important;
+  --g: #0D1188 !important;
   --g2: #f7faf5 !important;
   --gl: #ffffff !important;
   --gt: #ffffff !important;
@@ -242,7 +246,7 @@ nav {
   --tv-surface-subtle: #f7faf5;
   --tv-surface-hover: #eaf0e6;
   --tv-border: rgba(0, 0, 0, 0.08);
-  --tv-lime: #2D5128;
+  --tv-lime: #0D1188;
   --tv-text: #0b0e0c;
 }
 
@@ -373,10 +377,10 @@ nav button:hover, .chips button:hover, .chip:hover {
   color: var(--tv-text) !important;
 }
 nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[aria-pressed="true"], .chip[aria-pressed="true"] {
-  background: #2D5128 !important; color: #ffffff !important;
+  background: #0D1188 !important; color: #ffffff !important;
   border-color: var(--tv-lime) !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 10px rgba(26, 107, 74, 0.25) !important;
+  box-shadow: 0 2px 10px rgba(13, 17, 136, 0.25) !important;
 }
 
 /* Barra de acciones e impresión (#ux-bar) - Espaciada como tarjeta independiente */
@@ -408,9 +412,9 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
   font-weight: 700 !important;
 }
 #ux-bar .ux-chip {
-  background: rgba(26, 107, 74, 0.12) !important;
+  background: rgba(13, 17, 136, 0.12) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(26, 107, 74, 0.25) !important;
+  border: 1px solid rgba(13, 17, 136, 0.25) !important;
   border-radius: 20px !important;
   padding: 0.35rem 0.85rem !important;
   font-size: 0.78rem !important;
@@ -471,7 +475,7 @@ nav button.on, nav button[aria-selected="true"], nav button.a, .chips button[ari
 #q:focus, .search input#q:focus, .search-box input:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(13, 17, 136, 0.2) !important;
 }
 .hint {
   margin: 0.85rem 0 1.25rem !important;
@@ -598,7 +602,7 @@ td.rate {
   font-size: 0.98rem !important;
 }
 td.next {
-  background: rgba(26, 107, 74, 0.15) !important;
+  background: rgba(13, 17, 136, 0.15) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
 }
@@ -611,10 +615,10 @@ td.past {
   color: var(--past) !important;
 }
 .tot td, tfoot td {
-  background: rgba(26, 107, 74, 0.08) !important;
+  background: rgba(13, 17, 136, 0.08) !important;
   color: var(--tv-lime) !important;
   font-weight: 800 !important;
-  border-top: 1px solid rgba(26, 107, 74, 0.25) !important;
+  border-top: 1px solid rgba(13, 17, 136, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -679,7 +683,7 @@ input, select, textarea, td input, td select {
 input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border-color: var(--tv-lime) !important;
   background: var(--tv-surface-hover) !important;
-  box-shadow: 0 0 0 2px rgba(26, 107, 74, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(13, 17, 136, 0.2) !important;
 }
 
 /* Calendario Hero y Paneles */
@@ -715,8 +719,8 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   margin: 0 !important;
 }
 .dig {
-  background: #2D5128 !important;
-  border: 1px solid rgba(26, 107, 74, 0.35) !important;
+  background: #0D1188 !important;
+  border: 1px solid rgba(13, 17, 136, 0.35) !important;
   color: var(--tv-lime) !important;
   border-radius: 12px !important;
   font-weight: 800 !important;
@@ -736,14 +740,14 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   gap: 0.45rem !important;
 }
 .b, button.b.pr, .btn.p, .bt:not(.s), .pr, #ux-bar .ux-b:not(.o) {
-  background: #2D5128 !important; color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(26, 107, 74, 0.2) !important;
+  background: #0D1188 !important; color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(13, 17, 136, 0.2) !important;
   border: 0 !important;
 }
 .b:hover, button.b.pr:hover, .btn.p:hover, .pr:hover, #ux-bar .ux-b:not(.o):hover {
   background: #142C14 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(26, 107, 74, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(13, 17, 136, 0.35) !important;
 }
 .b.s, .sec, header .btn, button#rs {
   background: var(--tv-surface-subtle) !important;
@@ -775,9 +779,9 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 .wa, .wr, .tag.PNNR {
-  background: rgba(26, 107, 74, 0.15) !important;
+  background: rgba(13, 17, 136, 0.15) !important;
   color: var(--tv-lime) !important;
-  border: 1px solid rgba(26, 107, 74, 0.3) !important;
+  border: 1px solid rgba(13, 17, 136, 0.3) !important;
 }
 .tag.PJD {
   background: rgba(45, 81, 40, 0.35) !important;
@@ -933,6 +937,10 @@ input:focus, select:focus, textarea:focus, td input:focus, td select:focus {
     gap: 0.75rem !important;
   }
 }
+.pn table { width: 100%; }
+@media (min-width: 760px) {
+  .pn:has(th:nth-child(5)) { grid-column: 1 / -1; }
+}
 </style>
 <style id="tv-print-clean">
 td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: table-cell !important; border-radius: 0 !important; }
@@ -956,7 +964,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 .pn h3 {
-  background: #2D5128 !important;
+  background: #0D1188 !important;
   color: #ffffff !important;
   border-bottom: 1px solid #142C14 !important;
   font-size: 0.86rem !important;
@@ -1005,7 +1013,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   opacity: 0.78 !important;
 }
 .pn tbody td.next {
-  background: rgba(26, 107, 74, 0.16) !important;
+  background: rgba(13, 17, 136, 0.16) !important;
   color: #16a34a !important;
   font-weight: 800 !important;
 }
@@ -1041,9 +1049,9 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
 }
 .cal-view-pills {
   display: inline-flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
   background: var(--tv-surface);
-  border: 1px solid var(--bd);
+  border: 1.5px solid var(--bd);
   border-radius: 10px;
   padding: 0.25rem;
 }
@@ -1053,13 +1061,64 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   color: var(--mut);
   font-size: 0.8rem;
   font-weight: 600;
-  padding: 0.42rem 0.85rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 7px;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.cal-view-pills button:hover:not(.on) {
+  background: rgba(13, 17, 136, 0.06);
+  color: var(--tx);
 }
 .cal-view-pills button.on {
-  background: #2D5128;
+  background: #0D1188;
   color: #ffffff;
+}
+.cal-view-bar .leg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+}
+.cal-view-bar .leg span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: 1px solid var(--bd);
+  white-space: nowrap;
+}
+@media screen and (max-width: 640px) {
+  .cal-view-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .cal-view-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .cal-view-pills button {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.76rem;
+    text-align: center;
+  }
+  .cal-view-bar .leg {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.45rem;
+  }
+  .cal-view-bar .leg span {
+    width: 100%;
+    padding: 0.38rem 0.5rem;
+    font-size: 0.72rem;
+  }
 }
 .cal-matrix-card {
   background: var(--tv-surface);
@@ -1074,7 +1133,7 @@ td.ok, td.wa, td.ba, td.gr, td.wr, td.er, th.ok, th.wa, th.ba, th.gr { display: 
   border-collapse: collapse !important;
 }
 .cal-matrix-card th {
-  background: #2D5128 !important;
+  background: #0D1188 !important;
   color: #ffffff !important;
   font-size: 0.74rem !important;
   padding: 0.65rem 0.75rem !important;
@@ -1129,7 +1188,7 @@ header {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  border-bottom: 2px solid #2D5128;
+  border-bottom: 2px solid #0D1188;
   padding-bottom: 10px;
   margin-bottom: 12px;
 }
@@ -1138,7 +1197,7 @@ header {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #2D5128;
+  color: #0D1188;
   margin-bottom: 2px;
 }
 .cal-doc-title {
@@ -1174,7 +1233,7 @@ header {
 .cal-doc-digbadge {
   display: inline-block;
   margin-top: 3px;
-  background: #2D5128;
+  background: #0D1188;
   color: #ffffff;
   font-weight: 700;
   font-size: 8pt;
@@ -1189,7 +1248,7 @@ header {
 }
 .cal-doc-upcard {
   border: 1px solid #cbd5e1;
-  border-left: 4px solid #2D5128;
+  border-left: 4px solid #0D1188;
   border-radius: 5px;
   padding: 6px 10px;
   background: #f9fafb;
@@ -1215,7 +1274,7 @@ header {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #2D5128;
+  color: #0D1188;
   margin: 8px 0 5px;
 }
 .cal-doc-scroll {
@@ -1231,7 +1290,7 @@ header {
   margin-bottom: 0 !important;
 }
 .cal-doc-table th {
-  background: #2D5128 !important;
+  background: #0D1188 !important;
   color: #ffffff !important;
   font-size: 7.5pt !important;
   font-weight: 700 !important;
@@ -1282,7 +1341,7 @@ header {
   margin: 0 0 4px;
   font-size: 8.5pt;
   font-weight: 800;
-  color: #2D5128;
+  color: #0D1188;
   text-transform: uppercase;
 }
 .cal-doc-footer {
@@ -1443,9 +1502,9 @@ header {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  background: rgba(26, 107, 74, 0.12);
-  color: #1A6B4A;
-  border: 1px solid rgba(26, 107, 74, 0.28);
+  background: rgba(13, 17, 136, 0.12);
+  color: #0D1188;
+  border: 1px solid rgba(13, 17, 136, 0.28);
 }
 [data-theme="dark"] .who-dig-badge,
 html.theme-dark .who-dig-badge {
@@ -1539,20 +1598,20 @@ html.theme-dark .share-actions a.b.gm {
   border-color: rgba(252, 165, 165, 0.35) !important;
 }
 .share-actions a.b.wa {
-  background: rgba(26, 107, 74, 0.1) !important;
-  color: #1A6B4A !important;
-  border: 1px solid rgba(26, 107, 74, 0.3) !important;
+  background: rgba(13, 17, 136, 0.1) !important;
+  color: #0D1188 !important;
+  border: 1px solid rgba(13, 17, 136, 0.3) !important;
 }
-.share-actions a.b.wa:hover { background: rgba(26, 107, 74, 0.18) !important; }
+.share-actions a.b.wa:hover { background: rgba(13, 17, 136, 0.18) !important; }
 [data-theme="dark"] .share-actions a.b.wa,
 html.theme-dark .share-actions a.b.wa {
   color: #6ee7b7 !important;
   border-color: rgba(110, 231, 183, 0.3) !important;
 }
 .share-actions button.b.pr {
-  background: #1A6B4A !important;
+  background: #0D1188 !important;
   color: #ffffff !important;
-  border: 1px solid #1A6B4A !important;
+  border: 1px solid #0D1188 !important;
 }
 .share-actions button.b.pr:hover { background: #145339 !important; }
 .share-menu-wrap {
@@ -1568,8 +1627,8 @@ html.theme-dark .share-actions a.b.wa {
   width: auto;
   height: 36px;
   padding: 0 14px;
-  border: 1px solid #1A6B4A;
-  background: #1A6B4A;
+  border: 1px solid #0D1188;
+  background: #0D1188;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
@@ -1633,13 +1692,17 @@ html.theme-dark .share-actions a.b.wa {
   background: var(--tv-surface-subtle, var(--lt));
 }
 .share-dropdown-item.gm { color: #b91c1c; }
-.share-dropdown-item.wa { color: #1A6B4A; }
+.share-dropdown-item.wa { color: #0D1188; }
 [data-theme="dark"] .share-dropdown-item.gm,
 html.theme-dark .share-dropdown-item.gm { color: #fca5a5; }
 [data-theme="dark"] .share-dropdown-item.wa,
 html.theme-dark .share-dropdown-item.wa { color: #6ee7b7; }
+.pn table { width: 100%; }
+@media (min-width: 760px) {
+  .pn:has(th:nth-child(5)) { grid-column: 1 / -1; }
+}
 </style>
-<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=2.5">
+<link rel="stylesheet" href="/static/css/tv_modulos_compact.css?v=4.1">
 <link rel="stylesheet" href="/static/css/tv_reportes_print.css?v=1.1">
 </head><body>
 <div id="cal-print-sheet"></div>
@@ -1686,7 +1749,7 @@ const leg=d=>DS[d.getDay()]+" "+d.getDate()+" de "+MES[d.getMonth()].toLowerCase
 let H,NEXT;
 function cl(d){if(!d)return"";const t=d-H;if(t<0)return"past";if(t==0)return"today";if(NEXT&&+d==+NEXT)return"next";return t<=7*864e5?"soon":""}
 const cell=(r)=>r.d?`<td class="${cl(r.d)}">${fmt(r.d)}</td>`:`<td class="pub">${r.pub?"Por publicar":"—"}</td>`;
-const pn=(t,h,rows)=>`<section class="pn"><h3>${t}</h3><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></section>`;
+const pn=(t,h,rows)=>`<section class="pn"><h3>${t}</h3><div style="overflow-x:auto;width:100%"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
 const lst=(a)=>a.map(r=>`<tr><td>${cap(r.l)}</td>${cell(r)}</tr>`).join("");
 function planHTML(){const f=(d,m)=>d?f2(d)+"-"+MES[MES.findIndex(x=>x.startsWith(m))].slice(0,3).toLowerCase():"—";
  return pn("Plan de pagos",["Mes","QCNA I","Apart.","QCNA II","Apart."],D.plan.map((r,i)=>`<tr><td>${cap(MES[i])}</td><td>${f(r[0],r[1])}</td><td>${f(r[2],r[3])}</td><td>${r[4]?f(r[4],r[5]):"—"}</td><td>${r[6]?f(r[6],r[7]):"—"}</td></tr>`).join(""))}
@@ -1710,7 +1773,7 @@ function calHTML(c){
     <button type="button" class="${S.mode==='cards'?'on':''}" onclick="S.mode='cards';resultados()">Vista por Obligación</button>
     <button type="button" class="${S.mode==='matrix'?'on':''}" onclick="S.mode='matrix';resultados()">Tabla Anual Consolidada</button>
   </div>
-  <div class="leg" style="margin:0"><span style="color:var(--mut)">Vencido</span><span style="background:rgba(220,38,38,0.16);color:#dc2626">Vence hoy</span><span style="background:rgba(26,107,74,0.16);color:#16a34a">Próximo vencimiento</span><span style="background:rgba(245,158,11,0.16);color:#b45309">En 7 días o menos</span></div>
+  <div class="leg"><span style="background:rgba(100,116,139,0.08);color:var(--mut)">Vencido</span><span style="background:rgba(220,38,38,0.12);color:#dc2626;border-color:rgba(220,38,38,0.28)">Vence hoy</span><span style="background:rgba(22,163,74,0.12);color:#15803d;border-color:rgba(22,163,74,0.28)">Próximo vencimiento</span><span style="background:rgba(245,158,11,0.14);color:#b45309;border-color:rgba(245,158,11,0.3)">En 7 días o menos</span></div>
  </div>`;
  if(S.mode==='matrix') return bar+calMatrixHTML(c);
  return bar+`<div class="grid">${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 1.ª quincena",["Mes","Fecha tope"],lst(c.iva1))}${pn("IVA, anticipos ISLR, IGTF y ret. IVA · 2.ª quincena",["Mes","Fecha tope"],lst(c.iva2))}${pn("Protección de las pensiones",["Mes a declarar","Fecha tope"],lst(c.pens))}${pn("Retenciones de ISLR 2026",["Mes a declarar","Fecha tope"],lst(c.islr))}${pn("Autoliquidación anual ISLR 2025",["Concepto","Fecha tope"],`<tr><td>Fecha tope</td>${cell({d:c.aut})}</tr>`)}${pn("Grandes patrimonios",["Mes a declarar","Fecha tope"],lst(c.gp))}${planHTML()}</div>`;
@@ -1943,7 +2006,11 @@ function buildDoc(){
  var st=[].map.call(d.querySelectorAll('style'),function(s){return s.outerHTML}).join('\n');
  var cl=B.cloneNode(true);
  [].forEach.call(cl.querySelectorAll('script,nav,#ux-bar,#emp-banner'),function(n){n.remove()});
- return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+(h1text()||'Documento').replace(/</g,'')+'</title>'+st+'<style>@media print{html,body{background:#fff!important;color:#000!important}}.pn table { width: 100%; }
+@media (min-width: 760px) {
+  .pn:has(th:nth-child(5)) { grid-column: 1 / -1; }
+}
+</style></head>'+cl.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></html>';
 }
 var flag=false;
 window.addEventListener('beforeprint',function(){flag=true;fill()});

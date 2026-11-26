@@ -10,6 +10,9 @@ Cada módulo tiene dos vistas:
   servidor.
 """
 
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
@@ -84,10 +87,10 @@ class ModuloCalculadoraView(ContadorRequiredMixin, SuscripcionRequeridaMixin, Mo
         emp_data['bcv'] = bcv
         ctx['tv_config'] = {
             'modulo': self.modulo.codigo,
-            'empresa': emp_data,
-            'bcv': bcv,
+            'empresa': json.dumps(emp_data, cls=DjangoJSONEncoder, ensure_ascii=False).replace('</', '<\\/'),
+            'bcv': json.dumps(bcv, cls=DjangoJSONEncoder, ensure_ascii=False).replace('</', '<\\/'),
             'urlBcv': reverse('core:api_tasa_bcv'),
-            'datos': {d.clave: d.valor for d in self.empresa.datos.all()},
+            'datos': json.dumps({d.clave: d.valor for d in self.empresa.datos.all()}, cls=DjangoJSONEncoder, ensure_ascii=False).replace('</', '<\\/'),
             'urlDatos': reverse('empresas:datos_modulo', args=[self.empresa.pk]),
             'csrf': get_token(self.request),
         }

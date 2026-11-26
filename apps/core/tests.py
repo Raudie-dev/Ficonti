@@ -9,7 +9,7 @@ from apps.suscripciones.models import Suscripcion
 from apps.usuarios.models import Usuario
 
 
-class TributoVETestSuite(TestCase):
+class FICONTITestSuite(TestCase):
     def setUp(self):
         # Crear superadmin
         self.superadmin = SuperAdmin.objects.create(
@@ -137,7 +137,7 @@ class TributoVETestSuite(TestCase):
         self.assertEqual(res_manifest.status_code, 200)
         self.assertIn('application/manifest+json', res_manifest['Content-Type'])
         data = res_manifest.json()
-        self.assertEqual(data['short_name'], 'TributoVE')
+        self.assertEqual(data['short_name'], 'FICONTI')
         self.assertEqual(data['display'], 'standalone')
         self.assertTrue(len(data['icons']) >= 2)
 

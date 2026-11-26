@@ -1,12 +1,17 @@
 {% extends 'layouts/auth.html' %}
 
-{% block title %}Iniciar Sesión · TributoVE{% endblock %}
+{% block title %}Iniciar Sesión · FICONTI{% endblock %}
+
+{% block auth_top_link %}
+  <span>¿No tienes cuenta?</span>
+  <a href="{% url 'usuarios:registro' %}">Regístrate</a>
+{% endblock %}
 
 {% block content %}
-<div class="text-center mb-3">
-  <h1 class="auth-title">¡Bienvenido de nuevo!</h1>
-  <p class="auth-subtitle mx-auto" style="max-width: 320px;">
-    Simplifica tu gestión tributaria y maximiza tu productividad con TributoVE.
+<div class="text-center">
+  <h1 class="auth-title">¡Bienvenido a FICONTI!</h1>
+  <p class="auth-subtitle">
+    Ingresa tus credenciales para acceder a tu cuenta
   </p>
 </div>
 
@@ -17,7 +22,7 @@
   {% endif %}
 
   {% if form.non_field_errors %}
-    <div class="alert alert-danger py-2 px-3 small mb-3 border-0 text-start" style="border-radius: 14px; font-size: 0.82rem;">
+    <div class="alert alert-danger py-2 px-3 small mb-3 border-0 text-start" style="border-radius: 10px; font-size: 0.82rem;">
       {% for error in form.non_field_errors %}
         <div><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
       {% endfor %}
@@ -26,93 +31,57 @@
 
   <!-- Campo Usuario -->
   <div class="mb-3">
+    <label for="id_usuario" class="auth-field-label">Usuario o correo</label>
     <input
       type="text"
       name="usuario"
       id="id_usuario"
-      class="form-control auth-pill-input {% if form.usuario.errors %}is-invalid{% endif %}"
-      placeholder="Usuario o correo"
+      class="form-control auth-clean-input {% if form.usuario.errors %}is-invalid{% endif %}"
+      placeholder="tu@correo.com"
       autocomplete="username"
       autofocus
       required
       value="{{ form.usuario.value|default:'' }}">
     {% if form.usuario.errors %}
-      <div class="text-danger small ps-3 mt-1 text-start" style="font-size: 0.78rem;">{{ form.usuario.errors.0 }}</div>
+      <div class="text-danger small mt-1 text-start" style="font-size: 0.78rem;">{{ form.usuario.errors.0 }}</div>
     {% endif %}
   </div>
 
   <!-- Campo Contraseña con botón ojo -->
-  <div class="mb-2">
+  <div class="mb-4">
+    <label for="id_clave" class="auth-field-label">Contraseña</label>
     <div class="position-relative">
       <input
         type="password"
         name="clave"
         id="id_clave"
-        class="form-control auth-pill-input pe-5 {% if form.clave.errors %}is-invalid{% endif %}"
-        placeholder="Contraseña"
+        class="form-control auth-clean-input has-toggle {% if form.clave.errors %}is-invalid{% endif %}"
+        placeholder="Ingresa tu contraseña"
         autocomplete="current-password"
         required>
       <button
         type="button"
-        class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-3 text-muted p-1 text-decoration-none"
+        class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted p-1 text-decoration-none"
         onclick="togglePasswordVisibility('id_clave', this)"
         aria-label="Mostrar u ocultar contraseña">
         <i class="bi bi-eye"></i>
       </button>
     </div>
     {% if form.clave.errors %}
-      <div class="text-danger small ps-3 mt-1 text-start" style="font-size: 0.78rem;">{{ form.clave.errors.0 }}</div>
+      <div class="text-danger small mt-1 text-start" style="font-size: 0.78rem;">{{ form.clave.errors.0 }}</div>
     {% endif %}
   </div>
 
-  <!-- Enlace Olvidó Contraseña a la derecha -->
-  <div class="text-end mb-3">
-    <a href="{% url 'usuarios:recuperar' %}" class="text-decoration-none" style="font-size: 0.78rem; font-weight: 500; color: inherit; opacity: 0.85;">
+  <!-- Botón Iniciar Sesión -->
+  <button type="submit" class="btn btn-auth-submit w-100 mb-3">
+    <span>Iniciar sesión</span>
+    <i class="bi bi-arrow-right"></i>
+  </button>
+
+  <div class="text-center">
+    <a href="{% url 'usuarios:recuperar' %}" class="auth-forgot-link">
       ¿Olvidaste tu contraseña?
     </a>
   </div>
-
-  <!-- Botón Iniciar Sesión Píldora -->
-  <button type="submit" class="btn btn-auth-pill w-100">
-    Iniciar sesión
-  </button>
 </form>
-
-<!-- o continúa con -->
-<div class="auth-split-divider">
-  <span>o continúa con</span>
-</div>
-
-<!-- 3 Botones Circulares (G, Apple, Facebook) -->
-<div class="d-flex align-items-center justify-content-center gap-3">
-  <button
-    type="button"
-    class="auth-social-circle"
-    title="Demo rápida de Contador"
-    onclick="document.getElementById('id_usuario').value='contador';document.getElementById('id_clave').focus();">
-    <i class="bi bi-google"></i>
-  </button>
-  <a
-    href="https://declaraciones.seniat.gob.ve/"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="auth-social-circle"
-    title="Portal Fiscal SENIAT">
-    <i class="bi bi-apple"></i>
-  </a>
-  <a
-    href="{% url 'superadmin:login' %}"
-    class="auth-social-circle"
-    title="Acceso SuperAdmin">
-    <i class="bi bi-facebook"></i>
-  </a>
-</div>
-
-<!-- Pie de registro -->
-<div class="text-center mt-auto pt-4">
-  <span class="small" style="color: inherit; opacity: 0.75;">¿No tienes una cuenta?</span>
-  <a href="{% url 'usuarios:registro' %}" class="small fw-bold text-decoration-none ms-1" style="color: inherit;">
-    Regístrate aquí
-  </a>
-</div>
 {% endblock %}

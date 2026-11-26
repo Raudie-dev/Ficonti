@@ -1,23 +1,24 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block extra_css %}
 <style>
 /* ==========================================================================
-   ESTRUCTURA EXACTA DE LOGIN (ESTILO TUGA'S APP / REFERENCIA)
+   SISTEMA DE AUTENTICACIÓN FICONTI (ESTILO SPLIT EJECUTIVO)
    ========================================================================== */
 body {
-  background: var(--tv-bg, #0B0E0C) !important;
+  background: #EEF3FB !important;
   margin: 0;
   padding: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-[data-bs-theme="light"] body {
-  background: #EAEAEA !important;
+[data-bs-theme="dark"] body {
+  background: #060919 !important;
 }
 
 .auth-split-wrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   align-items: center;
@@ -25,420 +26,330 @@ body {
   padding: 2rem 1.25rem;
   box-sizing: border-box;
   position: relative;
+  background-color: #EEF3FB;
+  background-image:
+    radial-gradient(circle at 80% 15%, rgba(37, 99, 235, 0.1) 0%, transparent 45%),
+    radial-gradient(circle at 20% 85%, rgba(13, 17, 136, 0.08) 0%, transparent 45%);
+}
+
+[data-bs-theme="dark"] .auth-split-wrapper {
+  background-color: #060919;
+}
+
+/* Botón flotante de tema arriba a la derecha */
+html:root:root body .auth-split-wrapper .action-circle-btn {
+  border-radius: 50% !important;
+  border: 1.5px solid #93C5FD !important;
+  box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.22) !important;
 }
 
 /* Tarjeta Principal Dividida */
-.auth-split-card {
+html:root:root body .auth-split-card {
   width: 100%;
-  max-width: 960px;
-  min-height: 590px;
+  max-width: 1020px;
+  min-height: 620px;
   background: #FFFFFF;
-  border-radius: 28px;
-  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
+  border: 2px solid #93C5FD;
+  border-radius: 24px !important;
+  box-shadow: 0 28px 65px -18px rgba(13, 17, 136, 0.22) !important;
   display: flex !important;
   flex-direction: row !important;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-[data-bs-theme="dark"] .auth-split-card {
-  background: #141815;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.6);
+[data-bs-theme="dark"] html:root:root body .auth-split-card {
+  background: #0F172A !important;
+  border: 1.5px solid #2563EB !important;
+  box-shadow: 0 26px 70px -15px rgba(0, 0, 0, 0.65) !important;
 }
 
-/* Columna Izquierda: Formulario */
-.auth-form-side {
-  width: 48%;
-  flex: 0 0 48%;
-  padding: 3.25rem 2.75rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-/* Columna Derecha: Escaparate Visual */
-.auth-showcase-side {
-  width: 52%;
-  flex: 0 0 52%;
-  padding: 1rem;
-  display: flex;
-  box-sizing: border-box;
-}
-
-.auth-showcase-panel {
-  width: 100%;
-  height: 100%;
-  border-radius: 24px;
-  background: #F1F8F4;
-  padding: 2rem 1.75rem 1.75rem;
+/* Panel Izquierdo Atmosférico (Desktop) */
+.auth-brand-panel {
+  width: 45%;
+  flex: 0 0 45%;
+  padding: 2.75rem 2.5rem;
+  background:
+    radial-gradient(circle at 78% 22%, rgba(56, 189, 248, 0.26) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.32) 0%, transparent 55%),
+    linear-gradient(160deg, #05045E 0%, #0D1188 55%, #172554 100%);
+  color: #FFFFFF;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  text-align: center;
   position: relative;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
-[data-bs-theme="dark"] .auth-showcase-panel {
-  background: #16221A;
-  border: 1px solid rgba(26, 107, 74, 0.15);
+html:root:root body .auth-panel-emblem {
+  width: 56px;
+  height: 56px;
+  border-radius: 15px !important;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(147, 197, 253, 0.45);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #FFFFFF;
+  margin-bottom: 1.4rem;
+  box-shadow: 0 12px 26px -8px rgba(0, 0, 0, 0.35) !important;
+}
+
+.auth-panel-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  margin-bottom: 0.75rem;
+  max-width: 310px;
+  text-wrap: balance;
+}
+
+.auth-panel-desc {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(219, 234, 254, 0.78);
+  max-width: 300px;
+  margin-bottom: 2rem;
+}
+
+.auth-panel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 0.5rem;
+}
+html:root:root body .auth-dot-btn {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.32);
+  cursor: pointer;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+html:root:root body .auth-dot-btn:hover {
+  background: rgba(255, 255, 255, 0.65);
+}
+html:root:root body .auth-dot-btn.active {
+  background: #FFFFFF;
+  width: 22px;
+}
+.auth-slide-content {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.auth-slide-content.is-switching {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+/* Panel Derecho: Formulario Blanco */
+.auth-form-side {
+  width: 55%;
+  flex: 0 0 55%;
+  padding: 1.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.auth-panel-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.auth-top-brand {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0C0B4E;
+  text-decoration: none;
+}
+[data-bs-theme="dark"] .auth-top-brand {
+  color: #FFFFFF;
+}
+
+.auth-top-link {
+  color: #475569;
+}
+[data-bs-theme="dark"] .auth-top-link {
+  color: #94A3B8;
+}
+.auth-top-link a {
+  color: #0D1188;
+  font-weight: 700;
+  text-decoration: underline;
+  margin-left: 0.25rem;
+}
+[data-bs-theme="dark"] .auth-top-link a {
+  color: #93C5FD;
+}
+
+.auth-form-inner {
+  width: 100%;
+  max-width: 350px;
+  margin: 1.5rem auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Tipografía de Cabecera */
 .auth-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: #111111;
-  margin-bottom: 0.5rem;
-  line-height: 1.15;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0C0B4E;
+  margin-bottom: 0.35rem;
+  line-height: 1.2;
 }
-
 [data-bs-theme="dark"] .auth-title {
   color: #FFFFFF;
 }
 
 .auth-subtitle {
-  font-size: 0.85rem;
-  color: #71717A;
+  font-size: 0.82rem;
+  color: #64748B;
   line-height: 1.45;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
-
 [data-bs-theme="dark"] .auth-subtitle {
-  color: #A1A1AA;
+  color: #94A3B8;
 }
 
-/* Inputs Píldora Redondos */
-.auth-pill-input {
-  border-radius: 999px !important;
-  height: 48px !important;
-  padding: 0 1.4rem !important;
-  font-size: 0.92rem !important;
-  border: 1.5px solid #E2E4E8 !important;
+/* Etiquetas y Campos */
+.auth-field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.4rem;
+}
+[data-bs-theme="dark"] .auth-field-label {
+  color: #CBD5E1;
+}
+
+html:root:root body .auth-clean-input {
+  border-radius: 10px !important;
+  height: 44px !important;
+  padding: 0 0.95rem !important;
+  font-size: 0.88rem !important;
+  border: 1.5px solid #CBD5E1 !important;
   background: #FFFFFF !important;
-  color: #111111 !important;
+  color: #0C0B4E !important;
   outline: none !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
-
-[data-bs-theme="dark"] .auth-pill-input {
-  background: #1A201C !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+html:root:root body .auth-clean-input.has-toggle {
+  padding-right: 2.75rem !important;
+}
+[data-bs-theme="dark"] html:root:root body .auth-clean-input {
+  background: #1E293B !important;
+  border-color: rgba(147, 197, 253, 0.25) !important;
   color: #FFFFFF !important;
 }
-
-.auth-pill-input:focus {
-  border-color: #22C55E !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2) !important;
+html:root:root body .auth-clean-input:focus {
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
 }
 
-[data-bs-theme="dark"] .auth-pill-input:focus {
-  border-color: #1A6B4A !important;
-  box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.2) !important;
-}
-
-/* Botón Principal Píldora Negro */
-.btn-auth-pill {
-  border-radius: 999px !important;
-  height: 48px !important;
-  background: #000000 !important;
+/* Botón Principal */
+html:root:root body .btn-auth-submit {
+  border-radius: 10px !important;
+  height: 44px !important;
+  background: linear-gradient(135deg, #0D1188 0%, #2563EB 100%) !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  border: 0 !important;
+  font-size: 0.9rem !important;
+  border: 1.5px solid #1E40AF !important;
+  box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.42) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: transform 0.15s ease, opacity 0.15s ease !important;
+  gap: 0.45rem !important;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease !important;
   cursor: pointer !important;
 }
-
-[data-bs-theme="dark"] .btn-auth-pill {
-  background: #1A6B4A !important; color: #ffffff !important;
-}
-
-.btn-auth-pill:hover {
+html:root:root body .btn-auth-submit:hover {
   transform: translateY(-1px) !important;
-  opacity: 0.92 !important;
+  filter: brightness(1.07);
+  box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.5) !important;
 }
 
-/* Divisor 'or continue with' */
-.auth-split-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: #8E8E93;
-  font-size: 0.78rem;
-  margin: 1.75rem 0;
-}
-
-.auth-split-divider::before,
-.auth-split-divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-[data-bs-theme="dark"] .auth-split-divider::before,
-[data-bs-theme="dark"] .auth-split-divider::after {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.auth-split-divider span {
-  padding: 0 0.85rem;
-}
-
-/* Botones Circulares Sociales (G, Apple, Facebook) */
-.auth-social-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: 50% !important;
-  background: #000000;
-  color: #FFFFFF;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.15rem;
-  text-decoration: none;
-  border: 0;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-  cursor: pointer;
-}
-
-[data-bs-theme="dark"] .auth-social-circle {
-  background: #1A201C;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.auth-social-circle:hover {
-  transform: translateY(-2px);
-  opacity: 0.9;
-  color: #FFFFFF;
-}
-
-/* ==========================================================================
-   ILUSTRACIÓN FINANCIERA Y CONTABLE (CHARTS, GRÁFICAS Y CARDS)
-   ========================================================================== */
-.showcase-scene {
-  width: 100%;
-  padding: 1.5rem 0.5rem;
-}
-
-/* Tarjeta Principal de Gráfica */
-.fintech-main-chart-card {
-  width: 100%;
-  max-width: 370px;
-  background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1.25rem 1.35rem 1.15rem;
-  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  z-index: 1;
-  position: relative;
-  transition: transform 0.2s ease;
-}
-
-[data-bs-theme="dark"] .fintech-main-chart-card {
-  background: #141815;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 18px 40px -5px rgba(0, 0, 0, 0.55);
-}
-
-.live-indicator {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22C55E;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
-  display: inline-block;
-}
-
-.chart-header-tag {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #6B7280;
-  text-transform: uppercase;
-}
-[data-bs-theme="dark"] .chart-header-tag {
-  color: #9CA3AF;
-}
-
-.chart-growth-pill {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #16A34A;
-  background: rgba(34, 197, 94, 0.12);
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  display: inline-flex;
-  align-items: center;
-}
-[data-bs-theme="dark"] .chart-growth-pill {
-  color: #1A6B4A;
-  background: rgba(26, 107, 74, 0.15);
-}
-
-.chart-currency {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: #111111;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-[data-bs-theme="dark"] .chart-currency {
-  color: #FFFFFF;
-}
-
-.chart-caption {
-  font-size: 0.72rem;
-  color: #8B958E;
-  margin-top: 2px;
-}
-
-/* Widgets Flotantes Contables */
-.fintech-float-pill {
-  position: absolute;
-  background: #FFFFFF;
-  border-radius: 999px;
-  padding: 0.45rem 0.95rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  z-index: 2;
-  white-space: nowrap;
-}
-[data-bs-theme="dark"] .fintech-float-pill {
-  background: #1A221C;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-.fintech-float-pill.top-left {
-  top: 8px;
-  left: 8px;
-}
-.fintech-float-pill.bottom-left {
-  bottom: 8px;
-  left: 8px;
-}
-.fintech-float-pill.bottom-right {
-  bottom: 8px;
-  right: 8px;
-}
-
-.fintech-float-card {
-  position: absolute;
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 0.55rem 0.95rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  z-index: 2;
-}
-[data-bs-theme="dark"] .fintech-float-card {
-  background: #1A221C;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-.fintech-float-card.top-right {
-  top: 8px;
-  right: 8px;
-}
-
-.icon-pulse-box {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.88rem;
-  flex-shrink: 0;
-}
-.icon-pulse-box.modules {
-  background: rgba(26, 107, 74, 0.15);
-}
-.icon-pulse-box.bank {
-  background: rgba(45, 81, 40, 0.2);
-}
-
-.pill-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #111111;
-  line-height: 1.15;
-}
-[data-bs-theme="dark"] .pill-label {
-  color: #FFFFFF;
-}
-
-.pill-status {
-  font-size: 0.65rem;
-  color: #6B7280;
-}
-[data-bs-theme="dark"] .pill-status {
-  color: #9CA3AF;
-}
-
-.donut-title {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #111111;
-  line-height: 1.15;
-}
-[data-bs-theme="dark"] .donut-title {
-  color: #FFFFFF;
-}
-.donut-sub {
-  font-size: 0.65rem;
-  color: #22C55E;
+.auth-forgot-link {
+  font-size: 0.8rem;
   font-weight: 600;
+  color: #0D1188;
+  text-decoration: underline;
+}
+[data-bs-theme="dark"] .auth-forgot-link {
+  color: #93C5FD;
 }
 
-/* Dots de paginación */
-.showcase-dots {
+html:root:root body .auth-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.24rem 0.7rem;
+  border-radius: 999px !important;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  margin-bottom: 0.6rem;
+}
+
+/* Footer del panel derecho */
+.auth-panel-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.74rem;
+  color: #64748B;
 }
-.showcase-dots .dot-sm {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #D1D5DB;
+[data-bs-theme="dark"] .auth-panel-footer {
+  color: #94A3B8;
 }
-.showcase-dots .dot-lg {
-  width: 22px;
-  height: 6px;
-  border-radius: 999px;
-  background: #111111;
+.auth-panel-footer a {
+  color: inherit;
+  text-decoration: none;
 }
-[data-bs-theme="dark"] .showcase-dots .dot-lg {
-  background: #1A6B4A;
+.auth-panel-footer a:hover {
+  color: #0D1188;
+  text-decoration: underline;
 }
 
 /* Adaptación Responsive */
 @media (max-width: 900px) {
-  .auth-split-card {
+  .auth-split-wrapper {
+    padding: 4rem 0.85rem 1.75rem;
+  }
+  html:root:root body .auth-split-card {
     flex-direction: column !important;
-    max-width: 460px;
+    max-width: 440px;
     min-height: auto;
-    border-radius: 24px;
+    border-radius: 20px !important;
+  }
+  .auth-brand-panel {
+    display: none !important;
   }
   .auth-form-side {
     width: 100% !important;
     flex: 1 1 100% !important;
-    padding: 2.5rem 1.75rem;
-  }
-  .auth-showcase-side {
-    display: none !important;
+    padding: 1.5rem 1.35rem;
   }
 }
 </style>
@@ -446,34 +357,59 @@ body {
 
 {% block layout_content %}
 <div class="auth-split-wrapper">
-  <!-- Botón superior para volver a la Landing Page -->
-  <div class="position-absolute top-0 start-0 p-3 p-md-4">
-    <a href="{% url 'core:landing' %}" class="btn btn-sm btn-outline-custom d-inline-flex align-items-center gap-1.5 px-3 py-1.5" style="border-radius: 999px; font-size: 0.8rem;">
-      <i class="bi bi-arrow-left"></i>
-      <span>Volver a Portada</span>
-    </a>
-  </div>
-
-  <!-- Botón superior flotante de cambio de tema (Claro / Oscuro) -->
+  <!-- Botón flotante de cambio de tema (Claro / Oscuro) -->
   <div class="position-absolute top-0 end-0 p-3 p-md-4">
     <button type="button" class="action-circle-btn theme-toggle-btn shadow-sm" title="Cambiar tema (Claro / Oscuro)">
       <i class="bi bi-moon-stars-fill theme-toggle-icon"></i>
     </button>
   </div>
 
-  <!-- Tarjeta Dividida Idéntica a la Imagen de Referencia -->
+  <!-- Tarjeta Dividida Estilo Ejecutivo -->
   <div class="auth-split-card">
-    <!-- Columna Izquierda: Formulario -->
-    <div class="auth-form-side">
-      {% block content %}{% endblock %}
-    </div>
+    <!-- Panel Izquierdo Atmosférico (Desktop) -->
+    <aside class="auth-brand-panel" id="authBrandPanel">
+      <div class="auth-slide-content d-flex flex-column align-items-center" id="authSlideContent">
+        <div class="auth-panel-emblem">
+          <i class="bi bi-shield-lock-fill" id="authSlideIcon"></i>
+        </div>
+        <h2 class="auth-panel-title" id="authSlideTitle">
+          Una plataforma para centralizar tu control fiscal
+        </h2>
+        <p class="auth-panel-desc" id="authSlideDesc">
+          Retenciones ISLR e IVA, calendario oficial del SENIAT y conciliación bancaria en tiempo real.
+        </p>
+      </div>
+      <div class="auth-panel-dots" role="tablist" aria-label="Características de FICONTI">
+        <button type="button" class="auth-dot-btn active" data-slide="0" aria-label="Control fiscal integral" aria-selected="true"></button>
+        <button type="button" class="auth-dot-btn" data-slide="1" aria-label="Calendario SENIAT por RIF" aria-selected="false"></button>
+        <button type="button" class="auth-dot-btn" data-slide="2" aria-label="Cédulas y multi-empresa" aria-selected="false"></button>
+      </div>
+    </aside>
 
-    <!-- Columna Derecha: Escaparate Visual con Personaje Zen -->
-    <div class="auth-showcase-side">
-      <div class="auth-showcase-panel">
-        {% block auth_showcase %}
-          {% include 'partials/auth_illustration.html' %}
-        {% endblock %}
+    <!-- Panel Derecho: Formulario -->
+    <div class="auth-form-side">
+      <div class="auth-panel-topbar">
+        <a href="{% url 'core:landing' %}" class="auth-top-brand">
+          FICONTI<span style="color: #0284C7;">.</span>
+        </a>
+        <div class="auth-top-link">
+          {% block auth_top_link %}
+            <span>¿No tienes cuenta?</span>
+            <a href="{% url 'usuarios:registro' %}">Regístrate</a>
+          {% endblock %}
+        </div>
+      </div>
+
+      <div class="auth-form-inner">
+        {% block content %}{% endblock %}
+      </div>
+
+      <div class="auth-panel-footer">
+        <span>© 2026/27 FICONTI</span>
+        <div class="d-flex align-items-center gap-3">
+          <a href="{% url 'core:landing' %}">Portada</a>
+          <a href="https://declaraciones.seniat.gob.ve/" target="_blank" rel="noopener noreferrer">SENIAT</a>
+        </div>
       </div>
     </div>
   </div>
@@ -494,6 +430,92 @@ body {
       if (icon) icon.className = 'bi bi-eye';
     }
   }
+
+  // Carrusel interactivo del panel izquierdo (3 botones)
+  (function() {
+    var slides = [
+      {
+        icon: 'bi bi-shield-lock-fill',
+        title: 'Una plataforma para centralizar tu control fiscal',
+        desc: 'Retenciones ISLR e IVA, calendario oficial del SENIAT y conciliación bancaria en tiempo real.'
+      },
+      {
+        icon: 'bi bi-calendar2-check-fill',
+        title: 'Calendario SPE y alertas por terminal de RIF',
+        desc: 'Anticipa vencimientos de quincenas de IVA, IGTF, pensiones y retenciones sin multas ni recargos.'
+      },
+      {
+        icon: 'bi bi-file-earmark-spreadsheet-fill',
+        title: 'Cédulas fiscales y multi-empresa en la nube',
+        desc: 'Gestiona toda tu cartera de clientes con papeles de trabajo auditables en computadora y teléfono.'
+      }
+    ];
+
+    var panel = document.getElementById('authBrandPanel');
+    var content = document.getElementById('authSlideContent');
+    var iconEl = document.getElementById('authSlideIcon');
+    var titleEl = document.getElementById('authSlideTitle');
+    var descEl = document.getElementById('authSlideDesc');
+    var dots = document.querySelectorAll('.auth-dot-btn');
+    if (!panel || !content || !dots.length) return;
+
+    var current = 0;
+    var timer = null;
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function showSlide(index) {
+      current = (index + slides.length) % slides.length;
+      dots.forEach(function(dot, i) {
+        var active = i === current;
+        dot.classList.toggle('active', active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      if (reducedMotion) {
+        iconEl.className = slides[current].icon;
+        titleEl.textContent = slides[current].title;
+        descEl.textContent = slides[current].desc;
+        return;
+      }
+
+      content.classList.add('is-switching');
+      setTimeout(function() {
+        iconEl.className = slides[current].icon;
+        titleEl.textContent = slides[current].title;
+        descEl.textContent = slides[current].desc;
+        content.classList.remove('is-switching');
+      }, 180);
+    }
+
+    function startAuto() {
+      if (reducedMotion) return;
+      stopAuto();
+      timer = setInterval(function() {
+        showSlide(current + 1);
+      }, 5000);
+    }
+
+    function stopAuto() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var idx = parseInt(dot.getAttribute('data-slide'), 10);
+        if (!isNaN(idx)) {
+          showSlide(idx);
+          startAuto();
+        }
+      });
+    });
+
+    panel.addEventListener('mouseenter', stopAuto);
+    panel.addEventListener('mouseleave', startAuto);
+    startAuto();
+  })();
 
   // Si la página se recupera de la caché de historial del navegador (bfcache),
   // recarga automáticamente para sincronizar el token CSRF con las cookies activas
