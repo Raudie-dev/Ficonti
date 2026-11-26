@@ -29,13 +29,16 @@ SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
     'django-insecure-6a#e6xlrlj)g)@8n(ozv6+q#oj*vkanb^ry01x$b$ekhc@c1qo',
 )
-DEBUG = env_bool('DJANGO_DEBUG', True)
+DEBUG = env_bool('DJANGO_DEBUG', False)
 
 DEFAULT_ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
     'testserver',
+    'ficonti.net',
+    'www.ficonti.net',
+    '.ficonti.net',
     'demos.raudie.net',
     '.demos.raudie.net',
 ]
@@ -43,6 +46,12 @@ _env_hosts = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').spli
 ALLOWED_HOSTS = list(dict.fromkeys(DEFAULT_ALLOWED_HOSTS + _env_hosts))
 
 DEFAULT_CSRF_TRUSTED_ORIGINS = [
+    'https://ficonti.net',
+    'https://www.ficonti.net',
+    'http://ficonti.net',
+    'http://www.ficonti.net',
+    'https://*.ficonti.net',
+    'http://*.ficonti.net',
     'http://0.0.0.0:5555',
     'http://127.0.0.1:5555',
     'http://localhost:5555',
