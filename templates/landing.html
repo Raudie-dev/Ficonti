@@ -13,7 +13,8 @@
   <header class="landing-header">
     <div class="container d-flex align-items-center justify-content-between py-3">
       <!-- Logo de la marca -->
-      <a href="{% url 'core:landing' %}" class="d-flex align-items-center text-decoration-none">
+      <a href="{% url 'core:landing' %}" class="d-flex align-items-center gap-2 text-decoration-none">
+        <img src="{% static 'icons/logo.png' %}" alt="Logo FICONTI" width="32" height="38" style="height: 36px; width: auto; object-fit: contain;">
         <span class="landing-brand-name">FICONTI<span class="text-accent-cyan">.</span></span>
       </a>
 
@@ -564,7 +565,8 @@
     <div class="container">
       <div class="row g-4 align-items-center justify-content-between mb-4 pb-4 landing-footer-divider">
         <div class="col-md-6">
-          <a href="{% url 'core:landing' %}" class="d-inline-flex align-items-center text-decoration-none mb-2">
+          <a href="{% url 'core:landing' %}" class="d-inline-flex align-items-center gap-2 text-decoration-none mb-2">
+            <img src="{% static 'icons/logo.png' %}" alt="Logo FICONTI" width="30" height="36" style="height: 34px; width: auto; object-fit: contain;">
             <span class="landing-brand-name">FICONTI<span class="text-accent-cyan">.</span></span>
           </a>
           <p class="landing-muted small mb-0" style="max-width: 420px;">

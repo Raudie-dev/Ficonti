@@ -93,14 +93,22 @@ def recuperar_view(request):
     form = RecuperarClaveMailForm(request.POST or None)
     enviado = False
     correo_enviado = ''
+    error_recuperacion = ''
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email'].strip().lower()
         usuario_txt = (form.cleaned_data.get('usuario') or '').strip().lower()
-        qs = Usuario.objects.filter(email__iexact=email, is_active=True)
+        qs = Usuario.objects.filter(email__iexact=email)
         if usuario_txt:
             qs = qs.filter(usuario__iexact=usuario_txt)
         user = qs.first()
-        if user:
+        if user is None:
+            error_recuperacion = 'Ese correo electrónico no se encuentra registrado en el sistema.'
+            form.add_error('email', error_recuperacion)
+            messages.error(request, error_recuperacion)
+        elif not user.is_active:
+            error_recuperacion = 'La cuenta asociada a ese correo está deshabilitada. Contacte al administrador.'
+            messages.error(request, error_recuperacion)
+        else:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             path_reset = reverse('usuarios:restablecer_clave', kwargs={'uidb64': uid, 'token': token})
@@ -113,16 +121,13 @@ def recuperar_view(request):
                     f'Enviamos las instrucciones de recuperación a {user.email}. Revise su bandeja de entrada o spam.',
                 )
             else:
-                messages.error(
-                    request,
-                    'No se pudo enviar el correo de recuperación en este momento. Intente nuevamente más tarde.',
-                )
-        else:
-            messages.error(request, 'No encontramos una cuenta activa asociada a ese correo electrónico.')
+                error_recuperacion = 'No se pudo enviar el correo de recuperación en este momento. Intente nuevamente más tarde.'
+                messages.error(request, error_recuperacion)
     return render(request, 'usuarios/recuperar.html', {
         'form': form,
         'enviado': enviado,
         'correo_enviado': correo_enviado,
+        'error_recuperacion': error_recuperacion,
         'config_pago': ConfiguracionPago.obtener(),
     })
 

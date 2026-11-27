@@ -194,6 +194,15 @@ class FICONTITestSuite(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('Bienvenido', mail.outbox[0].subject)
 
+        # Recuperación con correo no registrado -> no envía correo y muestra mensaje al usuario
+        mail.outbox.clear()
+        res_no_reg = client_anon.post(reverse('usuarios:recuperar'), {
+            'email': 'noexiste@test.com',
+        })
+        self.assertEqual(res_no_reg.status_code, 200)
+        self.assertContains(res_no_reg, 'no se encuentra registrado')
+        self.assertEqual(len(mail.outbox), 0)
+
         # Recuperación de clave por correo (envía enlace por email y NO lo expone en la página)
         mail.outbox.clear()
         res_rec = client_anon.post(reverse('usuarios:recuperar'), {

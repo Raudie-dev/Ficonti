@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tributove-v2';
+const CACHE_NAME = 'tributove-v3';
 const OFFLINE_URL = '/offline/';
 
 const PRECACHE_ASSETS = [
@@ -7,9 +7,10 @@ const PRECACHE_ASSETS = [
   '/static/css/tributove.css',
   '/static/js/tributove.js',
   '/static/manifest.json',
+  '/static/icons/logo.png',
+  '/static/icons/favicon.png',
   '/static/icons/icon-192.png',
   '/static/icons/icon-512.png',
-  '/static/icons/icon.svg',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
