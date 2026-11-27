@@ -1,4 +1,7 @@
 from decimal import Decimal
+import re
+
+from django.core import mail
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -177,7 +180,8 @@ class FICONTITestSuite(TestCase):
         self.assertEqual(res_emp.status_code, 302)
         self.assertTrue(Empresa.objects.filter(rif='J-98765432-1').exists())
 
-        # Registro de usuario solo con usuario, email y clave
+        # Registro de usuario solo con usuario, email y clave (envía correo de bienvenida)
+        mail.outbox.clear()
         client_anon = Client()
         res_reg = client_anon.post(reverse('usuarios:registro'), {
             'usuario': 'nuevo_user',
@@ -187,13 +191,36 @@ class FICONTITestSuite(TestCase):
         })
         self.assertEqual(res_reg.status_code, 302)
         self.assertTrue(Usuario.objects.filter(usuario='nuevo_user', email='nuevo@test.com').exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Bienvenido', mail.outbox[0].subject)
 
-        # Recuperación de clave por correo
+        # Recuperación de clave por correo (envía enlace por email y NO lo expone en la página)
+        mail.outbox.clear()
         res_rec = client_anon.post(reverse('usuarios:recuperar'), {
             'email': 'nuevo@test.com',
         })
         self.assertEqual(res_rec.status_code, 200)
-        self.assertContains(res_rec, 'Restablecer mi clave ahora')
+        self.assertContains(res_rec, 'Correo de recuperación enviado')
+        self.assertNotContains(res_rec, '/recuperar-clave/')
+        self.assertEqual(len(mail.outbox), 1)
+        correo_rec = mail.outbox[0]
+        self.assertEqual(correo_rec.to, ['nuevo@test.com'])
+        self.assertIn('notificaciones@ficonti.net', correo_rec.from_email)
+        self.assertTrue(correo_rec.alternatives)
+
+        # Usar el enlace recibido por correo para restablecer la clave
+        m_link = re.search(r'https?://[^/\s]+(/recuperar-clave/[^\s]+)', correo_rec.body)
+        self.assertIsNotNone(m_link, 'El correo debe incluir el enlace de recuperación')
+        mail.outbox.clear()
+        res_reset = client_anon.post(m_link.group(1), {
+            'clave1': 'NuevaClave2026!',
+            'clave2': 'NuevaClave2026!',
+        })
+        self.assertEqual(res_reset.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Clave de acceso actualizada', mail.outbox[0].subject)
+        nuevo_user = Usuario.objects.get(usuario='nuevo_user')
+        self.assertTrue(nuevo_user.check_password('NuevaClave2026!'))
 
         # API de Tasa del Banco Central de Venezuela (BCV)
         res_bcv = client.get(reverse('core:api_tasa_bcv'))
@@ -202,3 +229,36 @@ class FICONTITestSuite(TestCase):
         self.assertTrue(data_bcv['ok'])
         self.assertGreater(float(data_bcv['usd']), 0)
         self.assertGreater(float(data_bcv['eur']), 0)
+
+    def test_notificaciones_correo_suscripcion_y_pagos(self):
+        """Verifica que el panel de superadmin envía notificaciones por correo en pagos y cambios de suscripción."""
+        client = Client()
+        client.post(reverse('superadmin:login'), {
+            'usuario': 'superadmin_test',
+            'clave': 'AdminPass123!',
+        })
+
+        # Suspender suscripción -> envía notificación
+        mail.outbox.clear()
+        res_susp = client.post(reverse('superadmin:contador_alternar', args=[self.contador.pk]))
+        self.assertEqual(res_susp.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['contador@test.com'])
+        self.assertIn('Suscripción suspendida', mail.outbox[0].subject)
+
+        # Registrar pago -> envía notificación de pago aprobado
+        mail.outbox.clear()
+        res_pago = client.post(reverse('superadmin:contador_pago', args=[self.contador.pk]), {
+            'ciclo': 'mensual',
+            'monto': '10.00',
+            'moneda': 'USD',
+            'dias': '30',
+            'metodo': 'pago_movil',
+            'referencia': 'REF-998877',
+            'nota': 'Pago de prueba',
+        })
+        self.assertEqual(res_pago.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['contador@test.com'])
+        self.assertIn('Pago aprobado', mail.outbox[0].subject)
+        self.assertIn('REF-998877', mail.outbox[0].body)

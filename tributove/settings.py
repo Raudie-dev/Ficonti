@@ -256,6 +256,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'apps.core.validators.LetrasYNumerosValidator'},
 ]
 
+PASSWORD_HASHERS = [
+    'tributove.hashers.FicontiPBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+]
+
 # Bloqueo temporal tras intentos fallidos de ingreso
 LOGIN_MAX_INTENTOS = 5
 LOGIN_BLOQUEO_SEGUNDOS = 30
@@ -295,6 +304,32 @@ MESSAGE_TAGS = {
     message_constants.WARNING: 'warning',
     message_constants.ERROR: 'danger',
 }
+
+# ---------------------------------------------------------------------------
+# Correo electrónico (SMTP SSL/TLS para notificaciones y recuperación de clave)
+# ---------------------------------------------------------------------------
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '').strip()
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '465'))
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', EMAIL_PORT == 465)
+EMAIL_USE_TLS = False if EMAIL_USE_SSL else env_bool('EMAIL_USE_TLS', EMAIL_PORT == 587)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '15'))
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL',
+    f'FICONTI <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'notificaciones@ficonti.net',
+).strip()
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+_default_email_backend = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if (EMAIL_HOST and EMAIL_HOST_USER)
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', _default_email_backend).strip()
+
+# Vigencia de enlaces de recuperación de clave (24 horas por defecto)
+PASSWORD_RESET_TIMEOUT = int(os.environ.get('PASSWORD_RESET_TIMEOUT', str(60 * 60 * 24)))
 
 # Datos del sistema
 TRIBUTOVE = {

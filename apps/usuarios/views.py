@@ -2,13 +2,17 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import url_has_allowed_host_and_scheme, urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_POST
 
+from apps.core.emails import (
+    enviar_notificacion_bienvenida,
+    enviar_notificacion_clave_actualizada,
+    enviar_recuperacion_clave,
+)
 from apps.core.utils import ControlIntentos
 from apps.suscripciones.models import ConfiguracionPago
 
@@ -23,17 +27,23 @@ from .forms import (
 from .models import Usuario
 
 
-def _siguiente(request, defecto='core:inicio'):
+def _siguiente(request, user=None, defecto=None):
     nxt = request.POST.get('next') or request.GET.get('next')
     if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
         return nxt
-    return defecto
+    if defecto:
+        return defecto
+    if user is not None:
+        if user.empresas.exists() and user.suscripcion_activa:
+            return 'empresas:resumen'
+        return 'empresas:lista'
+    return 'core:inicio'
 
 
 def login_view(request):
     """Ingreso de usuarios (contadores, administradores, economistas)."""
     if request.user.is_authenticated:
-        return redirect('core:inicio')
+        return redirect(_siguiente(request, user=request.user))
     form = LoginForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         usuario = form.cleaned_data['usuario'].strip().lower()
@@ -48,7 +58,7 @@ def login_view(request):
                 messages.success(request, f'Bienvenido, {user.get_short_name()}.')
                 if not user.suscripcion_activa:
                     messages.warning(request, 'Su suscripción no está activa. Revise las instrucciones de pago.')
-                return redirect(_siguiente(request))
+                return redirect(_siguiente(request, user=user))
             control.fallo()
             messages.error(request, 'Usuario o clave incorrectos.')
     return render(request, 'usuarios/login.html', {'form': form, 'next': request.GET.get('next', '')})
@@ -69,6 +79,8 @@ def registro_view(request):
     if request.method == 'POST':
         if form.is_valid():
             user = form.save()
+            url_login = request.build_absolute_uri(reverse('usuarios:login'))
+            enviar_notificacion_bienvenida(user, url_login=url_login)
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, 'Cuenta creada correctamente. Registre su primera empresa para activar los módulos.')
             return redirect('core:inicio')
@@ -79,8 +91,8 @@ def registro_view(request):
 def recuperar_view(request):
     """Recuperación de clave por correo electrónico."""
     form = RecuperarClaveMailForm(request.POST or None)
-    enlace_recuperacion = None
     enviado = False
+    correo_enviado = ''
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email'].strip().lower()
         usuario_txt = (form.cleaned_data.get('usuario') or '').strip().lower()
@@ -93,28 +105,24 @@ def recuperar_view(request):
             token = default_token_generator.make_token(user)
             path_reset = reverse('usuarios:restablecer_clave', kwargs={'uidb64': uid, 'token': token})
             enlace_recuperacion = request.build_absolute_uri(path_reset)
-            try:
-                send_mail(
-                    subject='Recuperación de clave · Gestión Fiscal Venezuela',
-                    message=(
-                        f'Hola {user.nombre_mostrar},\n\n'
-                        f'Recibimos una solicitud para restablecer la clave de su usuario «{user.usuario}».\n'
-                        f'Abra el siguiente enlace para crear una nueva clave:\n\n{enlace_recuperacion}\n'
-                    ),
-                    from_email='no-reply@tributove.local',
-                    recipient_list=[user.email],
-                    fail_silently=True,
+            if enviar_recuperacion_clave(user, enlace_recuperacion):
+                enviado = True
+                correo_enviado = user.email
+                messages.success(
+                    request,
+                    f'Enviamos las instrucciones de recuperación a {user.email}. Revise su bandeja de entrada o spam.',
                 )
-            except Exception:
-                pass
-            enviado = True
-            messages.success(request, f'Se generaron las instrucciones de recuperación para {email}.')
+            else:
+                messages.error(
+                    request,
+                    'No se pudo enviar el correo de recuperación en este momento. Intente nuevamente más tarde.',
+                )
         else:
             messages.error(request, 'No encontramos una cuenta activa asociada a ese correo electrónico.')
     return render(request, 'usuarios/recuperar.html', {
         'form': form,
         'enviado': enviado,
-        'enlace_recuperacion': enlace_recuperacion,
+        'correo_enviado': correo_enviado,
         'config_pago': ConfiguracionPago.obtener(),
     })
 
@@ -135,6 +143,7 @@ def restablecer_clave_view(request, uidb64, token):
         if not form.errors:
             user.set_password(form.cleaned_data['clave1'])
             user.save()
+            enviar_notificacion_clave_actualizada(user)
             messages.success(request, 'Su clave ha sido actualizada. Ya puede iniciar sesión.')
             return redirect('usuarios:login')
 
@@ -163,6 +172,7 @@ def mi_cuenta_view(request):
             if clave_form.is_valid():
                 user = clave_form.save()
                 update_session_auth_hash(request, user)
+                enviar_notificacion_clave_actualizada(user)
                 messages.success(request, 'Clave actualizada.')
                 return redirect('usuarios:mi_cuenta')
             messages.error(request, 'No se pudo cambiar la clave. Revise los campos.')

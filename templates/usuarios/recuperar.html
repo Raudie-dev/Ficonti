@@ -16,17 +16,14 @@
   </p>
 </div>
 
-{% if enviado and enlace_recuperacion %}
+{% if enviado %}
   <div class="p-3 mb-3 rounded-4" style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.85rem;">
     <div class="fw-bold mb-1" style="color: var(--tv-emerald);">
-      <i class="bi bi-envelope-check-fill me-1"></i> Solicitud de recuperación procesada
+      <i class="bi bi-envelope-check-fill me-1"></i> Correo de recuperación enviado
     </div>
-    <p class="small mb-2 text-muted">
-      Se ha enviado el enlace de restablecimiento a su correo electrónico. También puede continuar directamente desde aquí:
+    <p class="small mb-0 text-muted">
+      Se ha enviado un enlace de restablecimiento a <strong>{{ correo_enviado }}</strong>. Revise su bandeja de entrada y la carpeta de correo no deseado (spam).
     </p>
-    <a href="{{ enlace_recuperacion }}" class="btn btn-sm btn-dash-primary w-100 text-center">
-      <i class="bi bi-key-fill me-1"></i> Restablecer mi clave ahora
-    </a>
   </div>
 {% endif %}
 

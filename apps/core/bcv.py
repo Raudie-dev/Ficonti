@@ -79,7 +79,7 @@ def _http_get(url, timeout=4.0):
 
 def _fetch_from_bcv_portal():
     """Extrae USD y EUR directamente de https://www.bcv.org.ve/."""
-    html = _http_get('https://www.bcv.org.ve/', timeout=4.5)
+    html = _http_get('https://www.bcv.org.ve/', timeout=2.5)
     m_usd = re.search(r'id=["\']dolar["\'][\s\S]{0,600}?<strong>\s*([0-9.,]+)\s*</strong>', html, re.IGNORECASE)
     m_eur = re.search(r'id=["\']euro["\'][\s\S]{0,600}?<strong>\s*([0-9.,]+)\s*</strong>', html, re.IGNORECASE)
     usd = _parse_decimal_ve(m_usd.group(1)) if m_usd else None
@@ -104,7 +104,7 @@ def _fetch_from_bcv_portal():
 
 def _fetch_from_dolarapi():
     """Consulta la tasa oficial BCV a través de ve.dolarapi.com."""
-    raw_usd = _http_get('https://ve.dolarapi.com/v1/dolares/oficial', timeout=4.0)
+    raw_usd = _http_get('https://ve.dolarapi.com/v1/dolares/oficial', timeout=2.5)
     data_usd = json.loads(raw_usd)
     usd = _parse_decimal_ve(data_usd.get('promedio'))
     if not usd:
@@ -112,7 +112,7 @@ def _fetch_from_dolarapi():
 
     eur = None
     try:
-        raw_eur = _http_get('https://ve.dolarapi.com/v1/euros/oficial', timeout=3.0)
+        raw_eur = _http_get('https://ve.dolarapi.com/v1/euros/oficial', timeout=2.0)
         data_eur = json.loads(raw_eur)
         eur = _parse_decimal_ve(data_eur.get('promedio'))
     except Exception:
@@ -157,7 +157,7 @@ def _save_disk_cache(data):
 def _fetch_usd_cop(fallback=DEFAULT_USD_COP):
     """Obtiene la TRM oficial (COP por 1 USD) para calcular la paridad COP/VES."""
     try:
-        raw = _http_get('https://co.dolarapi.com/v1/trm', timeout=3.0)
+        raw = _http_get('https://co.dolarapi.com/v1/trm', timeout=2.0)
         data = json.loads(raw)
         val = _parse_decimal_ve(data.get('valor'))
         if val and val > 100:

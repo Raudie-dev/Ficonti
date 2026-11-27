@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from apps.core.emails import (
+    enviar_notificacion_clave_actualizada,
+    enviar_notificacion_suscripcion,
+)
 from apps.core.utils import ControlIntentos
 from apps.empresas.models import Empresa
 from apps.empresas.views import construir_resumen, totales_resumen
@@ -177,6 +181,7 @@ def contador_clave(request, pk):
     if form.is_valid():
         contador.set_password(form.cleaned_data['clave1'])
         contador.save(update_fields=['password'])
+        enviar_notificacion_clave_actualizada(contador, por_admin=True)
         messages.success(request, f'Clave de {contador.nombre} restablecida.')
     else:
         errores = '; '.join(e for errs in form.errors.values() for e in errs)
@@ -199,12 +204,17 @@ def contador_eliminar(request, pk):
 def contador_suscripcion(request, pk):
     contador = get_object_or_404(Usuario, pk=pk)
     sus, _ = Suscripcion.objects.get_or_create(usuario=contador)
+    estaba_vigente = sus.vigente
     form = SuscripcionForm(request.POST)
     if form.is_valid():
         sus.activo = form.cleaned_data['activo']
         sus.vence = form.cleaned_data['vence']
         sus.nota = form.cleaned_data['nota']
         sus.save()
+        if sus.vigente and not estaba_vigente:
+            enviar_notificacion_suscripcion(contador, sus, 'activada')
+        elif not sus.vigente and estaba_vigente:
+            enviar_notificacion_suscripcion(contador, sus, 'suspendida')
         messages.success(request, f'Suscripción de {contador.nombre}: {sus.estado}.')
     else:
         messages.error(request, 'Datos de suscripción inválidos.')
@@ -219,13 +229,16 @@ def contador_alternar(request, pk):
     sus, _ = Suscripcion.objects.get_or_create(usuario=contador)
     if sus.vigente:
         sus.activo = False
+        sus.save()
+        enviar_notificacion_suscripcion(contador, sus, 'suspendida')
         messages.warning(request, f'Suscripción de {contador.nombre} suspendida.')
     else:
         sus.activo = True
         if sus.vence and sus.vence < timezone.localdate():
             sus.vence = None
+        sus.save()
+        enviar_notificacion_suscripcion(contador, sus, 'activada')
         messages.success(request, f'Suscripción de {contador.nombre} activada.')
-    sus.save()
     return _volver(request, 'superadmin:contadores')
 
 
@@ -237,10 +250,11 @@ def contador_pago(request, pk):
     form = PagoForm(request.POST)
     if form.is_valid():
         d = form.cleaned_data
-        sus.registrar_pago(
+        pago = sus.registrar_pago(
             d['monto'], d['moneda'], d['dias'], obtener_superadmin(request),
             nota=d.get('nota', ''), referencia=d.get('referencia', ''), metodo=d.get('metodo', 'pago_movil'),
         )
+        enviar_notificacion_suscripcion(contador, sus, 'pago_aprobado', pago=pago)
         messages.success(request, f'Pago registrado. La suscripción de {contador.nombre} vence el {sus.vence:%d/%m/%Y}.')
     else:
         messages.error(request, 'Datos del pago inválidos.')
@@ -306,11 +320,12 @@ def pagos(request):
             d = pago_form.cleaned_data
             contador = d['contador']
             sus, _ = Suscripcion.objects.get_or_create(usuario=contador)
-            sus.registrar_pago(
+            pago = sus.registrar_pago(
                 d['monto'], d['moneda'], d['dias'], obtener_superadmin(request),
                 nota=d.get('nota', ''), referencia=d.get('referencia', ''), metodo=d.get('metodo', 'pago_movil'),
                 plan=d.get('plan'), ciclo=d.get('ciclo', 'mensual'), estado='aprobado',
             )
+            enviar_notificacion_suscripcion(contador, sus, 'pago_aprobado', pago=pago)
             messages.success(request, f'Pago aprobado y registrado para {contador.nombre}. Suscripción vigente hasta {sus.vence:%d/%m/%Y}.')
             return redirect('superadmin:pagos')
         messages.error(request, 'Revise los datos del formulario de registro de pago.')
@@ -358,6 +373,7 @@ def pagos(request):
 def pago_aprobar(request, pk):
     pago = get_object_or_404(Pago, pk=pk)
     pago.aprobar(admin=obtener_superadmin(request))
+    enviar_notificacion_suscripcion(pago.suscripcion.usuario, pago.suscripcion, 'pago_aprobado', pago=pago)
     messages.success(request, f'Pago de {pago.suscripcion.usuario.nombre} aprobado. Suscripción extendida por {pago.dias} días.')
     return _volver(request, 'superadmin:pagos')
 
@@ -368,6 +384,9 @@ def pago_rechazar(request, pk):
     pago = get_object_or_404(Pago, pk=pk)
     motivo = request.POST.get('motivo', '').strip()
     pago.rechazar(admin=obtener_superadmin(request), motivo=motivo)
+    enviar_notificacion_suscripcion(
+        pago.suscripcion.usuario, pago.suscripcion, 'pago_rechazado', pago=pago, motivo=motivo,
+    )
     messages.warning(request, f'Pago de {pago.suscripcion.usuario.nombre} marcado como rechazado.')
     return _volver(request, 'superadmin:pagos')
 
