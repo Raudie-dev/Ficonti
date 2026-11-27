@@ -5,9 +5,10 @@ __pycache__/
 venv/
 staticfiles/
 .bcv_cache.json
+*.sqlite3
+*.sqlite3-*
 .env
 .env.*
-!.env.example
 *.log
 .DS_Store
 Thumbs.db

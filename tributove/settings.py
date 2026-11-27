@@ -10,11 +10,40 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _cargar_env_fallback(ruta_env):
+    """Carga variables de un archivo .env si python-dotenv no está instalado."""
+    if not ruta_env.is_file():
+        return
+    with ruta_env.open(encoding='utf-8') as archivo:
+        for linea in archivo:
+            linea = linea.strip()
+            if not linea or linea.startswith('#'):
+                continue
+            if linea.startswith('export '):
+                linea = linea[7:].strip()
+            if '=' not in linea:
+                continue
+            clave, valor = linea.split('=', 1)
+            clave = clave.strip()
+            valor = valor.strip()
+            if not clave:
+                continue
+            if len(valor) >= 2 and valor[0] == valor[-1] and valor[0] in ("'", '"'):
+                valor = valor[1:-1]
+            else:
+                for idx, ch in enumerate(valor):
+                    if ch == '#' and (idx == 0 or valor[idx - 1].isspace()):
+                        valor = valor[:idx].rstrip()
+                        break
+            os.environ.setdefault(clave, valor)
+
+
 try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / '.env')
 except ImportError:
-    pass
+    _cargar_env_fallback(BASE_DIR / '.env')
 
 
 def env_bool(nombre, defecto=False):
@@ -24,12 +53,17 @@ def env_bool(nombre, defecto=False):
     return valor.strip().lower() in ('1', 'true', 'si', 'sí', 'yes', 'on')
 
 
-# ADVERTENCIA: en producción defina DJANGO_SECRET_KEY y DJANGO_DEBUG=0.
+# Entorno de ejecución: 'development' (desarrollo) o 'production' (producción)
+DJANGO_ENV = os.environ.get('DJANGO_ENV', 'development').strip().lower()
+IS_PRODUCTION = DJANGO_ENV in ('production', 'produccion', 'producción', 'prod')
+
+# ADVERTENCIA: en producción defina DJANGO_SECRET_KEY y DJANGO_ENV=production.
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
     'django-insecure-6a#e6xlrlj)g)@8n(ozv6+q#oj*vkanb^ry01x$b$ekhc@c1qo',
 )
-DEBUG = env_bool('DJANGO_DEBUG', False)
+# En producción DEBUG siempre permanece desactivado.
+DEBUG = False if IS_PRODUCTION else env_bool('DJANGO_DEBUG', False)
 
 DEFAULT_ALLOWED_HOSTS = [
     'localhost',
@@ -162,12 +196,38 @@ WSGI_APPLICATION = 'tributove.wsgi.application'
 # ---------------------------------------------------------------------------
 # Base de datos
 # ---------------------------------------------------------------------------
-_database_url = os.environ.get('DATABASE_URL', '').strip()
-if _database_url:
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.parse(_database_url, conn_max_age=600)
-    }
+# - En desarrollo (DJANGO_ENV=development): usa SQLite local (db.sqlite3).
+# - En producción (DJANGO_ENV=production): usa la base de datos SQL configurada
+#   mediante DB_* (o DATABASE_URL si se define).
+if IS_PRODUCTION:
+    _database_url = os.environ.get('DATABASE_URL', '').strip()
+    if _database_url:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.parse(
+                _database_url,
+                conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '60')),
+                conn_health_checks=True,
+            )
+        }
+    else:
+        _db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.mysql').strip()
+        _db_config = {
+            'ENGINE': _db_engine,
+            'NAME': os.environ.get('DB_NAME', '').strip(),
+            'USER': os.environ.get('DB_USER', '').strip(),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost').strip(),
+            'PORT': os.environ.get('DB_PORT', '3306').strip(),
+            'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', '60')),
+            'CONN_HEALTH_CHECKS': True,
+        }
+        if 'mysql' in _db_engine:
+            _db_config['OPTIONS'] = {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
+        DATABASES = {'default': _db_config}
 else:
     DATABASES = {
         'default': {
